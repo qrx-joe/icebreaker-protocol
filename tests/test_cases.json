@@ -1,0 +1,58 @@
+{
+  "skill_name": "icebreaker-protocol",
+  "version": "1.0.0",
+  "tests": [
+    {
+      "id": 1,
+      "name": "写作场景-完美主义拖延",
+      "input": "我想写一篇小红书笔记但总觉得不够好",
+      "expected": {
+        "should_show_contract": true,
+        "first_step_is_physical": true,
+        "first_step_under_2min": true,
+        "triggered_module": "ignition"
+      }
+    },
+    {
+      "id": 2,
+      "name": "方向迷茫-不知道做什么",
+      "input": "我想学编程但是不知道做什么项目",
+      "expected": {
+        "should_ask_constraint_questions": true,
+        "should_generate_3_options": true,
+        "max_options": 3,
+        "triggered_module": "explorer"
+      }
+    },
+    {
+      "id": 3,
+      "name": "社交焦虑-不敢开口",
+      "input": "我想认识一个同行业的人但不敢开口",
+      "expected": {
+        "should_provide_copy_paste_template": true,
+        "no_user_drafting_required": true,
+        "triggered_module": "social"
+      }
+    },
+    {
+      "id": 4,
+      "name": "求职畏难-自卑",
+      "input": "我在找工作，看到JD就觉得自己不配",
+      "expected": {
+        "should_ask_specific_actions_not_advantages": true,
+        "should_have_atomic_day_steps": true,
+        "triggered_module": "job"
+      }
+    },
+    {
+      "id": 5,
+      "name": "思考过度-逃避行动",
+      "input": "我还没想清楚，让我再想想",
+      "expected": {
+        "should_start_thinking_budget": true,
+        "should_not_extend_deadline": true,
+        "triggered_module": "thinking_budget"
+      }
+    }
+  ]
+}
