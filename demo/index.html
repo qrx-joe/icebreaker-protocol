@@ -23,7 +23,7 @@
     to { opacity: 1; transform: translateY(0); }
   }
   @keyframes slideUp {
-    from { opacity: 0; transform: translateY(30px); }
+    from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
   }
   @keyframes pulse {
@@ -32,45 +32,41 @@
   }
 
   .ice-bg {
-    position: fixed;
-    inset: 0;
+    position: fixed; inset: 0;
     background:
-      radial-gradient(ellipse at 20% 50%, rgba(56, 189, 248, 0.07) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 50%),
-      radial-gradient(ellipse at 50% 80%, rgba(56, 189, 248, 0.03) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: 0;
+      radial-gradient(ellipse at 20% 50%, rgba(56,189,248,0.07) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(99,102,241,0.05) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, rgba(56,189,248,0.03) 0%, transparent 50%);
+    pointer-events: none; z-index: 0;
   }
+
+  /* ==================== 通用页面 ==================== */
+  .page {
+    display: none;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+    z-index: 10;
+  }
+  .page.active { display: flex; }
 
   /* ==================== Landing ==================== */
-  #landing {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
+  #pageLanding {
     align-items: center;
     justify-content: center;
-    z-index: 10;
     padding: 2rem;
-    transition: opacity 0.5s ease, transform 0.5s ease;
+    text-align: center;
   }
-  #landing.hidden {
-    opacity: 0;
-    transform: translateY(-30px);
-    pointer-events: none;
-  }
-
   .tag {
     display: inline-block;
     padding: 0.25rem 0.9rem;
-    background: rgba(56, 189, 248, 0.1);
-    border: 1px solid rgba(56, 189, 248, 0.2);
+    background: rgba(56,189,248,0.1);
+    border: 1px solid rgba(56,189,248,0.2);
     border-radius: 20px;
     font-size: 0.75rem;
     color: #38bdf8;
     margin-bottom: 1.5rem;
   }
-
   .landing-title {
     font-size: 3.2rem;
     font-weight: 800;
@@ -78,7 +74,6 @@
     margin-bottom: 0.8rem;
   }
   .landing-title .ice { color: #38bdf8; }
-
   .landing-sub {
     font-size: 1.15rem;
     color: #666;
@@ -86,7 +81,6 @@
     line-height: 1.7;
     max-width: 400px;
   }
-
   .landing-input-wrap {
     width: 100%;
     max-width: 520px;
@@ -108,9 +102,7 @@
     border-color: rgba(56,189,248,0.5);
     box-shadow: 0 0 0 4px rgba(56,189,248,0.08);
   }
-  .landing-input-wrap input::placeholder {
-    color: #444;
-  }
+  .landing-input-wrap input::placeholder { color: #444; }
   .landing-hint {
     margin-top: 1.2rem;
     font-size: 0.82rem;
@@ -127,350 +119,277 @@
     color: #555;
   }
 
-  /* ==================== Chat 全屏 ==================== */
-  #chatScreen {
-    display: none;
-    flex-direction: column;
-    height: 100%;
-    position: relative;
-    z-index: 10;
-  }
-  #chatScreen.active { display: flex; }
-
-  .chat-header {
+  /* ==================== 进度条（步骤页面共用） ==================== */
+  .step-progress-bar {
     flex-shrink: 0;
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    height: 4px;
+    background: rgba(255,255,255,0.06);
+  }
+  .step-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #38bdf8, #6366f1);
+    transition: width 0.5s ease;
+  }
+
+  /* ==================== Step 页面 ==================== */
+  #pageStep .step-header {
+    flex-shrink: 0;
+    padding: 1.2rem 2rem 0.8rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .step-header-left {
     display: flex;
     align-items: center;
     gap: 0.8rem;
   }
-  .chat-header-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #38bdf8;
-  }
-  .chat-header-sub {
+  .step-badge {
+    padding: 0.25rem 0.7rem;
+    background: rgba(99,102,241,0.12);
+    border: 1px solid rgba(99,102,241,0.25);
+    border-radius: 8px;
     font-size: 0.78rem;
-    color: #555;
+    font-weight: 700;
+    color: #6366f1;
   }
+  .step-title-display {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #ddd;
+  }
+  .step-header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .step-timer {
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: #38bdf8;
+    letter-spacing: 0.02em;
+  }
+  .step-timer.warning { color: #f59e0b; }
+  .step-timer.danger { color: #f87171; animation: pulse 1s infinite; }
 
-  .chat-messages {
+  .step-body {
     flex: 1;
     overflow-y: auto;
-    padding: 1.5rem;
+    padding: 0 2rem 1.5rem 2rem;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    scroll-behavior: smooth;
+    gap: 1.2rem;
+  }
+  .step-instruction {
+    background: rgba(99,102,241,0.05);
+    border: 1px solid rgba(99,102,241,0.15);
+    border-radius: 14px;
+    padding: 1.2rem 1.5rem;
+    font-size: 0.95rem;
+    line-height: 1.8;
+    color: #ccc;
+  }
+  .step-instruction strong { color: #38bdf8; font-weight: 600; }
+
+  .step-workspace {
+    flex: 1;
+    min-height: 200px;
+  }
+  .step-workspace textarea {
+    width: 100%;
+    height: 100%;
+    min-height: 200px;
+    padding: 1.2rem;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    color: #e0e0e0;
+    font-family: inherit;
+    font-size: 0.95rem;
+    line-height: 1.8;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.3s;
+  }
+  .step-workspace textarea:focus {
+    border-color: rgba(56,189,248,0.3);
+  }
+  .step-workspace textarea::placeholder { color: #333; }
+
+  .step-footer {
+    flex-shrink: 0;
+    padding: 0.8rem 2rem 1.2rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    background: rgba(10,10,15,0.95);
+  }
+  .step-footer-left {
+    display: flex;
+    gap: 0.6rem;
+  }
+  .step-footer-right {
+    display: flex;
+    gap: 0.6rem;
   }
 
-  /* ---- 消息气泡 ---- */
-  .msg {
-    max-width: 80%;
-    animation: fadeIn 0.35s ease;
-    word-wrap: break-word;
+  /* ==================== 按钮 ==================== */
+  .btn {
+    padding: 0.7rem 1.4rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
   }
-  .msg.user {
-    align-self: flex-end;
-    padding: 0.8rem 1.1rem;
+  .btn-primary {
     background: linear-gradient(135deg, #38bdf8, #6366f1);
     color: #fff;
-    border-radius: 16px 16px 4px 16px;
-    font-size: 0.95rem;
-    line-height: 1.6;
   }
-  .msg.assistant {
-    align-self: flex-start;
-    padding: 0.8rem 1.1rem;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.07);
-    color: #ddd;
-    border-radius: 16px 16px 16px 4px;
-    font-size: 0.95rem;
-    line-height: 1.6;
+  .btn-primary:hover { box-shadow: 0 4px 16px rgba(56,189,248,0.3); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+  .btn-secondary {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #888;
   }
-  .msg.system {
-    align-self: center;
-    padding: 0.5rem 1rem;
-    background: rgba(56,189,248,0.06);
-    border: 1px solid rgba(56,189,248,0.12);
-    border-radius: 20px;
-    color: #38bdf8;
-    font-size: 0.8rem;
-    text-align: center;
-  }
-  .msg.typing {
-    align-self: flex-start;
-    padding: 0.6rem 1rem;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 16px;
+  .btn-secondary:hover { background: rgba(255,255,255,0.08); color: #bbb; }
+  .btn-ghost {
+    background: transparent;
+    border: none;
     color: #555;
     font-size: 0.85rem;
+    padding: 0.5rem 0.8rem;
   }
+  .btn-ghost:hover { color: #38bdf8; }
 
-  /* ---- 特殊卡片 ---- */
-  .msg.card {
-    max-width: 85%;
-    align-self: flex-start;
-    padding: 0;
-    background: none;
-    border: none;
-    animation: slideUp 0.4s ease;
+  /* ==================== Contract ==================== */
+  #pageContract {
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    text-align: center;
   }
-
-  .card-contract {
-    background: rgba(56, 189, 248, 0.04);
-    border: 1px solid rgba(56, 189, 248, 0.15);
+  .contract-box {
+    background: rgba(56,189,248,0.04);
+    border: 1px solid rgba(56,189,248,0.15);
     border-radius: 16px;
-    padding: 1.5rem;
+    padding: 2rem;
+    text-align: left;
+    max-width: 500px;
+    width: 100%;
+    margin-bottom: 2rem;
   }
-  .card-contract h3 {
-    font-size: 1.1rem;
+  .contract-box h3 {
+    font-size: 1.15rem;
     color: #38bdf8;
-    margin-bottom: 1rem;
+    margin-bottom: 1.2rem;
     font-weight: 700;
+    text-align: center;
   }
-  .card-contract ul {
+  .contract-box ul {
     list-style: none;
     padding: 0;
-    margin-bottom: 1.2rem;
+    margin-bottom: 1.5rem;
   }
-  .card-contract li {
-    padding: 0.35rem 0;
-    font-size: 0.9rem;
+  .contract-box li {
+    padding: 0.4rem 0;
+    font-size: 0.92rem;
     color: #bbb;
     line-height: 1.6;
   }
-  .card-contract li::before {
+  .contract-box li::before {
     content: "\2611 ";
     margin-right: 0.5rem;
     color: #38bdf8;
   }
-  .card-contract .card-forbidden {
+  .contract-box .c-forbidden {
     color: #f87171;
     font-weight: 600;
     margin-top: 0.6rem;
     padding-top: 0.6rem;
     border-top: 1px solid rgba(255,255,255,0.06);
   }
-  .card-contract .card-forbidden::before {
+  .contract-box .c-forbidden::before {
     content: "\2716 ";
     color: #f87171;
     margin-right: 0.5rem;
   }
-  .card-contract-actions {
-    display: flex;
-    gap: 0.6rem;
-  }
-  .card-contract-actions button {
-    flex: 1;
-    padding: 0.7rem;
-    font-size: 0.9rem;
-    font-weight: 600;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    font-family: inherit;
-    transition: all 0.2s;
-  }
-  .card-accept {
-    background: linear-gradient(135deg, #38bdf8, #6366f1);
-    color: #fff;
-  }
-  .card-accept:hover {
-    box-shadow: 0 4px 16px rgba(56,189,248,0.3);
-  }
-  .card-question {
+  .contract-ai-msg {
+    max-width: 500px;
+    width: 100%;
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.2rem;
     background: rgba(255,255,255,0.04);
     border: 1px solid rgba(255,255,255,0.08);
-    color: #aaa;
-  }
-  .card-question:hover {
-    background: rgba(255,255,255,0.08);
-    color: #ddd;
-  }
-
-  .card-instruction {
-    background: rgba(99, 102, 241, 0.06);
-    border: 1.5px solid rgba(99, 102, 241, 0.2);
-    border-radius: 16px;
-    padding: 1.5rem;
-  }
-  .card-instruction .ci-label {
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: #6366f1;
-    font-weight: 700;
-    margin-bottom: 0.8rem;
-  }
-  .card-instruction .ci-text {
-    font-size: 1.05rem;
-    line-height: 1.8;
-    color: #ddd;
-  }
-  .card-instruction .ci-task {
-    margin-top: 1rem;
-    padding-top: 0.8rem;
-    border-top: 1px solid rgba(255,255,255,0.06);
-    font-size: 0.85rem;
-    color: #888;
-  }
-  .card-instruction .ci-task strong {
-    color: #38bdf8;
-  }
-
-  /* ---- Timer ---- */
-  .card-timer {
-    background: rgba(56,189,248,0.03);
-    border: 1px solid rgba(56,189,248,0.12);
-    border-radius: 16px;
-    padding: 1.5rem;
-    text-align: center;
-  }
-  .card-timer .ct-label {
-    font-size: 0.82rem;
-    color: #666;
-    margin-bottom: 0.5rem;
-    animation: pulse 2s infinite;
-  }
-  .card-timer .ct-display {
-    font-size: 4rem;
-    font-weight: 800;
-    font-variant-numeric: tabular-nums;
-    color: #38bdf8;
-    letter-spacing: 0.04em;
-    line-height: 1;
-    margin: 0.5rem 0;
-  }
-  .card-timer .ct-bar {
-    width: 100%;
-    height: 5px;
-    background: rgba(255,255,255,0.08);
-    border-radius: 3px;
-    margin: 0.8rem 0;
-    overflow: hidden;
-  }
-  .card-timer .ct-bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #38bdf8, #6366f1);
-    border-radius: 3px;
-    transition: width 1s linear;
-  }
-  .card-timer-actions {
-    display: flex;
-    gap: 0.6rem;
-    margin-top: 1rem;
-  }
-  .card-timer-actions button {
-    flex: 1;
-    padding: 0.65rem;
-    font-size: 0.88rem;
-    font-weight: 600;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    font-family: inherit;
-    transition: all 0.2s;
-  }
-  .ct-done {
-    background: linear-gradient(135deg, #38bdf8, #6366f1);
-    color: #fff;
-  }
-  .ct-done:hover { box-shadow: 0 4px 16px rgba(56,189,248,0.3); }
-  .ct-skip {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08) !important;
-    color: #888;
-  }
-  .ct-skip:hover { background: rgba(255,255,255,0.08); color: #bbb; }
-
-  /* ---- Done ---- */
-  .card-done {
-    text-align: center;
-    padding: 2rem 1.5rem;
-    background: rgba(52, 211, 153, 0.04);
-    border: 1px solid rgba(52, 211, 153, 0.15);
-    border-radius: 16px;
-  }
-  .card-done .cd-icon {
-    font-size: 2.5rem;
-    margin-bottom: 0.8rem;
-  }
-  .card-done .cd-title {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: #34d399;
-    margin-bottom: 0.5rem;
-  }
-  .card-done .cd-text {
+    border-radius: 14px;
     font-size: 0.92rem;
-    color: #888;
     line-height: 1.7;
-    margin-bottom: 1.2rem;
+    color: #bbb;
+    animation: fadeIn 0.3s ease;
   }
-  .card-done-actions {
-    display: flex;
-    gap: 0.6rem;
-    justify-content: center;
-  }
-  .card-done-actions button {
-    padding: 0.65rem 1.5rem;
-    font-size: 0.88rem;
-    font-weight: 600;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    font-family: inherit;
-    transition: all 0.2s;
-  }
-
-  /* ---- Roadmap ---- */
-  .card-roadmap {
-    background: rgba(99, 102, 241, 0.04);
-    border: 1px solid rgba(99, 102, 241, 0.15);
-    border-radius: 16px;
-    padding: 1.5rem;
-  }
-  .card-roadmap .cr-header {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    margin-bottom: 1.2rem;
-  }
-  .card-roadmap .cr-title {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: #38bdf8;
-  }
-  .card-roadmap .cr-task {
-    font-size: 0.82rem;
-    color: #666;
-    padding: 0.2rem 0.6rem;
-    background: rgba(56,189,248,0.08);
-    border-radius: 8px;
-  }
-  .card-roadmap .cr-steps {
-    list-style: none;
-    padding: 0;
-    margin-bottom: 1.2rem;
-  }
-  .card-roadmap .cr-step {
+  .contract-ai-msg:empty { display: none; }
+  .contract-actions {
     display: flex;
     gap: 0.8rem;
-    padding: 0.6rem 0;
+    max-width: 500px;
+    width: 100%;
+  }
+  .contract-actions .btn { flex: 1; }
+
+  /* ==================== Roadmap ==================== */
+  #pageRoadmap {
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+  .roadmap-card {
+    background: rgba(99,102,241,0.04);
+    border: 1px solid rgba(99,102,241,0.15);
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 550px;
+    width: 100%;
+  }
+  .roadmap-card h3 {
+    font-size: 1.15rem;
+    color: #38bdf8;
+    margin-bottom: 0.3rem;
+    font-weight: 700;
+    text-align: center;
+  }
+  .roadmap-task {
+    text-align: center;
+    font-size: 0.82rem;
+    color: #666;
+    margin-bottom: 1.5rem;
+  }
+  .roadmap-task strong { color: #38bdf8; }
+  .roadmap-steps {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 1.5rem;
+  }
+  .roadmap-step {
+    display: flex;
+    gap: 0.8rem;
+    padding: 0.7rem 0;
     border-bottom: 1px solid rgba(255,255,255,0.04);
     font-size: 0.9rem;
     color: #888;
     line-height: 1.5;
+    align-items: flex-start;
   }
-  .card-roadmap .cr-step:last-child { border-bottom: none; }
-  .card-roadmap .cr-step-num {
+  .roadmap-step:last-child { border-bottom: none; }
+  .roadmap-step-num {
     flex-shrink: 0;
-    width: 1.6rem;
-    height: 1.6rem;
+    width: 1.8rem;
+    height: 1.8rem;
     border-radius: 50%;
     background: rgba(255,255,255,0.06);
     border: 1px solid rgba(255,255,255,0.1);
@@ -481,178 +400,235 @@
     font-weight: 700;
     color: #666;
   }
-  .card-roadmap .cr-step.active .cr-step-num {
-    background: rgba(56,189,248,0.15);
-    border-color: #38bdf8;
-    color: #38bdf8;
+  .roadmap-step-text { flex: 1; }
+  .roadmap-step-time {
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    color: #444;
+    padding-top: 0.2rem;
   }
-  .card-roadmap .cr-step.active {
-    color: #ddd;
-  }
-  .card-roadmap .cr-step.done .cr-step-num {
-    background: rgba(52,211,153,0.15);
-    border-color: #34d399;
-    color: #34d399;
-  }
-  .card-roadmap .cr-step.done {
-    color: #666;
-    text-decoration: line-through;
-    text-decoration-color: rgba(255,255,255,0.1);
-  }
-  .card-roadmap .cr-bar {
-    height: 4px;
-    background: rgba(255,255,255,0.06);
-    border-radius: 2px;
-    margin-bottom: 1rem;
-    overflow: hidden;
-  }
-  .card-roadmap .cr-bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #38bdf8, #6366f1);
-    border-radius: 2px;
-    transition: width 0.5s ease;
-  }
-
-  /* ---- Step ---- */
-  .card-step {
-    background: rgba(99, 102, 241, 0.06);
-    border: 1.5px solid rgba(99, 102, 241, 0.2);
-    border-radius: 16px;
-    padding: 1.5rem;
-  }
-  .card-step .cs-header {
+  .roadmap-actions {
     display: flex;
+    gap: 0.8rem;
+  }
+  .roadmap-actions .btn { flex: 1; }
+  .roadmap-ai-msg {
+    max-width: 550px;
+    width: 100%;
+    margin-bottom: 1.2rem;
+    padding: 1rem 1.2rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: #bbb;
+    animation: fadeIn 0.3s ease;
+  }
+  .roadmap-ai-msg:empty { display: none; }
+
+  /* ==================== Done ==================== */
+  #pageDone {
     align-items: center;
-    gap: 0.6rem;
-    margin-bottom: 0.8rem;
+    justify-content: center;
+    padding: 2rem;
+    text-align: center;
   }
-  .card-step .cs-badge {
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: #6366f1;
-    font-weight: 700;
-    padding: 0.2rem 0.6rem;
-    background: rgba(99,102,241,0.1);
-    border-radius: 6px;
+  .done-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
   }
-  .card-step .cs-progress {
-    font-size: 0.78rem;
-    color: #555;
+  .done-title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #34d399;
+    margin-bottom: 0.6rem;
   }
-  .card-step .cs-text {
-    font-size: 1.05rem;
-    line-height: 1.8;
-    color: #ddd;
-  }
-  .card-step .cs-task {
-    margin-top: 1rem;
-    padding-top: 0.8rem;
-    border-top: 1px solid rgba(255,255,255,0.06);
-    font-size: 0.85rem;
+  .done-sub {
+    font-size: 1rem;
     color: #888;
+    line-height: 1.7;
+    margin-bottom: 2rem;
+    max-width: 400px;
   }
-  .card-step .cs-task strong { color: #38bdf8; }
-  .card-step-actions {
-    display: flex;
-    gap: 0.6rem;
-    margin-top: 1rem;
-  }
-  .card-step-actions button {
-    flex: 1;
-    padding: 0.65rem;
+  .done-summary {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+    padding: 1.5rem;
+    text-align: left;
+    max-width: 500px;
+    width: 100%;
+    margin-bottom: 2rem;
     font-size: 0.88rem;
-    font-weight: 600;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    font-family: inherit;
-    transition: all 0.2s;
-  }
-
-  /* ---- Log ---- */
-  .card-log {
-    background: rgba(255,255,255,0.02);
-    border: 1px dashed rgba(255,255,255,0.08);
-    border-radius: 12px;
-    padding: 1.2rem;
-    font-size: 0.85rem;
-    line-height: 2;
+    line-height: 1.9;
     color: #888;
   }
-  .card-log .cl-title {
+  .done-summary .ds-title {
     color: #38bdf8;
     font-weight: 600;
     margin-bottom: 0.5rem;
   }
-
-  /* ==================== 输入栏 ==================== */
-  .chat-input-bar {
-    flex-shrink: 0;
-    padding: 0.8rem 1.5rem 1.2rem 1.5rem;
-    border-top: 1px solid rgba(255,255,255,0.04);
-    background: rgba(10,10,15,0.95);
+  .done-summary .ds-item {
+    padding: 0.2rem 0;
   }
-  .chat-input-inner {
+  .done-summary .ds-item::before {
+    content: "\2713 ";
+    color: #34d399;
+    margin-right: 0.4rem;
+  }
+  .done-actions {
     display: flex;
-    gap: 0.6rem;
-    max-width: 800px;
-    margin: 0 auto;
+    gap: 0.8rem;
   }
-  .chat-input-inner input {
+  .done-actions .btn { padding: 0.8rem 2rem; }
+  .done-ai-msg {
+    max-width: 500px;
+    width: 100%;
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.2rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    font-size: 0.92rem;
+    line-height: 1.7;
+    color: #bbb;
+    animation: fadeIn 0.3s ease;
+    text-align: left;
+  }
+  .done-ai-msg:empty { display: none; }
+
+  /* ==================== Help Overlay ==================== */
+  #helpOverlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.2s ease;
+  }
+  #helpOverlay.active { display: flex; align-items: center; justify-content: center; }
+
+  .help-panel {
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    background: #111118;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideUp 0.3s ease;
+  }
+  .help-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .help-header h3 {
+    font-size: 1rem;
+    color: #38bdf8;
+    font-weight: 600;
+  }
+  .help-close {
+    background: none;
+    border: none;
+    color: #555;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.3rem;
+  }
+  .help-close:hover { color: #ddd; }
+  .help-messages {
     flex: 1;
-    padding: 0.85rem 1.1rem;
-    font-size: 0.95rem;
+    overflow-y: auto;
+    padding: 1rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    min-height: 200px;
+  }
+  .help-input {
+    padding: 0.8rem 1.5rem 1rem 1.5rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    gap: 0.5rem;
+  }
+  .help-input input {
+    flex: 1;
+    padding: 0.7rem 1rem;
     background: rgba(255,255,255,0.05);
     border: 1px solid rgba(56,189,248,0.2);
-    border-radius: 12px;
+    border-radius: 10px;
     color: #e0e0e0;
     font-family: inherit;
+    font-size: 0.9rem;
     outline: none;
-    transition: border-color 0.3s;
   }
-  .chat-input-inner input:focus {
-    border-color: rgba(56,189,248,0.45);
-  }
-  .chat-input-inner input:disabled { opacity: 0.4; }
-  .chat-input-inner input::placeholder { color: #444; }
-  .chat-input-inner button {
-    padding: 0.85rem 1.4rem;
-    font-size: 0.95rem;
-    font-weight: 600;
+  .help-input input:focus { border-color: rgba(56,189,248,0.45); }
+  .help-input input::placeholder { color: #444; }
+  .help-input button {
+    padding: 0.7rem 1.2rem;
     background: linear-gradient(135deg, #38bdf8, #6366f1);
     color: #fff;
     border: none;
-    border-radius: 12px;
-    cursor: pointer;
+    border-radius: 10px;
     font-family: inherit;
-    transition: all 0.2s;
+    font-weight: 600;
+    cursor: pointer;
   }
-  .chat-input-inner button:hover {
-    box-shadow: 0 4px 16px rgba(56,189,248,0.3);
+
+  /* ---- 消息气泡（帮助面板内） ---- */
+  .bubble {
+    max-width: 90%;
+    padding: 0.6rem 0.9rem;
+    border-radius: 12px;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    word-wrap: break-word;
+    animation: fadeIn 0.25s ease;
   }
-  .chat-input-inner button:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-    box-shadow: none;
+  .bubble.user {
+    align-self: flex-end;
+    background: linear-gradient(135deg, #38bdf8, #6366f1);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+  }
+  .bubble.assistant {
+    align-self: flex-start;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.07);
+    color: #ddd;
+    border-bottom-left-radius: 4px;
+  }
+  .bubble.typing {
+    align-self: flex-start;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    color: #555;
+    font-size: 0.82rem;
   }
 
   .watermark {
     position: fixed;
-    bottom: 0.8rem;
+    bottom: 0.6rem;
     right: 1rem;
-    font-size: 0.7rem;
-    color: rgba(255,255,255,0.1);
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.08);
     z-index: 5;
   }
 
   @media (max-width: 480px) {
     .landing-title { font-size: 2.2rem; }
     .landing-sub { font-size: 1rem; }
-    .chat-messages { padding: 1rem; }
-    .msg { max-width: 90%; }
-    .msg.card { max-width: 95%; }
-    .card-timer .ct-display { font-size: 3rem; }
+    #pageStep .step-header { padding: 1rem 1.2rem 0.6rem 1.2rem; }
+    .step-body { padding: 0 1.2rem 1rem 1.2rem; }
+    .step-footer { padding: 0.6rem 1.2rem 1rem 1.2rem; }
+    .step-timer { font-size: 1.2rem; }
   }
 </style>
 </head>
@@ -661,7 +637,7 @@
 <div class="ice-bg"></div>
 
 <!-- ==================== Landing ==================== -->
-<div id="landing">
+<div class="page active" id="pageLanding">
   <div class="tag">Claude Code Skill</div>
   <h1 class="landing-title"><span class="ice">破冰</span>协议</h1>
   <p class="landing-sub">
@@ -675,18 +651,94 @@
   <p class="landing-hint">按 <kbd>Enter</kbd> 开始</p>
 </div>
 
-<!-- ==================== Chat ==================== -->
-<div id="chatScreen">
-  <div class="chat-header">
-    <div class="chat-header-title">破冰协议</div>
-    <div class="chat-header-sub" id="chatHeaderSub">AI 引导中</div>
+<!-- ==================== Contract ==================== -->
+<div class="page" id="pageContract">
+  <div class="contract-ai-msg" id="contractAiMsg"></div>
+  <div class="contract-box">
+    <h3>破冰契约</h3>
+    <ul>
+      <li>目标：做出一个可以改的雏形，不是完美成品</li>
+      <li>每一步有明确产出，做完手里有一个可以看的东西</li>
+      <li>每一步有时间限制，防止无限准备</li>
+      <li>允许自己不满意——初稿就是用来改的</li>
+      <li class="c-forbidden">唯一不允许：什么都不产出。白纸什么都改不了。</li>
+    </ul>
+    <div class="contract-actions">
+      <button class="btn btn-primary" onclick="acceptContract()">同意，开始</button>
+      <button class="btn btn-secondary" onclick="questionContract()">我有顾虑</button>
+    </div>
   </div>
-  <div class="chat-messages" id="chatMessages"></div>
-  <div class="chat-input-bar">
-    <div class="chat-input-inner">
-      <input type="text" id="chatInput" placeholder="说点什么..."
-        onkeydown="if(event.key==='Enter' && !event.shiftKey) sendChat()">
-      <button id="chatSendBtn" onclick="sendChat()">发送</button>
+</div>
+
+<!-- ==================== Roadmap ==================== -->
+<div class="page" id="pageRoadmap">
+  <div class="roadmap-ai-msg" id="roadmapAiMsg"></div>
+  <div class="roadmap-card">
+    <h3>拆解路线图</h3>
+    <div class="roadmap-task" id="roadmapTask"></div>
+    <div class="roadmap-steps" id="roadmapStepsList"></div>
+    <div class="roadmap-actions">
+      <button class="btn btn-primary" onclick="goToStep(0)">开始第 1 步</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== Step ==================== -->
+<div class="page" id="pageStep">
+  <div class="step-progress-bar">
+    <div class="step-progress-fill" id="stepProgressFill"></div>
+  </div>
+  <div class="step-header">
+    <div class="step-header-left">
+      <span class="step-badge" id="stepBadge">1 / 5</span>
+      <span class="step-title-display" id="stepTitle"></span>
+    </div>
+    <div class="step-header-right">
+      <span class="step-timer" id="stepTimer">15:00</span>
+    </div>
+  </div>
+  <div class="step-body">
+    <div class="step-instruction" id="stepInstruction"></div>
+    <div class="step-workspace">
+      <textarea id="stepTextarea" placeholder="在这里写下你的产出..."></textarea>
+    </div>
+  </div>
+  <div class="step-footer">
+    <div class="step-footer-left">
+      <button class="btn btn-secondary" id="btnPrev" onclick="prevStep()" disabled>上一步</button>
+      <button class="btn btn-secondary" onclick="openHelp()">需要帮助</button>
+    </div>
+    <div class="step-footer-right">
+      <button class="btn btn-primary" onclick="finishStep()">做完了，下一步</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== Done ==================== -->
+<div class="page" id="pageDone">
+  <div class="done-icon">&#187;&#187;&#187;</div>
+  <div class="done-title">雏形完成</div>
+  <div class="done-ai-msg" id="doneAiMsg"></div>
+  <div class="done-sub" id="doneSub">你把一个大任务拆开，一块一块做出了完整的东西。现在你有了一个可以改的初版。</div>
+  <div class="done-summary" id="doneSummary"></div>
+  <div class="done-actions">
+    <button class="btn btn-primary" onclick="sendToAI('帮我看看哪里可以改进')">继续改进</button>
+    <button class="btn btn-secondary" onclick="resetAll()">再来一次</button>
+  </div>
+</div>
+
+<!-- ==================== Help Overlay ==================== -->
+<div id="helpOverlay">
+  <div class="help-panel">
+    <div class="help-header">
+      <h3>向 AI 提问</h3>
+      <button class="help-close" onclick="closeHelp()">&times;</button>
+    </div>
+    <div class="help-messages" id="helpMessages"></div>
+    <div class="help-input">
+      <input type="text" id="helpInput" placeholder="这一步哪里不清楚？"
+        onkeydown="if(event.key==='Enter') sendHelp()">
+      <button onclick="sendHelp()">问</button>
     </div>
   </div>
 </div>
@@ -698,9 +750,22 @@
 let chatHistory = [];
 let currentTask = '';
 let isChatting = false;
-let timerInterval = null;
-let totalSteps = 0;
-let currentStep = 0;
+
+// 步骤数据
+let steps = [];          // [{text, time, title}]
+let stepOutputs = [];    // 每步的用户产出
+let currentStepIdx = 0;
+let stepTimerInterval = null;
+let stepTimeRemaining = 0;
+
+// 帮助面板
+let helpHistory = [];
+
+// ==================== 页面导航 ====================
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
 
 // ==================== Landing ====================
 function startProtocol() {
@@ -712,215 +777,235 @@ function startProtocol() {
     return;
   }
   input.value = '';
-
-  // 切换到聊天界面
-  document.getElementById('landing').classList.add('hidden');
-  const cs = document.getElementById('chatScreen');
-  cs.classList.add('active');
-
-  setTimeout(() => document.getElementById('chatInput').focus(), 300);
-
+  showPage('pageContract');
   sendToAI(message);
 }
 
-// ==================== 消息渲染 ====================
-function scrollChat() {
-  const c = document.getElementById('chatMessages');
-  c.scrollTop = c.scrollHeight;
-}
-
-function addTextMsg(role, content) {
-  const c = document.getElementById('chatMessages');
-  const div = document.createElement('div');
-  div.className = 'msg ' + role;
-  div.textContent = content;
-  c.appendChild(div);
-  scrollChat();
-  return div;
-}
-
-function addCard(html) {
-  const c = document.getElementById('chatMessages');
-  const div = document.createElement('div');
-  div.className = 'msg card';
-  div.innerHTML = html;
-  c.appendChild(div);
-  scrollChat();
-  return div;
-}
-
-// ---- 契约卡片 ----
-function showContract() {
-  const html = `
-    <div class="card-contract">
-      <h3>破冰契约</h3>
-      <ul>
-        <li>目标：从 0 到 1，拿到一个可以改的初稿</li>
-        <li>初稿不需要完美，但要有东西可以迭代</li>
-        <li>第一步足够小，小到不需要勇气就能迈出去</li>
-        <li>允许自己不满意初稿——初稿就是用来改的</li>
-        <li class="card-forbidden">唯一不允许：什么都不产出。白纸什么都改不了。</li>
-      </ul>
-      <div class="card-contract-actions">
-        <button class="card-accept" onclick="acceptContract()">同意，开始</button>
-        <button class="card-question" onclick="questionContract()">我有顾虑</button>
-      </div>
-    </div>`;
-  addCard(html);
-}
-
+// ==================== Contract ====================
 function acceptContract() {
-  sendToAI('我同意契约');
+  sendToAI('我同意契约，请帮我拆解任务');
 }
 
 function questionContract() {
-  const q = '我不想做一份随便应付的东西';
-  document.getElementById('chatInput').value = q;
-  sendChat();
+  sendToAI('我不想做一份随便应付的东西');
 }
 
-// ---- 路线图卡片 ----
-function showRoadmap(taskName, steps, replyText) {
-  totalSteps = steps.length;
-  currentStep = 0;
+// ==================== Roadmap ====================
+function showRoadmap(taskName, stepList) {
+  const taskEl = document.getElementById('roadmapTask');
+  taskEl.innerHTML = taskName ? `<strong>"${taskName}"</strong> 的拆解方案` : '任务拆解方案';
 
-  // 先显示 AI 的拆解说明文字
-  if (replyText) addTextMsg('assistant', replyText);
-  chatHistory.push({ role: 'assistant', content: replyText });
-
-  const stepsHtml = steps.map((s, i) => `
-    <div class="cr-step${i === 0 ? ' active' : ''}" id="roadmapStep${i}">
-      <div class="cr-step-num">${i + 1}</div>
-      <div>${s}</div>
+  const listEl = document.getElementById('roadmapStepsList');
+  listEl.innerHTML = stepList.map((s, i) => `
+    <div class="roadmap-step">
+      <div class="roadmap-step-num">${i + 1}</div>
+      <div class="roadmap-step-text">${s.title || s.text}</div>
+      <div class="roadmap-step-time">${s.time}分钟</div>
     </div>
   `).join('');
 
-  const html = `
-    <div class="card-roadmap">
-      <div class="cr-header">
-        <div class="cr-title">拆解路线图</div>
-        ${taskName ? `<div class="cr-task">${taskName}</div>` : ''}
-      </div>
-      <div class="cr-bar"><div class="cr-bar-fill" id="roadmapBar" style="width:0%"></div></div>
-      <div class="cr-steps">${stepsHtml}</div>
-    </div>`;
-  addCard(html);
+  showPage('pageRoadmap');
 }
 
-function updateRoadmapProgress(step) {
-  for (let i = 0; i < totalSteps; i++) {
-    const el = document.getElementById('roadmapStep' + i);
-    if (!el) continue;
-    el.classList.remove('active', 'done');
-    if (i < step) el.classList.add('done');
-    if (i === step) el.classList.add('active');
+// ==================== Step ====================
+function goToStep(idx) {
+  if (idx < 0 || idx >= steps.length) return;
+
+  // 保存当前步的产出
+  if (currentStepIdx >= 0 && currentStepIdx < steps.length) {
+    const ta = document.getElementById('stepTextarea');
+    if (ta) stepOutputs[currentStepIdx] = ta.value;
   }
-  const bar = document.getElementById('roadmapBar');
-  if (bar) bar.style.width = (step / totalSteps * 100) + '%';
+
+  currentStepIdx = idx;
+  const step = steps[idx];
+
+  // 更新 UI
+  document.getElementById('stepBadge').textContent = `${idx + 1} / ${steps.length}`;
+  document.getElementById('stepTitle').textContent = step.title || `第 ${idx + 1} 步`;
+  document.getElementById('stepInstruction').innerHTML = step.text;
+  document.getElementById('stepTextarea').value = stepOutputs[idx] || '';
+
+  // 进度条
+  const pct = ((idx) / steps.length * 100);
+  document.getElementById('stepProgressFill').style.width = pct + '%';
+
+  // 按钮状态
+  document.getElementById('btnPrev').disabled = (idx === 0);
+
+  // 更新路线图中的当前步高亮
+  document.querySelectorAll('.roadmap-step').forEach((el, i) => {
+    el.style.opacity = i === idx ? '1' : '0.5';
+  });
+
+  showPage('pageStep');
+
+  // 启动倒计时
+  startStepTimer(step.time * 60);
+
+  // 聚焦文本框
+  setTimeout(() => document.getElementById('stepTextarea').focus(), 300);
 }
 
-// ---- 步骤卡片 ----
-function showStep(stepNum, total, replyText, taskName) {
-  currentStep = stepNum;
+function startStepTimer(seconds) {
+  if (stepTimerInterval) clearInterval(stepTimerInterval);
+  stepTimeRemaining = seconds;
+  updateTimerDisplay();
 
-  // 更新路线图进度
-  updateRoadmapProgress(stepNum - 1);
+  stepTimerInterval = setInterval(() => {
+    stepTimeRemaining--;
+    updateTimerDisplay();
 
-  const html = `
-    <div class="card-step">
-      <div class="cs-header">
-        <div class="cs-badge">第 ${stepNum} 步</div>
-        <div class="cs-progress">${stepNum} / ${total}</div>
-      </div>
-      <div class="cs-text">${replyText || '执行当前步骤'}</div>
-      ${taskName ? `<div class="cs-task">任务：<strong>"${taskName}"</strong></div>` : ''}
-      <div class="card-step-actions">
-        <button class="card-accept" onclick="sendToAI('我做完了这一步')">做完了</button>
-        <button class="card-question" onclick="sendToAI('这一步我不太懂，能再说明一下吗？')">需要帮助</button>
-      </div>
-    </div>`;
-  addCard(html);
-}
-
-// ---- 倒计时卡片 ----
-function showTimer(seconds) {
-  const html = `
-    <div class="card-timer" id="timerCard">
-      <div class="ct-label">思考预算倒计时</div>
-      <div class="ct-display" id="timerDisplay">${formatTime(seconds)}</div>
-      <div class="ct-bar"><div class="ct-bar-fill" id="timerBar" style="width:100%"></div></div>
-      <div class="card-timer-actions">
-        <button class="ct-done" onclick="onTimerDone()">我做完了</button>
-        <button class="ct-skip" onclick="onTimerSkip()">跳过</button>
-      </div>
-    </div>`;
-  addCard(html);
-  startTimer(seconds);
-}
-
-// ---- 完成卡片 ----
-function showDone() {
-  // 更新路线图到全部完成
-  if (totalSteps > 0) {
-    for (let i = 0; i < totalSteps; i++) {
-      const el = document.getElementById('roadmapStep' + i);
-      if (el) { el.classList.remove('active'); el.classList.add('done'); }
+    if (stepTimeRemaining === 300) {
+      // 5 分钟提醒
+      document.getElementById('stepTimer').classList.add('warning');
     }
-    const bar = document.getElementById('roadmapBar');
-    if (bar) bar.style.width = '100%';
+
+    if (stepTimeRemaining === 60) {
+      // 1 分钟提醒
+      document.getElementById('stepTimer').classList.remove('warning');
+      document.getElementById('stepTimer').classList.add('danger');
+    }
+
+    if (stepTimeRemaining <= 0) {
+      clearInterval(stepTimerInterval);
+      stepTimerInterval = null;
+      // 时间到，自动进入下一步
+      if (confirm('时间到了。要进入下一步吗？\n点"取消"可以继续当前步骤。')) {
+        finishStep();
+      } else {
+        // 续 5 分钟
+        startStepTimer(300);
+      }
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(stepTimeRemaining / 60);
+  const s = stepTimeRemaining % 60;
+  const display = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+  document.getElementById('stepTimer').textContent = display;
+}
+
+function prevStep() {
+  goToStep(currentStepIdx - 1);
+}
+
+function finishStep() {
+  // 保存当前产出
+  const ta = document.getElementById('stepTextarea');
+  stepOutputs[currentStepIdx] = ta.value;
+
+  if (stepTimerInterval) {
+    clearInterval(stepTimerInterval);
+    stepTimerInterval = null;
   }
 
-  const html = `
-    <div class="card-done">
-      <div class="cd-icon">&#187;&#187;&#187;</div>
-      <div class="cd-title">雏形完成</div>
-      <div class="cd-text">你把一个大任务拆开，一块一块做出了完整的东西。现在你有了一个可以改的初版。</div>
-      <div class="card-done-actions">
-        <button class="card-accept" onclick="sendToAI('帮我看看哪里可以改进')">继续改进</button>
-        <button class="card-question" onclick="showLogCard()">生成日志</button>
-      </div>
-    </div>`;
-  addCard(html);
+  // 重置 timer 样式
+  document.getElementById('stepTimer').classList.remove('warning', 'danger');
+
+  if (currentStepIdx < steps.length - 1) {
+    goToStep(currentStepIdx + 1);
+  } else {
+    // 最后一步，通知 AI 完成
+    sendToAI('所有步骤都完成了，请帮我拼装成型');
+  }
 }
 
-// ---- 日志卡片 ----
-function showLogCard() {
-  const today = new Date().toLocaleDateString('zh-CN');
-  const task = currentTask || '未记录';
-  const html = `
-    <div class="card-log">
-      <div class="cl-title">【破冰日志】</div>
-      日期：${today}<br>
-      本轮任务：${task}<br>
-      完成情况：☐ 仅完成第一步 &nbsp; ☐ 超预期完成<br>
-      明日预设：________________<br>
-      连续破冰：____ 天
-    </div>`;
-  addCard(html);
+// ==================== Done ====================
+function showDone() {
+  // 更新进度条到 100%
+  document.getElementById('stepProgressFill').style.width = '100%';
+
+  // 生成产出汇总
+  const summaryEl = document.getElementById('doneSummary');
+  const items = steps.map((s, i) => {
+    const output = stepOutputs[i] || '';
+    const preview = output.length > 60 ? output.substring(0, 60) + '...' : output;
+    return `<div class="ds-item"><strong>步骤 ${i + 1}</strong>：${s.title || ''}${preview ? ' — ' + preview : ''}</div>`;
+  }).join('');
+  summaryEl.innerHTML = `<div class="ds-title">产出汇总</div>${items}`;
+
+  showPage('pageDone');
 }
 
-// ==================== 聊天核心 ====================
-function sendChat() {
-  const input = document.getElementById('chatInput');
+// ==================== Help Overlay ====================
+function openHelp() {
+  document.getElementById('helpOverlay').classList.add('active');
+  helpHistory = [];
+  document.getElementById('helpMessages').innerHTML =
+    '<div class="bubble assistant">你可以问我任何关于当前步骤的问题。</div>';
+  setTimeout(() => document.getElementById('helpInput').focus(), 200);
+}
+
+function closeHelp() {
+  document.getElementById('helpOverlay').classList.remove('active');
+}
+
+async function sendHelp() {
+  const input = document.getElementById('helpInput');
   const message = input.value.trim();
   if (!message || isChatting) return;
   input.value = '';
-  sendToAI(message);
+
+  const container = document.getElementById('helpMessages');
+  const userDiv = document.createElement('div');
+  userDiv.className = 'bubble user';
+  userDiv.textContent = message;
+  container.appendChild(userDiv);
+
+  helpHistory.push({ role: 'user', content: message });
+
+  const typingDiv = document.createElement('div');
+  typingDiv.className = 'bubble typing';
+  typingDiv.textContent = '思考中...';
+  container.appendChild(typingDiv);
+  container.scrollTop = container.scrollHeight;
+
+  isChatting = true;
+  try {
+    const stepContext = `用户正在执行步骤 ${currentStepIdx + 1}/${steps.length}：${steps[currentStepIdx]?.title || ''}。步骤说明：${steps[currentStepIdx]?.text || ''}。用户的问题：`;
+
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: stepContext + message,
+        history: helpHistory.slice(0, -1)
+      })
+    });
+
+    if (!response.ok) throw new Error('请求失败');
+    const data = await response.json();
+    typingDiv.remove();
+
+    const reply = data.reply.replace(/\[SCREEN:\w+\]\s*$/, '').replace(/\[TASK:.+?\]/g, '').replace(/\[STEPS:\d+\]/g, '').replace(/\[STEP:\d+\/\d+\]/g, '').trim();
+
+    const replyDiv = document.createElement('div');
+    replyDiv.className = 'bubble assistant';
+    replyDiv.textContent = reply;
+    container.appendChild(replyDiv);
+    container.scrollTop = container.scrollHeight;
+
+    helpHistory.push({ role: 'assistant', content: reply });
+  } catch (err) {
+    typingDiv.remove();
+    const errDiv = document.createElement('div');
+    errDiv.className = 'bubble assistant';
+    errDiv.textContent = '出错了，请重试。';
+    container.appendChild(errDiv);
+  } finally {
+    isChatting = false;
+    input.focus();
+  }
 }
 
+// ==================== AI 对话核心 ====================
 async function sendToAI(message) {
-  const input = document.getElementById('chatInput');
-  const btn = document.getElementById('chatSendBtn');
-
-  addTextMsg('user', message);
   chatHistory.push({ role: 'user', content: message });
 
-  input.disabled = true;
-  btn.disabled = true;
   isChatting = true;
-
-  const typingEl = addTextMsg('typing', '思考中...');
-
   try {
     const response = await fetch('/api/chat', {
       method: 'POST',
@@ -932,19 +1017,14 @@ async function sendToAI(message) {
     });
 
     if (!response.ok) throw new Error('请求失败');
-
     const data = await response.json();
-    typingEl.remove();
 
     let reply = data.reply;
-
-    // 提取标记
     const screenMatch = reply.match(/\[SCREEN:(\w+)\]\s*$/);
     const taskMatch = reply.match(/\[TASK:(.+?)\]/);
     const stepsMatch = reply.match(/\[STEPS:(\d+)\]/);
     const stepMatch = reply.match(/\[STEP:(\d+)\/(\d+)\]/);
 
-    // 清理标记
     reply = reply
       .replace(/\[SCREEN:\w+\]\s*$/, '')
       .replace(/\[TASK:.+?\]/g, '')
@@ -954,131 +1034,87 @@ async function sendToAI(message) {
 
     if (taskMatch) currentTask = taskMatch[1].trim();
 
+    chatHistory.push({ role: 'assistant', content: reply });
+
     if (screenMatch) {
       const target = screenMatch[1];
 
       if (target === 'contract') {
-        if (reply) addTextMsg('assistant', reply);
-        chatHistory.push({ role: 'assistant', content: reply });
-        showContract();
+        // 显示 AI 的引导文字
+        document.getElementById('contractAiMsg').textContent = reply;
 
       } else if (target === 'roadmap') {
-        // 从回复中提取步骤列表（匹配 "1. xxx" 或 "1、xxx" 格式）
+        // 显示 AI 的拆解说明
+        document.getElementById('roadmapAiMsg').textContent = reply;
+        // 解析步骤列表
         const stepLines = reply.match(/^\s*\d+[.、]\s*.+$/gm) || [];
-        const steps = stepLines.map(s => s.replace(/^\s*\d+[.、]\s*/, '').trim());
-        // 移除步骤行，保留说明文字
-        const introText = reply.replace(/^\s*\d+[.、]\s*.+$/gm, '').trim();
-        showRoadmap(currentTask, steps, introText || reply);
+        const parsedSteps = stepLines.map(s => {
+          const text = s.replace(/^\s*\d+[.、]\s*/, '').trim();
+          // 尝试提取时间（如 "（15分钟）" 或 "15min"）
+          const timeMatch = text.match(/[（(](\d+)\s*分钟/);
+          const time = timeMatch ? parseInt(timeMatch[1]) : 15;
+          const title = text.replace(/[（(]\d+\s*分钟.*?[）)]/, '').trim();
+          return { text, title, time };
+        });
+
+        if (parsedSteps.length > 0) {
+          steps = parsedSteps;
+          stepOutputs = new Array(steps.length).fill('');
+          showRoadmap(currentTask, steps);
+        }
 
       } else if (target === 'step') {
-        const stepNum = stepMatch ? parseInt(stepMatch[1]) : currentStep + 1;
-        const stepTotal = stepMatch ? parseInt(stepMatch[2]) : totalSteps;
-        showStep(stepNum, stepTotal, reply, currentTask);
-        chatHistory.push({ role: 'assistant', content: reply });
+        const stepNum = stepMatch ? parseInt(stepMatch[1]) : currentStepIdx + 1;
+        const stepTotal = stepMatch ? parseInt(stepMatch[2]) : steps.length;
+
+        // 如果还没有 roadmap 数据，创建默认步骤
+        if (steps.length === 0) {
+          steps = [{ text: reply, title: `第 1 步`, time: 15 }];
+          stepOutputs = [''];
+          currentStepIdx = 0;
+        } else if (stepNum <= steps.length) {
+          steps[stepNum - 1].text = reply;
+          if (!steps[stepNum - 1].title) steps[stepNum - 1].title = `第 ${stepNum} 步`;
+        }
+
+        goToStep(stepNum - 1);
 
       } else if (target === 'done') {
-        if (reply) addTextMsg('assistant', reply);
-        chatHistory.push({ role: 'assistant', content: reply });
+        document.getElementById('doneAiMsg').textContent = reply;
         showDone();
-      }
-    } else {
-      if (reply) {
-        addTextMsg('assistant', reply);
-        chatHistory.push({ role: 'assistant', content: reply });
       }
     }
 
   } catch (err) {
-    typingEl.remove();
-    addTextMsg('system', '出错了，请重试。(' + err.message + ')');
+    chatHistory.pop(); // 移除失败的消息
+    alert('出错了：' + err.message);
   } finally {
-    input.disabled = false;
-    btn.disabled = false;
     isChatting = false;
-    input.focus();
   }
 }
 
-// ==================== 倒计时 ====================
-function startTimer(seconds) {
-  let remaining = seconds;
-  const display = document.getElementById('timerDisplay');
-  const bar = document.getElementById('timerBar');
-  if (!display || !bar) return;
+// ==================== 重置 ====================
+function resetAll() {
+  chatHistory = [];
+  currentTask = '';
+  steps = [];
+  stepOutputs = [];
+  currentStepIdx = 0;
+  helpHistory = [];
+  if (stepTimerInterval) clearInterval(stepTimerInterval);
 
-  display.textContent = formatTime(remaining);
-  bar.style.width = '100%';
+  document.getElementById('landingInput').value = '';
+  document.getElementById('landingInput').style.borderColor = 'rgba(56,189,248,0.25)';
+  document.getElementById('landingInput').setAttribute('placeholder', '比如：我想写一篇博客但不知道怎么开头...');
 
-  timerInterval = setInterval(() => {
-    remaining--;
-    display.textContent = formatTime(remaining);
-    bar.style.width = (remaining / seconds * 100) + '%';
-
-    if (remaining <= 5) {
-      display.style.color = '#f87171';
-      playTick();
-    }
-
-    if (remaining <= 0) {
-      clearInterval(timerInterval);
-      timerInterval = null;
-      display.textContent = "00:00";
-      display.style.color = '#38bdf8';
-      playBeep();
-      setTimeout(() => sendToAI('倒计时结束了'), 1200);
-    }
-  }, 1000);
+  showPage('pageLanding');
+  setTimeout(() => document.getElementById('landingInput').focus(), 300);
 }
 
-function onTimerDone() {
-  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-  sendToAI('我做完了');
-}
-
-function onTimerSkip() {
-  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-  sendToAI('我跳过了倒计时');
-}
-
-function formatTime(s) {
-  const m = Math.floor(s / 60);
-  const sec = s % 60;
-  return String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
-}
-
-// ==================== 音效 ====================
-function playBeep() {
-  const ctx = new (window.AudioContext || window.webkitAudioContext)();
-  function beep(freq, start, dur) {
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.value = freq;
-    osc.type = 'sine';
-    gain.gain.setValueAtTime(0.4, ctx.currentTime + start);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + start + dur);
-    osc.start(ctx.currentTime + start);
-    osc.stop(ctx.currentTime + start + dur);
-  }
-  beep(880, 0, 0.15);
-  beep(880, 0.25, 0.15);
-  beep(1100, 0.5, 0.3);
-}
-
-function playTick() {
-  const ctx = new (window.AudioContext || window.webkitAudioContext)();
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-  osc.frequency.value = 600;
-  osc.type = 'sine';
-  gain.gain.setValueAtTime(0.15, ctx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
-  osc.start();
-  osc.stop(ctx.currentTime + 0.08);
-}
+// ==================== 初始化 ====================
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('landingInput').focus();
+});
 </script>
 </body>
 </html>
