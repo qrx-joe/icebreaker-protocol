@@ -24,10 +24,13 @@
     align-items: center;
     justify-content: center;
     padding: 2rem;
+    padding-bottom: 220px;
     text-align: center;
     animation: fadeIn 0.6s ease;
   }
   .screen.active { display: flex; }
+  /* Landing 不需要给 chat 留空间 */
+  #screen0.active { padding-bottom: 2rem; }
 
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
@@ -150,36 +153,6 @@
     color: #f87171;
   }
 
-  .scenario-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin: 1.5rem 0;
-  }
-  .scenario-card {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 12px;
-    padding: 1.5rem 1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-  .scenario-card:hover {
-    background: rgba(56, 189, 248, 0.08);
-    border-color: rgba(56, 189, 248, 0.3);
-    transform: translateY(-2px);
-  }
-  .scenario-card .icon { font-size: 2rem; margin-bottom: 0.5rem; }
-  .scenario-card .label { font-weight: 600; font-size: 0.95rem; }
-  .scenario-card .desc { font-size: 0.8rem; color: #888; margin-top: 0.3rem; }
-  .scenario-card.lost {
-    border-color: rgba(245, 158, 11, 0.2);
-  }
-  .scenario-card.lost:hover {
-    background: rgba(245, 158, 11, 0.08);
-    border-color: rgba(245, 158, 11, 0.4);
-  }
-
   .instruction-box {
     background: rgba(99, 102, 241, 0.08);
     border: 2px solid rgba(99, 102, 241, 0.3);
@@ -197,140 +170,6 @@
     margin-bottom: 0.8rem;
     font-weight: 600;
   }
-
-  .shame-grid {
-    display: grid;
-    gap: 0.8rem;
-    margin: 1.5rem 0;
-    text-align: left;
-  }
-  .shame-item {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 12px;
-    padding: 1.2rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-  .shame-item:hover {
-    background: rgba(56, 189, 248, 0.06);
-    border-color: rgba(56, 189, 248, 0.2);
-  }
-  .shame-item .user-says {
-    color: #888;
-    font-size: 0.85rem;
-    margin-bottom: 0.4rem;
-  }
-  .shame-item .response {
-    color: #e0e0e0;
-    font-size: 0.95rem;
-    line-height: 1.5;
-  }
-  .shame-item.expanded {
-    background: rgba(56, 189, 248, 0.08);
-    border-color: rgba(56, 189, 248, 0.3);
-  }
-
-  .explorer-question {
-    margin: 1.5rem 0;
-    text-align: left;
-  }
-  .explorer-question .q-label {
-    color: #38bdf8;
-    font-size: 0.85rem;
-    font-weight: 600;
-    margin-bottom: 0.8rem;
-  }
-  .explorer-question .q-options {
-    display: flex;
-    gap: 0.8rem;
-  }
-  .explorer-question .q-options button {
-    flex: 1;
-    padding: 0.8rem;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 10px;
-    color: #e0e0e0;
-    font-family: inherit;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-  .explorer-question .q-options button:hover {
-    background: rgba(56, 189, 248, 0.1);
-    border-color: rgba(56, 189, 248, 0.3);
-  }
-  .explorer-question .q-options button.selected {
-    background: rgba(56, 189, 248, 0.15);
-    border-color: #38bdf8;
-  }
-
-  .candidate-card {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 12px;
-    padding: 1.2rem;
-    margin: 0.6rem 0;
-    text-align: left;
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-  .candidate-card:hover {
-    background: rgba(56, 189, 248, 0.06);
-    border-color: rgba(56, 189, 248, 0.3);
-    transform: translateX(4px);
-  }
-  .candidate-card .c-label {
-    font-weight: 600;
-    font-size: 0.9rem;
-    margin-bottom: 0.3rem;
-  }
-  .candidate-card .c-desc {
-    color: #888;
-    font-size: 0.85rem;
-    line-height: 1.5;
-  }
-  .candidate-card.a .c-label { color: #34d399; }
-  .candidate-card.b .c-label { color: #38bdf8; }
-  .candidate-card.c .c-label { color: #f472b6; }
-
-  .template-box {
-    background: rgba(244, 114, 182, 0.05);
-    border: 1px solid rgba(244, 114, 182, 0.2);
-    border-radius: 12px;
-    padding: 1.2rem;
-    margin: 0.6rem 0;
-    text-align: left;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-  }
-  .template-box:hover {
-    background: rgba(244, 114, 182, 0.1);
-    border-color: rgba(244, 114, 182, 0.4);
-  }
-  .template-box .t-label {
-    color: #f472b6;
-    font-size: 0.8rem;
-    font-weight: 600;
-    margin-bottom: 0.4rem;
-  }
-  .template-box .t-text {
-    color: #e0e0e0;
-    font-size: 0.95rem;
-    line-height: 1.5;
-  }
-  .template-box .t-copied {
-    position: absolute;
-    top: 0.8rem;
-    right: 0.8rem;
-    color: #34d399;
-    font-size: 0.75rem;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-  .template-box.copied .t-copied { opacity: 1; }
 
   .timer-display {
     font-size: 5rem;
@@ -366,25 +205,6 @@
     animation: crack 0.6s ease;
   }
 
-  .step-indicator {
-    position: fixed;
-    top: 2rem;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 0.5rem;
-    z-index: 10;
-  }
-  .step-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.15);
-    transition: all 0.3s ease;
-  }
-  .step-dot.active { background: #38bdf8; transform: scale(1.3); }
-  .step-dot.done { background: #6366f1; }
-
   .tag {
     display: inline-block;
     padding: 0.2rem 0.8rem;
@@ -399,93 +219,70 @@
   .watermark {
     position: fixed;
     bottom: 1.5rem;
-    left: 50%;
-    transform: translateX(-50%);
+    right: 1.5rem;
     font-size: 0.75rem;
     color: rgba(255,255,255,0.15);
-    z-index: 10;
+    z-index: 5;
   }
 
-  .log-box {
-    background: rgba(255,255,255,0.03);
-    border: 1px dashed rgba(255,255,255,0.1);
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin: 1rem 0;
-    text-align: left;
-    font-size: 0.9rem;
-    line-height: 2;
-    color: #aaa;
-  }
-  .log-box .log-title {
-    color: #38bdf8;
-    font-weight: 600;
-    margin-bottom: 0.8rem;
-  }
-
-  .exception-box {
-    background: rgba(248, 113, 113, 0.05);
-    border: 1px solid rgba(248, 113, 113, 0.2);
-    border-radius: 16px;
-    padding: 2rem;
-    margin: 1.5rem 0;
-  }
-  .exception-box .exc-title {
-    color: #f87171;
-    font-weight: 600;
-    margin-bottom: 1rem;
-  }
-  .exception-box .exc-text {
-    color: #ccc;
-    line-height: 1.8;
-    font-size: 1.05rem;
-  }
-
-  .note {
-    color: #555;
-    font-size: 0.8rem;
+  /* ==================== Landing 输入区 ==================== */
+  .landing-input-area {
+    width: 100%;
+    max-width: 500px;
     margin-top: 1rem;
   }
+  .landing-input-area input {
+    width: 100%;
+    padding: 1rem 1.2rem;
+    font-size: 1.1rem;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(56,189,248,0.3);
+    border-radius: 12px;
+    color: #e0e0e0;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.3s;
+    text-align: center;
+  }
+  .landing-input-area input:focus {
+    border-color: rgba(56,189,248,0.6);
+  }
+  .landing-input-area input::placeholder {
+    color: #555;
+  }
 
-  /* ==================== 聊天界面 ==================== */
-  .chat-container {
+  /* ==================== 全局聊天栏 ==================== */
+  #globalChat {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    background: linear-gradient(to top, #0a0a0f 80%, transparent);
+    padding: 0.5rem 1rem 1.2rem 1rem;
+  }
+  #globalChat.visible { display: block; }
+
+  #chatMessages {
+    max-height: 35vh;
+    overflow-y: auto;
+    padding: 0.5rem 0;
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    gap: 0.6rem;
     max-width: 700px;
     margin: 0 auto;
-    padding: 1rem;
   }
-  .chat-header {
-    text-align: center;
-    padding: 1rem 0;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    flex-shrink: 0;
-  }
-  .chat-header h2 {
-    font-size: 1.3rem;
-    color: #38bdf8;
-    margin-bottom: 0.3rem;
-  }
-  .chat-header p {
-    font-size: 0.8rem;
-    color: #666;
-  }
-  .chat-messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 1rem 0;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
+
   .msg {
     max-width: 85%;
-    padding: 0.9rem 1.2rem;
-    border-radius: 16px;
-    font-size: 0.95rem;
-    line-height: 1.7;
+    padding: 0.7rem 1rem;
+    border-radius: 14px;
+    font-size: 0.92rem;
+    line-height: 1.65;
     animation: fadeIn 0.3s ease;
+    word-wrap: break-word;
   }
   .msg.user {
     align-self: flex-end;
@@ -505,7 +302,7 @@
     background: rgba(56, 189, 248, 0.08);
     border: 1px solid rgba(56, 189, 248, 0.15);
     color: #38bdf8;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     text-align: center;
     max-width: 90%;
   }
@@ -516,17 +313,17 @@
     color: #888;
     font-size: 0.85rem;
   }
-  .chat-input-area {
-    flex-shrink: 0;
-    padding: 1rem 0;
-    border-top: 1px solid rgba(255,255,255,0.06);
+
+  .chat-input-bar {
     display: flex;
-    gap: 0.8rem;
+    gap: 0.6rem;
+    max-width: 700px;
+    margin: 0.4rem auto 0 auto;
   }
-  .chat-input-area input {
+  .chat-input-bar input {
     flex: 1;
-    padding: 0.9rem 1.2rem;
-    font-size: 1rem;
+    padding: 0.8rem 1rem;
+    font-size: 0.95rem;
     background: rgba(255,255,255,0.06);
     border: 1px solid rgba(56,189,248,0.3);
     border-radius: 12px;
@@ -535,15 +332,15 @@
     outline: none;
     transition: border-color 0.3s;
   }
-  .chat-input-area input:focus {
+  .chat-input-bar input:focus {
     border-color: rgba(56,189,248,0.6);
   }
-  .chat-input-area input:disabled {
+  .chat-input-bar input:disabled {
     opacity: 0.5;
   }
-  .chat-input-area button {
-    padding: 0.9rem 1.5rem;
-    font-size: 1rem;
+  .chat-input-bar button {
+    padding: 0.8rem 1.3rem;
+    font-size: 0.95rem;
     font-weight: 600;
     background: linear-gradient(135deg, #38bdf8, #6366f1);
     color: #fff;
@@ -553,57 +350,51 @@
     transition: all 0.3s;
     font-family: inherit;
   }
-  .chat-input-area button:hover {
+  .chat-input-bar button:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 20px rgba(56, 189, 248, 0.3);
   }
-  .chat-input-area button:disabled {
+  .chat-input-bar button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
   }
-  .chat-footer {
-    flex-shrink: 0;
-    text-align: center;
-    padding: 0.5rem 0;
+
+  .log-box {
+    background: rgba(255,255,255,0.03);
+    border: 1px dashed rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    text-align: left;
+    font-size: 0.9rem;
+    line-height: 2;
+    color: #aaa;
   }
-  .chat-footer button {
-    background: transparent;
-    border: 1px solid rgba(255,255,255,0.1);
-    color: #666;
-    padding: 0.4rem 1rem;
-    border-radius: 8px;
-    font-size: 0.8rem;
-    cursor: pointer;
-    font-family: inherit;
-    transition: all 0.3s;
-  }
-  .chat-footer button:hover {
+  .log-box .log-title {
     color: #38bdf8;
-    border-color: rgba(56,189,248,0.3);
+    font-weight: 600;
+    margin-bottom: 0.8rem;
+  }
+
+  .note {
+    color: #555;
+    font-size: 0.8rem;
+    margin-top: 1rem;
   }
 
   @media (max-width: 480px) {
-    .scenario-grid { grid-template-columns: 1fr; }
     h1 { font-size: 1.8rem; }
     .timer-display { font-size: 3.5rem; }
+    .screen { padding-bottom: 200px; }
+    #screen0.active { padding-bottom: 2rem; }
   }
 </style>
 </head>
 <body>
 
 <div class="ice-bg"></div>
-
-<div class="step-indicator" id="stepIndicator">
-  <div class="step-dot" data-step="0"></div>
-  <div class="step-dot" data-step="1"></div>
-  <div class="step-dot" data-step="2"></div>
-  <div class="step-dot" data-step="2b"></div>
-  <div class="step-dot" data-step="3"></div>
-  <div class="step-dot" data-step="4"></div>
-  <div class="step-dot" data-step="5"></div>
-</div>
 
 <!-- ==================== SCREEN 0: Landing ==================== -->
 <div class="screen active" id="screen0">
@@ -614,238 +405,49 @@
       完美主义者的启动协议。<br>
       专门解决"想太多但做不出来"的问题。
     </p>
-    <p style="color:#666; font-size:0.85rem; margin-bottom:2rem;">
+    <p style="color:#666; font-size:0.85rem; margin-bottom:1.5rem;">
       你不是懒。你只是启动阈值太高了。
     </p>
-    <button class="btn btn-primary" onclick="goTo(1)">开始破冰</button>
-    <div style="margin-top:1rem;">
-      <button class="btn btn-secondary" onclick="startChat()">自由对话（接入 AI）</button>
+    <div class="landing-input-area">
+      <input type="text" id="landingInput" placeholder="你现在卡在哪了？随便说一句..."
+        onkeydown="if(event.key==='Enter') startProtocol()">
     </div>
+    <p class="note" style="margin-top:1rem;">AI 会引导你走完整个破冰流程</p>
   </div>
 </div>
 
-<!-- ==================== SCREEN chat: 自由对话 ==================== -->
-<div class="screen" id="screenchat">
-  <div class="chat-container">
-    <div class="chat-header">
-      <h2>破冰协议 · AI 引导</h2>
-      <p>告诉我你现在卡在哪了，我来帮你。</p>
-    </div>
-    <div class="chat-messages" id="chatMessages">
-      <div class="msg system">你随时可以开始说话。不知道说什么？试试"我不知道要做什么"。</div>
-    </div>
-    <div class="chat-input-area">
-      <input type="text" id="chatInput" placeholder="随便说点什么..."
-        onkeydown="if(event.key==='Enter' && !event.shiftKey) sendChat()">
-      <button id="chatSendBtn" onclick="sendChat()">发送</button>
-    </div>
-    <div class="chat-footer">
-      <button onclick="goTo(0)">← 返回首页</button>
-    </div>
-  </div>
-</div>
-
-<!-- ==================== SCREEN 1: Permission to Suck ==================== -->
+<!-- ==================== SCREEN 1: 契约 ==================== -->
 <div class="screen" id="screen1">
   <div class="content">
-    <h1 style="font-size:1.8rem;">第一步：预授权糟糕</h1>
-    <p class="subtitle">先给自己一张"允许搞砸"的许可证。</p>
+    <h1 style="font-size:1.8rem;">破冰契约</h1>
+    <p class="subtitle">在开始之前，先给自己一张"允许搞砸"的许可证。</p>
     <div class="contract-box">
-      <h2>破冰契约</h2>
+      <h2>本次约定</h2>
       <ul>
-        <li>本次输出质量目标：30 分（满分 100）</li>
-        <li>允许错别字、语法错误、语句不通</li>
-        <li>允许只完成计划的一半</li>
-        <li>允许完成后自己看了不满意</li>
-        <li>允许给别人看会觉得丢脸（本次不给别人看）</li>
-        <li class="forbidden">唯一不允许：什么都不产出。</li>
+        <li>目标：从 0 到 1，拿到一个可以改的初稿</li>
+        <li>初稿不需要完美，但要有东西可以迭代</li>
+        <li>第一步足够小，小到不需要勇气就能迈出去</li>
+        <li>允许自己不满意初稿——初稿就是用来改的</li>
+        <li class="forbidden">唯一不允许：什么都不产出。白纸什么都改不了。</li>
       </ul>
     </div>
-    <button class="btn btn-primary" onclick="goTo(2)">同意，继续</button>
-    <div style="margin-top:1rem;">
-      <button class="btn btn-ghost" onclick="showContractRebuttal()">
-        但我不想做一份 30 分的东西 →
-      </button>
-    </div>
-    <div id="contractRebuttal" style="display:none; margin-top:1rem; padding:1.2rem; background:rgba(56,189,248,0.06); border:1px solid rgba(56,189,248,0.2); border-radius:12px; text-align:left; font-size:0.95rem; line-height:1.7; color:#ccc;">
-      "30 分是这一轮的目标。第 1 版 30 分，第 2 版 50 分，第 3 版 70 分。你试图在第 1 版就交付第 3 版的质量，这就是你卡住的原因。"
-      <div style="margin-top:0.8rem;">
-        <button class="btn btn-ghost" onclick="goTo('shame')">我还是焦虑 → 羞耻感重构</button>
-      </div>
-    </div>
-    <div style="margin-top:0.5rem;">
-      <button class="btn btn-ghost" onclick="goTo('shame')">
-        但我觉得我不行 / 怕做得不好 →
-      </button>
-    </div>
+    <p style="color:#666; font-size:0.85rem; margin-top:0.5rem;">
+      在下方输入"好"或"同意"继续，或者说出你的顾虑
+    </p>
   </div>
 </div>
 
-<!-- ==================== SCREEN shame: 羞耻感重构 ==================== -->
-<div class="screen" id="screenshame">
-  <div class="content">
-    <div class="tag">羞耻感重构</div>
-    <h1 style="font-size:1.6rem;">你不是一个人</h1>
-    <p class="subtitle">点击下面任意一条，看看协议怎么回应。</p>
-    <div class="shame-grid" id="shameGrid"></div>
-    <button class="btn btn-secondary" onclick="goTo(1)">回到契约</button>
-  </div>
-</div>
-
-<!-- ==================== SCREEN 2: 场景选择 ==================== -->
+<!-- ==================== SCREEN 2: 拆解 + 倒计时 ==================== -->
 <div class="screen" id="screen2">
   <div class="content">
-    <h1 style="font-size:1.8rem;">你卡在哪里了？</h1>
-    <p class="subtitle">选一个你现在的状态。</p>
-    <div class="scenario-grid">
-      <div class="scenario-card" onclick="selectScenario('write')">
-        <div class="icon">&#9998;</div>
-        <div class="label">想写东西</div>
-        <div class="desc">笔记/文章/文案，但不知道写什么</div>
-      </div>
-      <div class="scenario-card" onclick="selectScenario('code')">
-        <div class="icon">&lt;/&gt;</div>
-        <div class="label">想做项目</div>
-        <div class="desc">编程/开发，但不知道从哪开始</div>
-      </div>
-      <div class="scenario-card" onclick="selectScenario('social')">
-        <div class="icon">:)</div>
-        <div class="label">社交恐惧</div>
-        <div class="desc">想联系某人，但不敢开口</div>
-      </div>
-      <div class="scenario-card" onclick="selectScenario('job')">
-        <div class="icon">RESUME</div>
-        <div class="label">求职畏难</div>
-        <div class="desc">想投简历，但觉得自己不行</div>
-      </div>
-      <div class="scenario-card lost" onclick="startExplorer()" style="grid-column: 1 / -1;">
-        <div class="icon">&#128529;</div>
-        <div class="label">方向迷茫</div>
-        <div class="desc">完全不知道该做什么项目/选题/方向</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ==================== SCREEN explorer: 方向探索 ==================== -->
-<div class="screen" id="screenexplorer">
-  <div class="content">
-    <div class="tag">方向探索</div>
-    <h1 style="font-size:1.6rem;">快速收敛（3个问题）</h1>
-    <p class="subtitle">每个问题只允许二选一。</p>
-
-    <div class="explorer-question">
-      <div class="q-label">1. 时间</div>
-      <div class="q-options">
-        <button id="q1a" onclick="setExplorerAnswer(1, 'full')">有一整天</button>
-        <button id="q1b" onclick="setExplorerAnswer(1, 'short')">只有 2 小时</button>
-      </div>
-    </div>
-
-    <div class="explorer-question">
-      <div class="q-label">2. 能量</div>
-      <div class="q-options">
-        <button id="q2a" onclick="setExplorerAnswer(2, 'high')">高能量（能思考复杂问题）</button>
-        <button id="q2b" onclick="setExplorerAnswer(2, 'low')">低能量（只想做点简单的）</button>
-      </div>
-    </div>
-
-    <div class="explorer-question">
-      <div class="q-label">3. 目的</div>
-      <div class="q-options">
-        <button id="q3a" onclick="setExplorerAnswer(3, 'learn')">学点新东西</button>
-        <button id="q3b" onclick="setExplorerAnswer(3, 'output')">产出看得见的成果</button>
-      </div>
-    </div>
-
-    <div style="margin-top:2rem;">
-      <button class="btn btn-primary" onclick="generateCandidates()">生成 3 个候选方向</button>
-    </div>
-  </div>
-</div>
-
-<!-- ==================== SCREEN candidates: 3个候选 ==================== -->
-<div class="screen" id="screencandidates">
-  <div class="content">
-    <div class="tag">方向探索</div>
-    <h1 style="font-size:1.6rem;">恰好 3 个</h1>
-    <p class="subtitle">禁止给超过 3 个选项（否则 INTP 会继续发散）。</p>
-    <div id="candidatesList"></div>
-    <div style="margin-top:1.5rem;">
-      <button class="btn btn-secondary" onclick="useCandidate('A')">都不选，默认 A</button>
-    </div>
-  </div>
-</div>
-
-<!-- ==================== SCREEN 2b: Input Task ==================== -->
-<div class="screen" id="screen2b">
-  <div class="content">
-    <div class="tag" id="scenarioTag" style="margin-bottom:0.5rem;">写东西</div>
-    <h1 style="font-size:1.8rem;" id="scenarioTitle">说说看，你想做什么？</h1>
-    <p class="subtitle" id="scenarioDesc">不用想措辞，脑子里冒出来的第一句话就行。</p>
-    <div style="position:relative; width:100%;">
-      <input type="text" id="taskInput" placeholder="比如：想写一个小红书笔记但是不知道写什么"
-        style="width:100%; padding:1rem 3rem 1rem 1rem; font-size:1.1rem; background:rgba(255,255,255,0.06);
-        border:1px solid rgba(56,189,248,0.3); border-radius:12px; color:#e0e0e0;
-        font-family:inherit; outline:none; margin:1rem 0;"
-        onfocus="this.style.borderColor='rgba(56,189,248,0.6)'"
-        onblur="this.style.borderColor='rgba(56,189,248,0.3)'"
-        onkeydown="if(event.key==='Enter')generateBreakdown()">
-      <button id="voiceBtn" class="btn btn-ghost" onclick="toggleVoiceInput()"
-        style="position:absolute; right:0.5rem; top:50%; transform:translateY(-50%); font-size:1.3rem; padding:0.3rem 0.6rem; display:none;"
-        title="语音输入">&#127908;</button>
-    </div>
-    <div id="voiceStatus" style="display:none; color:#f87171; font-size:0.85rem; margin:-0.5rem 0 0.8rem 0; animation:pulse 1s infinite;">
-      &#127908; 正在听你说...
-    </div>
-    <button class="btn btn-primary" onclick="generateBreakdown()">好，下一步</button>
-  </div>
-</div>
-
-<!-- ==================== SCREEN social: 社交模板 ==================== -->
-<div class="screen" id="screensocial">
-  <div class="content">
-    <div class="tag" style="color:#f472b6; border-color:rgba(244,114,182,0.3);">社交破冰</div>
-    <h1 style="font-size:1.6rem;">复制即用的模板</h1>
-    <p class="subtitle">不需要你自己措辞。点击复制，然后直接粘贴发送。</p>
-    <div class="template-box" onclick="copyTemplate(this, 0)">
-      <div class="t-copied">已复制 ✓</div>
-      <div class="t-label">认识同行</div>
-      <div class="t-text">hi，看到你在做 XX，我也在做相关方向，方便加个微信交流吗？</div>
-    </div>
-    <div class="template-box" onclick="copyTemplate(this, 1)">
-      <div class="t-copied">已复制 ✓</div>
-      <div class="t-label">请教问题</div>
-      <div class="t-text">hi，有个问题想请教，大概占用 3 分钟，现在方便吗？</div>
-    </div>
-    <div class="template-box" onclick="copyTemplate(this, 2)">
-      <div class="t-copied">已复制 ✓</div>
-      <div class="t-label">重新链接</div>
-      <div class="t-text">好久不见，刚看到 XX，想起你，最近怎么样？</div>
-    </div>
-    <div class="template-box" onclick="copyTemplate(this, 3)">
-      <div class="t-copied">已复制 ✓</div>
-      <div class="t-label">找工作内推</div>
-      <div class="t-text">hi，看到贵司在招 XX 岗位，想了解一下情况，方便聊 5 分钟吗？</div>
-    </div>
-    <p class="note">评分标准：只看你发没发，不看对方回不回。</p>
-    <div style="margin-top:1.5rem;">
-      <button class="btn btn-primary" onclick="goToJobFromSocial()">我发出去了 →</button>
-    </div>
-  </div>
-</div>
-
-<!-- ==================== SCREEN 3: Atomic Decomposition + Timer ==================== -->
-<div class="screen" id="screen3">
-  <div class="content">
-    <p class="subtitle" id="taskEcho"></p>
+    <p class="subtitle" id="taskEcho" style="margin-bottom:0.5rem;"></p>
     <div class="instruction-box">
       <div class="step-label">先做这一件小事就好</div>
-      <div id="instructionText">加载中...</div>
+      <div id="instructionText">等待 AI 生成拆解...</div>
     </div>
     <div style="margin: 0.5rem 0;">
-      <button class="btn btn-secondary" id="btn30s" onclick="setTimerDuration(30)" style="padding: 0.4rem 1rem; font-size: 0.85rem; margin-right: 0.5rem;">30秒（快速决策）</button>
-      <button class="btn btn-secondary" id="btn5m" onclick="setTimerDuration(300)" style="padding: 0.4rem 1rem; font-size: 0.85rem;">5分钟（深度思考）</button>
+      <button class="btn btn-secondary" id="btn30s" onclick="setTimerDuration(30)" style="padding: 0.4rem 1rem; font-size: 0.85rem; margin-right: 0.5rem;">30秒</button>
+      <button class="btn btn-secondary" id="btn5m" onclick="setTimerDuration(300)" style="padding: 0.4rem 1rem; font-size: 0.85rem;">5分钟</button>
     </div>
     <p class="timer-message">思考预算倒计时</p>
     <div class="timer-display" id="timerDisplay">00:30</div>
@@ -853,50 +455,13 @@
       <div class="timer-bar-fill" id="timerBar" style="width:100%"></div>
     </div>
     <div style="margin-top:1.5rem; display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
-      <button class="btn btn-primary" onclick="goTo(4)">我做完了</button>
+      <button class="btn btn-primary" onclick="onDone()">我做完了</button>
       <button class="btn btn-secondary" onclick="skipTimer()">跳过倒计时</button>
     </div>
-    <div style="margin-top:1rem;">
-      <button class="btn btn-ghost" onclick="goTo('excuse')">我还没想清楚 / 我再想想 →</button>
-    </div>
   </div>
 </div>
 
-<!-- ==================== SCREEN excuse: 异常路径 ==================== -->
-<div class="screen" id="screenexcuse">
-  <div class="content">
-    <div class="tag">异常路径</div>
-    <div class="exception-box">
-      <div class="exc-title" id="excTitle">思考的边际收益已经为零了</div>
-      <div class="exc-text" id="excText">
-        你脑子里的信息足够启动，缺的不是信息，是动作。<br><br>
-        维基百科上写一篇文章需要 50 个小时，但打出第一句话只需要 5 秒。<br>
-        你现在在拖延的，是那 5 秒。
-      </div>
-    </div>
-    <div style="margin-top:1.5rem; display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
-      <button class="btn btn-primary" onclick="goTo(3)">好，我回去倒计时</button>
-      <button class="btn btn-secondary" onclick="goTo('refuse')">但我不想做</button>
-    </div>
-  </div>
-</div>
-
-<!-- ==================== SCREEN refuse: 拒绝执行 ==================== -->
-<div class="screen" id="screenrefuse">
-  <div class="content">
-    <div class="tag">异常路径</div>
-    <div class="exception-box">
-      <div class="exc-title">没关系</div>
-      <div class="exc-text">
-        不执行也没关系。但你已经在想了，这说明你想做。<br><br>
-        什么时候想做了，回来就行。
-      </div>
-    </div>
-    <button class="btn btn-secondary" onclick="goTo(0)">返回首页</button>
-  </div>
-</div>
-
-<!-- ==================== SCREEN 4: Done ==================== -->
+<!-- ==================== SCREEN 4: 完成 ==================== -->
 <div class="screen" id="screen4">
   <div class="content">
     <div class="done-icon">&#187;&#187;&#187;</div>
@@ -905,30 +470,9 @@
       你刚刚完成了第一步。<br>
       你发现了吗？一旦开始，其实没那么难。
     </p>
-    <div class="instruction-box" style="text-align:left;">
-      <div class="step-label">第二步</div>
-      <div id="step2Text">...</div>
-    </div>
-    <div style="margin-top:1.5rem; display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
-      <button class="btn btn-primary" onclick="goTo(5)">我继续做完了</button>
-      <button class="btn btn-secondary" onclick="goTo(0)">今天先到这</button>
-    </div>
-  </div>
-</div>
-
-<!-- ==================== SCREEN 5: Final + 日志 ==================== -->
-<div class="screen" id="screen5">
-  <div class="content">
-    <div class="done-icon" style="color:#38bdf8;">=)</div>
-    <h1 style="font-size:2rem;">超额完成</h1>
-    <p class="subtitle">
-      你做到了。两步都完成了。<br><br>
-      你不需要准备好。你只需要开始。<br>
-      而你已经开始了。
-    </p>
-    <div id="logSection" style="display:none;">
+    <div id="logSection" style="display:none; margin-top:1rem;">
       <div class="log-box">
-        <div class="log-title">&#12304;破冰日志;&#12305;</div>
+        <div class="log-title">&#12304;破冰日志&#12305;</div>
         日期：<span id="logDate"></span><br>
         本轮任务：<span id="logTask"></span><br>
         完成情况：&#9744; 仅完成第一步; &#9744; 超预期完成;<br>
@@ -938,108 +482,68 @@
     </div>
     <div style="margin-top:1.5rem; display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
       <button class="btn btn-primary" onclick="showLog()">生成破冰日志</button>
-      <button class="btn btn-secondary" onclick="goTo(0)">再来一次</button>
-    </div>
-    <div style="margin-top:2rem;">
-      <p style="color:#555; font-size:0.8rem;">
-        破冰协议 Icebreaker Protocol<br>
-        一个 Claude Code Skill
-      </p>
+      <button class="btn btn-secondary" onclick="resetProtocol()">再来一次</button>
     </div>
   </div>
 </div>
 
 <div class="watermark">icebreaker-protocol</div>
 
+<!-- ==================== 全局聊天栏 ==================== -->
+<div id="globalChat">
+  <div id="chatMessages"></div>
+  <div class="chat-input-bar">
+    <input type="text" id="chatInput" placeholder="说点什么..."
+      onkeydown="if(event.key==='Enter' && !event.shiftKey) sendChat()">
+    <button id="chatSendBtn" onclick="sendChat()">发送</button>
+  </div>
+</div>
+
 <script>
-// ==================== 数据 ====================
-const scenarios = {
-  write: "打开编辑器，写下标题。<br>标题可以是\"还没想好\"。<br>写完就停。今天的任务完成了。",
-  code: "新建一个文件夹，命名。<br>在里面创建一个空文件。<br>就这些。今天的任务完成了。",
-  social: "打开聊天窗口，输入\"你好\"。<br>不需要发送。<br>停在这就行。今天的任务完成了。",
-  job: "打开招聘软件，选 1 个岗位，收藏。<br>不投递，只收藏。<br>然后关掉。今天的任务完成了。"
-};
-
-const shameData = [
-  { user: "我怕做得不好", response: "做得不好是本轮的明确目标。如果第一次就做得好，说明你的第一步太大了。" },
-  { user: "别人会怎么看我", response: "本轮没有别人。当前读者只有你和本协议。" },
-  { user: "我觉得我不行", response: "不是'你不行'，是'你还没有足够的数据来下结论'。而收集数据的唯一方式是先做一次。" },
-  { user: "等我想清楚再做", response: "'想清楚'是一个无终止条件的循环。唯一跳出循环的方式是在循环中插入一个物理动作。" },
-  { user: "我不想让别人失望", response: "逻辑上：不开始 = 100% 让人失望。一个 30 分的草稿至少有 30% 的希望。" },
-  { user: "我做得太烂了", response: "恭喜，这说明你正在第 1 版。所有好东西的第 1 版都很烂。" }
-];
-
-const candidateSets = {
-  'full_high_learn': {
-    A: { label: 'A. 安全选项', desc: '用你已有的技能，读一篇行业报告并做笔记总结' },
-    B: { label: 'B. 探索选项', desc: '学一个新框架的基础概念，输出一份学习心得' },
-    C: { label: 'C. 冒险选项', desc: '用新学的框架做一个最小可用的 demo' }
-  },
-  'full_high_output': {
-    A: { label: 'A. 安全选项', desc: '用现有工具做一个已有项目的复盘文档' },
-    B: { label: 'B. 探索选项', desc: '用 AI 辅助做一个待办清单 CLI，能添加和列出任务' },
-    C: { label: 'C. 冒险选项', desc: '爬取某个平台数据，输出可视化图表' }
-  },
-  'full_low_learn': {
-    A: { label: 'A. 安全选项', desc: '看一个 15 分钟的入门教程，做笔记' },
-    B: { label: 'B. 探索选项', desc: '学一个新命令行工具的基本用法' },
-    C: { label: 'C. 冒险选项', desc: '跟着一个入门教程写出第一个能跑的脚本' }
-  },
-  'full_low_output': {
-    A: { label: 'A. 安全选项', desc: '整理一个文件夹的命名规范' },
-    B: { label: 'B. 探索选项', desc: '写一个自动重命名文件的脚本' },
-    C: { label: 'C. 冒险选项', desc: '做一个展示个人书单的简单网页' }
-  },
-  'short_high_learn': {
-    A: { label: 'A. 安全选项', desc: '阅读一篇文章的第一部分，总结三点心得' },
-    B: { label: 'B. 探索选项', desc: '学一个新快捷键组合的用法' },
-    C: { label: 'C. 冒险选项', desc: '用新工具完成一个 2 分钟小练习' }
-  },
-  'short_high_output': {
-    A: { label: 'A. 安全选项', desc: '修改一个现有文档的标题和结构' },
-    B: { label: 'B. 探索选项', desc: '写一个自动备份文件的一行命令' },
-    C: { label: 'C. 冒险选项', desc: '设计一个简单的数据流程图' }
-  },
-  'short_low_learn': {
-    A: { label: 'A. 安全选项', desc: '看一个 10 分钟入门视频的前 5 分钟' },
-    B: { label: 'B. 探索选项', desc: '了解一个新应用的主要功能' },
-    C: { label: 'C. 冒险选项', desc: '完成一个互动式入门练习的第一关' }
-  },
-  'short_low_output': {
-    A: { label: 'A. 安全选项', desc: '写一条 100 字的微信状态' },
-    B: { label: 'B. 探索选项', desc: '用新工具完成一张简单的海报' },
-    C: { label: 'C. 冒险选项', desc: '做一个 5 页的简报 PPT 大纲' }
-  }
-};
-
-const templates = [
-  "hi，看到你在做 XX，我也在做相关方向，方便加个微信交流吗？",
-  "hi，有个问题想请教，大概占用 3 分钟，现在方便吗？",
-  "好久不见，刚看到 XX，想起你，最近怎么样？",
-  "hi，看到贵司在招 XX 岗位，想了解一下情况，方便聊 5 分钟吗？"
-];
-
 // ==================== 状态 ====================
 let timerInterval = null;
 let currentScreen = 0;
-let currentScenario = '';
+let currentTask = '';
 let timerDuration = 30;
-let explorerAnswers = { 1: null, 2: null, 3: null };
-let selectedCandidate = null;
-
-// ==================== 聊天状态 ====================
 let chatHistory = [];
 let isChatting = false;
 
-function startChat() {
-  chatHistory = [];
-  document.getElementById('chatMessages').innerHTML =
-    '<div class="msg system">你随时可以开始说话。不知道说什么？试试"我不知道要做什么"。</div>';
-  document.getElementById('chatInput').value = '';
-  goTo('chat');
-  setTimeout(() => document.getElementById('chatInput').focus(), 300);
+// ==================== 屏幕导航 ====================
+function goTo(n) {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen' + n).classList.add('active');
+  currentScreen = n;
+
+  // 非 landing 页面显示聊天栏
+  const gc = document.getElementById('globalChat');
+  if (n === 0) {
+    gc.classList.remove('visible');
+  } else {
+    gc.classList.add('visible');
+  }
 }
 
+// ==================== Landing 启动 ====================
+function startProtocol() {
+  const input = document.getElementById('landingInput');
+  const message = input.value.trim();
+  if (!message) {
+    input.style.borderColor = '#f87171';
+    input.setAttribute('placeholder', '随便写点什么，不许空白');
+    return;
+  }
+  input.value = '';
+
+  // 切换到契约页并显示聊天栏
+  goTo(1);
+
+  // 发送第一条消息
+  sendToAI(message);
+}
+
+// ==================== 聊天核心 ====================
 function addChatMessage(role, content) {
   const container = document.getElementById('chatMessages');
   const div = document.createElement('div');
@@ -1050,21 +554,25 @@ function addChatMessage(role, content) {
   return div;
 }
 
-async function sendChat() {
+function sendChat() {
   const input = document.getElementById('chatInput');
-  const btn = document.getElementById('chatSendBtn');
   const message = input.value.trim();
   if (!message || isChatting) return;
+  input.value = '';
+  sendToAI(message);
+}
 
-  // 显示用户消息
+async function sendToAI(message) {
+  const input = document.getElementById('chatInput');
+  const btn = document.getElementById('chatSendBtn');
+
   addChatMessage('user', message);
   chatHistory.push({ role: 'user', content: message });
-  input.value = '';
+
   input.disabled = true;
   btn.disabled = true;
   isChatting = true;
 
-  // 显示加载状态
   const typingEl = addChatMessage('typing', '思考中...');
 
   try {
@@ -1073,7 +581,7 @@ async function sendChat() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         message: message,
-        history: chatHistory.slice(0, -1)  // 不包含当前消息（已在 message 里）
+        history: chatHistory.slice(0, -1)
       })
     });
 
@@ -1081,8 +589,47 @@ async function sendChat() {
 
     const data = await response.json();
     typingEl.remove();
-    addChatMessage('assistant', data.reply);
-    chatHistory.push({ role: 'assistant', content: data.reply });
+
+    // 解析并移除屏幕切换标记
+    let reply = data.reply;
+    const screenMatch = reply.match(/\[SCREEN:(\w+)\]\s*$/);
+    const taskMatch = reply.match(/\[TASK:(.+?)\]/);
+
+    // 移除所有标记
+    reply = reply.replace(/\[SCREEN:\w+\]\s*$/, '').replace(/\[TASK:.+?\]/g, '').trim();
+
+    // 显示 AI 回复
+    if (reply) {
+      addChatMessage('assistant', reply);
+      chatHistory.push({ role: 'assistant', content: reply });
+    }
+
+    // 处理任务标记
+    if (taskMatch) {
+      currentTask = taskMatch[1].trim();
+    }
+
+    // 处理屏幕切换
+    if (screenMatch) {
+      const target = screenMatch[1];
+      if (target === 'contract') {
+        goTo(1);
+      } else if (target === 'breakdown') {
+        // 将 AI 的拆解指令显示在 instruction-box 中
+        if (reply) {
+          document.getElementById('instructionText').innerHTML = reply;
+        }
+        if (currentTask) {
+          document.getElementById('taskEcho').innerHTML =
+            '你说的是：<span style="color:#38bdf8;">"' + currentTask + '"</span>';
+        }
+        goTo(2);
+        setTimerDuration(30);
+        startTimer(timerDuration);
+      } else if (target === 'done') {
+        goTo(4);
+      }
+    }
 
   } catch (err) {
     typingEl.remove();
@@ -1095,91 +642,61 @@ async function sendChat() {
   }
 }
 
-// ==================== 语音输入 ====================
-let recognition = null;
-let isListening = false;
+// ==================== 倒计时 ====================
+function setTimerDuration(seconds) {
+  timerDuration = seconds;
+  document.getElementById('timerDisplay').textContent = formatTime(seconds);
+  document.getElementById('btn30s').style.background = seconds === 30 ? 'rgba(56,189,248,0.2)' : 'rgba(255,255,255,0.06)';
+  document.getElementById('btn30s').style.borderColor = seconds === 30 ? 'rgba(56,189,248,0.4)' : 'rgba(255,255,255,0.1)';
+  document.getElementById('btn5m').style.background = seconds === 300 ? 'rgba(56,189,248,0.2)' : 'rgba(255,255,255,0.06)';
+  document.getElementById('btn5m').style.borderColor = seconds === 300 ? 'rgba(56,189,248,0.4)' : 'rgba(255,255,255,0.1)';
+}
 
-function initVoiceInput() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    console.log('浏览器不支持语音识别');
-    return;
-  }
+function startTimer(seconds) {
+  let remaining = seconds;
+  const display = document.getElementById('timerDisplay');
+  const bar = document.getElementById('timerBar');
 
-  recognition = new SpeechRecognition();
-  recognition.lang = 'zh-CN';
-  recognition.continuous = false;
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
+  display.textContent = formatTime(remaining);
+  bar.style.width = '100%';
 
-  recognition.onresult = function(event) {
-    const transcript = event.results[0][0].transcript;
-    const input = document.getElementById('taskInput');
-    input.value = transcript;
-    input.style.borderColor = 'rgba(56,189,248,0.6)';
-    stopVoiceInput();
-  };
+  timerInterval = setInterval(() => {
+    remaining--;
+    display.textContent = formatTime(remaining);
+    bar.style.width = (remaining / seconds * 100) + '%';
 
-  recognition.onerror = function(event) {
-    console.error('语音识别错误:', event.error);
-    stopVoiceInput();
-    const status = document.getElementById('voiceStatus');
-    if (event.error === 'no-speech') {
-      status.textContent = '没听清，请再试一次';
-      status.style.color = '#f87171';
-      status.style.display = 'block';
-      setTimeout(() => { status.style.display = 'none'; }, 2000);
-    } else if (event.error === 'not-allowed') {
-      status.textContent = '请允许麦克风权限';
-      status.style.color = '#f87171';
-      status.style.display = 'block';
+    if (remaining <= 5) {
+      display.style.color = '#f87171';
+      playTick();
     }
-  };
 
-  recognition.onend = function() {
-    stopVoiceInput();
-  };
+    if (remaining <= 0) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      display.textContent = "00:00";
+      display.style.color = '#38bdf8';
+      playBeep();
+      setTimeout(() => {
+        sendToAI('倒计时结束了，我还没动');
+      }, 1200);
+    }
+  }, 1000);
 }
 
-function toggleVoiceInput() {
-  if (!recognition) {
-    alert('当前浏览器不支持语音识别，请使用 Chrome / Edge / Safari');
-    return;
-  }
-
-  if (isListening) {
-    recognition.stop();
-    stopVoiceInput();
-  } else {
-    startVoiceInput();
-  }
+function skipTimer() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  sendToAI('我跳过了倒计时');
 }
 
-function startVoiceInput() {
-  isListening = true;
-  const btn = document.getElementById('voiceBtn');
-  const status = document.getElementById('voiceStatus');
-  btn.style.color = '#f87171';
-  btn.style.animation = 'pulse 0.8s infinite';
-  status.style.display = 'block';
-  status.textContent = '🎤 正在听你说...';
-  status.style.color = '#f87171';
-  status.style.animation = 'pulse 1s infinite';
-  try {
-    recognition.start();
-  } catch (e) {
-    console.error(e);
-    stopVoiceInput();
-  }
+function onDone() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  sendToAI('我做完了');
 }
 
-function stopVoiceInput() {
-  isListening = false;
-  const btn = document.getElementById('voiceBtn');
-  const status = document.getElementById('voiceStatus');
-  btn.style.color = '';
-  btn.style.animation = '';
-  status.style.display = 'none';
+function formatTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
 }
 
 // ==================== 音效 ====================
@@ -1216,346 +733,32 @@ function playTick() {
   osc.stop(ctx.currentTime + 0.08);
 }
 
-function showContractRebuttal() {
-  const el = document.getElementById('contractRebuttal');
-  el.style.display = el.style.display === 'none' ? 'block' : 'none';
-}
-
-// ==================== 导航 ====================
-const screenOrder = [0, 1, 'shame', 2, 'explorer', 'candidates', '2b', 'social', 3, 'excuse', 'refuse', 4, 5];
-
-function goTo(n) {
-  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-
-  if (n === 0) {
-    document.getElementById('taskInput').value = '';
-    document.getElementById('timerDisplay').style.color = '#38bdf8';
-    timerDuration = 30;
-    selectedCandidate = null;
-    explorerAnswers = { 1: null, 2: null, 3: null };
-    ['q1a','q1b','q2a','q2b','q3a','q3b'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.classList.remove('selected');
-    });
-  }
-
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('screen' + n).classList.add('active');
-
-  const idx = screenOrder.indexOf(n);
-  if (idx >= 0) {
-    document.querySelectorAll('.step-dot').forEach((dot, i) => {
-      dot.classList.remove('active', 'done');
-      if (i < idx) dot.classList.add('done');
-      if (i === idx) dot.classList.add('active');
-    });
-  }
-
-  currentScreen = n;
-
-  if (n === 4) {
-    const input = document.getElementById('taskInput').value.trim();
-    document.getElementById('step2Text').innerHTML = getStep2(input, currentScenario);
-  }
-
-  if (n === 'shame') {
-    renderShameGrid();
-  }
-}
-
-// ==================== 场景配置 ====================
-const scenarioConfig = {
-  write: { tag: '写东西', title: '想写什么？', desc: '不用想措辞，脑子里冒出来的第一句话就行。', placeholder: '比如：想写一个小红书笔记但是不知道写什么', accent: '#38bdf8' },
-  code: { tag: '做项目', title: '想做什么项目？', desc: '不用想好技术栈，随便说一个想法就行。', placeholder: '比如：想做个爬虫抓取数据', accent: '#6366f1' },
-  social: { tag: '社交破冰', title: '你想联系谁？', desc: '不用想开场白，随便说说你的情况就行。', placeholder: '比如：想加一个大佬微信但是不敢', accent: '#f472b6' },
-  job: { tag: '求职推进', title: '你在找什么样的工作？', desc: '不用想优势，随便说一个岗位方向就行。', placeholder: '比如：想投产品经理岗位但是害怕', accent: '#34d399' }
-};
-
-function selectScenario(key) {
-  currentScenario = key;
-  if (key === 'social') {
-    goTo('social');
-    return;
-  }
-  const cfg = scenarioConfig[key];
-  document.getElementById('scenarioTag').textContent = cfg.tag;
-  document.getElementById('scenarioTag').style.color = cfg.accent;
-  document.getElementById('scenarioTag').style.borderColor = cfg.accent + '40';
-  document.getElementById('scenarioTitle').textContent = cfg.title;
-  document.getElementById('scenarioDesc').textContent = cfg.desc;
-  document.getElementById('taskInput').placeholder = cfg.placeholder;
-  document.getElementById('taskInput').value = '';
-  document.getElementById('taskInput').style.borderColor = 'rgba(56,189,248,0.3)';
-  goTo('2b');
-  setTimeout(() => document.getElementById('taskInput').focus(), 300);
-}
-
-// ==================== 社交模板 ====================
-function copyTemplate(el, idx) {
-  navigator.clipboard.writeText(templates[idx]).then(() => {
-    document.querySelectorAll('.template-box').forEach(t => t.classList.remove('copied'));
-    el.classList.add('copied');
-  }).catch(() => {
-    // fallback
-    el.classList.add('copied');
-  });
-}
-
-function goToJobFromSocial() {
-  currentScenario = 'social';
-  document.getElementById('scenarioTag').textContent = '社交破冰';
-  document.getElementById('scenarioTag').style.color = '#f472b6';
-  document.getElementById('scenarioTag').style.borderColor = 'rgba(244,114,182,0.25)';
-  document.getElementById('taskInput').value = '给同行发消息介绍自己';
-  generateBreakdown();
-}
-
-// ==================== 羞耻感重构 ====================
-function renderShameGrid() {
-  const grid = document.getElementById('shameGrid');
-  grid.innerHTML = shameData.map((item, i) => `
-    <div class="shame-item" onclick="toggleShame(${i})">
-      <div class="user-says">"用户说：${item.user}"</div>
-      <div class="response" id="shameResp${i}" style="display:none; margin-top:0.5rem; padding-top:0.5rem; border-top:1px solid rgba(255,255,255,0.05);">
-        → ${item.response}
-      </div>
-    </div>
-  `).join('');
-}
-
-function toggleShame(i) {
-  const el = document.getElementById('shameResp' + i);
-  const parent = el.parentElement;
-  if (el.style.display === 'none') {
-    el.style.display = 'block';
-    parent.classList.add('expanded');
-  } else {
-    el.style.display = 'none';
-    parent.classList.remove('expanded');
-  }
-}
-
-// ==================== 方向探索 ====================
-function startExplorer() {
-  explorerAnswers = { 1: null, 2: null, 3: null };
-  ['q1a','q1b','q2a','q2b','q3a','q3b'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.classList.remove('selected');
-  });
-  goTo('explorer');
-}
-
-function setExplorerAnswer(q, val) {
-  explorerAnswers[q] = val;
-  const map = { 'full': 'q1a', 'short': 'q1b', 'high': 'q2a', 'low': 'q2b', 'learn': 'q3a', 'output': 'q3b' };
-  const btnId = map[val];
-  const prefix = 'q' + q;
-  document.querySelectorAll('[id^="' + prefix + '"]').forEach(el => el.classList.remove('selected'));
-  document.getElementById(btnId).classList.add('selected');
-}
-
-function generateCandidates() {
-  if (!explorerAnswers[1] || !explorerAnswers[2] || !explorerAnswers[3]) {
-    alert('请先回答所有 3 个问题');
-    return;
-  }
-  const key = explorerAnswers[1] + '_' + explorerAnswers[2] + '_' + explorerAnswers[3];
-  const set = candidateSets[key] || candidateSets['short_low_learn'];
-  const list = document.getElementById('candidatesList');
-  list.innerHTML = Object.entries(set).map(([k, v]) => `
-    <div class="candidate-card ${k.toLowerCase()}" onclick="useCandidate('${k}')">
-      <div class="c-label">${v.label}</div>
-      <div class="c-desc">${v.desc}</div>
-    </div>
-  `).join('');
-  goTo('candidates');
-}
-
-function useCandidate(choice) {
-  selectedCandidate = choice;
-  currentScenario = 'code';
-  const cfg = scenarioConfig['code'];
-  document.getElementById('scenarioTag').textContent = cfg.tag;
-  document.getElementById('scenarioTag').style.color = cfg.accent;
-  document.getElementById('scenarioTag').style.borderColor = cfg.accent + '40';
-  document.getElementById('scenarioTitle').textContent = '选好了：' + choice + '。现在，说说你的第一步打算做什么？';
-  document.getElementById('scenarioDesc').textContent = '不用想太多，随便说一个动作。';
-  document.getElementById('taskInput').placeholder = '比如：打开编辑器创建一个文件';
-  document.getElementById('taskInput').value = '';
-  goTo('2b');
-  setTimeout(() => document.getElementById('taskInput').focus(), 300);
-}
-
-// ==================== 倒计时 ====================
-function setTimerDuration(seconds) {
-  timerDuration = seconds;
-  document.getElementById('timerDisplay').textContent = formatTime(seconds);
-  document.getElementById('btn30s').style.background = seconds === 30 ? 'rgba(56,189,248,0.2)' : 'rgba(255,255,255,0.06)';
-  document.getElementById('btn30s').style.borderColor = seconds === 30 ? 'rgba(56,189,248,0.4)' : 'rgba(255,255,255,0.1)';
-  document.getElementById('btn5m').style.background = seconds === 300 ? 'rgba(56,189,248,0.2)' : 'rgba(255,255,255,0.06)';
-  document.getElementById('btn5m').style.borderColor = seconds === 300 ? 'rgba(56,189,248,0.4)' : 'rgba(255,255,255,0.1)';
-}
-
-function generateBreakdown() {
-  const input = document.getElementById('taskInput').value.trim();
-  if (!input) {
-    document.getElementById('taskInput').style.borderColor = '#f87171';
-    document.getElementById('taskInput').setAttribute('placeholder', '随便写点什么，不许空白');
-    return;
-  }
-
-  const breakdown = getBreakdown(input, currentScenario);
-  document.getElementById('taskEcho').innerHTML = '你说的是：<span style="color:#38bdf8;">"' + input + '"</span><br>很好，这是一个真实的想法。';
-  document.getElementById('instructionText').innerHTML = breakdown;
-  goTo(3);
-  setTimerDuration(30);
-  startTimer(timerDuration);
-}
-
-function getBreakdown(task, scenario) {
-  const t = task.toLowerCase();
-
-  const scenarioDefaults = {
-    write: '你脑子里一定有个模糊的想法，对吧？<br><br>现在打开编辑器，把那个想法的第一句话打上去。<br>不需要是标题，不需要完整，就像在跟朋友聊天一样写下来。<br><br>写完了？今天的任务就到这里。',
-    code: '你已经有一个想法了，这比大多数人强。<br><br>现在新建一个文件夹，给它取个名字。<br>然后在里面创建一个空文件。<br><br>不用写代码，一个空文件就够了。',
-    social: '我知道你在纠结怎么开口。<br><br>现在打开那个人的聊天窗口，输入"你好"。<br>不需要发送。输入完就停在那。<br><br>你随时可以删掉，但先把字打出来。',
-    job: '<strong>Day 1 原子步骤</strong><br><br>打开招聘软件，收藏 1 个岗位。<br>不投递，只收藏。<br>然后关掉。<br><br>今天的任务完成了。'
-  };
-
-  const overrides = {
-    write: [
-      { keys: ['选题','不知道写什么','没灵感'],
-        result: () => '你不需要一个完美的选题。<br><br>打开编辑器，写下今天脑子里想得最多的那件事。<br>哪怕只是一句话，哪怕别人觉得无聊。<br><br>这就是你的选题。' },
-    ],
-    code: [
-      { keys: ['不知道做什么','没想法','迷茫'],
-        result: () => '不知道做什么项目？正常。<br><br>打开代码编辑器，新建一个文件，写一行 <code>print("hello")</code>。<br>跑通它。<br><br>能跑通 hello world，就已经开始了。' },
-    ],
-    social: [
-      { keys: ['不敢','害怕','紧张','丢脸'],
-        result: () => '害怕对方不理你？这很正常。<br><br>但你的评分标准不是"对方回不回"，而是"你发没发"。<br>现在打开聊天窗口，把消息发出去。<br><br>发出去的那一刻，你就赢了。' },
-    ],
-    job: [
-      { keys: ['不配','不够','不行','差'],
-        result: () => '觉得自己不够格？让我换个说法。<br><br>你不是"不够格"，你是"还没收集到足够的证据证明自己够格"。<br><br><strong>Day 1 原子步骤</strong>：打开招聘软件，收藏 1 个岗位。<br>不投递，只收藏。<br><br>这不需要勇气。' },
-    ]
-  };
-
-  if (overrides[scenario]) {
-    for (const rule of overrides[scenario]) {
-      if (rule.keys.some(k => t.includes(k))) {
-        return rule.result();
-      }
-    }
-  }
-
-  const globalRules = [
-    { keys: ['邮件','回复','回信'],
-      result: () => '不知道怎么回，所以一直拖着。<br><br>打开邮件，先回复"收到，稍后回复"。<br>发送。<br><br>这不算敷衍，这算"我先把手伸出去了"。' },
-    { keys: ['ppt','演示','汇报','报告'],
-      result: () => 'PPT 最难的不是内容，是打开软件的那一刻。<br><br>新建一个 PPT，随便选个模板，在封面打上你想汇报的主题。<br><br>一个字都行。' },
-    { keys: ['学','教程','课程','入门','了解'],
-      result: () => '想学新东西，但总觉得"先准备一下"？<br><br>打开搜索引擎，搜一下你想学的东西。<br>只看第一个结果的标题。看完就关掉。<br><br>这就算开始了。' },
-    { keys: ['整理','总结','复盘','回顾','梳理'],
-      result: () => '想整理的东西太多了，所以不知道从哪开始。<br><br>打开备忘录，只写一个关键词。<br>脑子里冒出来的第一个词就行。<br><br>一个词就够了。' },
-  ];
-
-  for (const rule of globalRules) {
-    if (rule.keys.some(k => t.includes(k))) {
-      return rule.result();
-    }
-  }
-
-  return scenarioDefaults[scenario] || scenarioDefaults['write'];
-}
-
-function startTimer(seconds) {
-  let remaining = seconds;
-  const display = document.getElementById('timerDisplay');
-  const bar = document.getElementById('timerBar');
-
-  display.textContent = formatTime(remaining);
-  bar.style.width = '100%';
-
-  timerInterval = setInterval(() => {
-    remaining--;
-    display.textContent = formatTime(remaining);
-    bar.style.width = (remaining / seconds * 100) + '%';
-
-    if (remaining <= 5) {
-      display.style.color = '#f87171';
-      playTick();
-    }
-
-    if (remaining <= 0) {
-      clearInterval(timerInterval);
-      timerInterval = null;
-      display.textContent = "00:00";
-      display.style.color = '#38bdf8';
-      playBeep();
-      setTimeout(() => goTo(4), 1200);
-    }
-  }, 1000);
-}
-
-function skipTimer() {
-  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-  goTo(4);
-}
-
-function formatTime(s) {
-  const m = Math.floor(s / 60);
-  const sec = s % 60;
-  return String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
-}
-
-function getStep2(task, scenario) {
-  const t = task.toLowerCase();
-  const steps = [
-    { keys: ['文章','笔记','小红书','公众号','博客','随笔','日记'],
-      result: () => '现在标题已经有了。<br>写正文第一句话，用最直白的话描述你想说的。<br>不许润色，写完就停。' },
-    { keys: ['项目','爬虫','网站','app','小程序','工具','脚本'],
-      result: () => '文件已经创建了。<br>写一行代码，任何一行。<br>哪怕只是一行 print("hello")。' },
-    { keys: ['简历','求职','投递','面试','找工作'],
-      result: () => '<strong>Day 2 原子步骤</strong><br><br>读你昨天收藏的那个岗位 JD。<br>圈 3 个你符合的关键词。<br>结束。<br><br>不用改简历，只看 JD。' },
-    { keys: ['发消息','打招呼','联系','加微信','认识'],
-      result: () => '"你好" 已经输入了。<br>现在在后面加一句你说得出口的话。<br>比如"看到你在做XX，很有意思"。' },
-    { keys: ['学','教程','课程','入门','了解'],
-      result: () => '你已经看到标题了。<br>现在打开那篇文章，只读第一段。<br>读完关掉。' },
-    { keys: ['整理','总结','复盘','回顾','梳理'],
-      result: () => '关键词写下来了。<br>现在在它旁边再加一个关键词。<br>两个就够了。' },
-    { keys: ['邮件','回复','回信'],
-      result: () => '已经发了"收到"。<br>现在开始写真正的回复，只写一句话。<br>写完就发。' },
-    { keys: ['ppt','演示','汇报','报告'],
-      result: () => '封面已经有了。<br>现在新建第二页，写一个小标题。<br>不需要正文。' },
-  ];
-
-  for (const rule of steps) {
-    if (rule.keys.some(k => t.includes(k))) {
-      return rule.result();
-    }
-  }
-
-  return '你已经迈出了第一步。<br>现在做第二个最小动作。<br>不需要比第一步更大，和第一步一样小就行。';
-}
-
 // ==================== 日志 ====================
 function showLog() {
   const section = document.getElementById('logSection');
   const today = new Date().toLocaleDateString('zh-CN');
-  const task = document.getElementById('taskInput').value.trim() || '未记录';
   document.getElementById('logDate').textContent = today;
-  document.getElementById('logTask').textContent = task;
+  document.getElementById('logTask').textContent = currentTask || '未记录';
   section.style.display = 'block';
+}
+
+// ==================== 重置 ====================
+function resetProtocol() {
+  chatHistory = [];
+  currentTask = '';
+  document.getElementById('chatMessages').innerHTML = '';
+  document.getElementById('landingInput').value = '';
+  document.getElementById('landingInput').style.borderColor = 'rgba(56,189,248,0.3)';
+  document.getElementById('landingInput').setAttribute('placeholder', '你现在卡在哪了？随便说一句...');
+  document.getElementById('logSection').style.display = 'none';
+  document.getElementById('timerDisplay').style.color = '#38bdf8';
+  timerDuration = 30;
+  goTo(0);
 }
 
 // ==================== 初始化 ====================
 window.addEventListener('DOMContentLoaded', function() {
-  initVoiceInput();
-  const voiceBtn = document.getElementById('voiceBtn');
-  if (voiceBtn && (window.SpeechRecognition || window.webkitSpeechRecognition)) {
-    voiceBtn.style.display = 'block';
-  }
+  document.getElementById('landingInput').focus();
 });
 </script>
 </body>
