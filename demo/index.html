@@ -1377,7 +1377,9 @@ function renderPromptChips() {
     const chip = document.createElement('button');
     chip.className = 'chip';
     chip.textContent = text;
-    chip.onclick = () => {
+    chip.onclick = (e) => {
+      e.stopPropagation();
+      if (isChatting) return;
       document.getElementById('helpInput').value = text;
       sendHelp();
     };
@@ -1483,12 +1485,13 @@ async function sendHelp() {
   appendBubble(container, 'user', message, false);
   helpHistory.push({ role: 'user', content: message });
 
-  // 创建空的 AI 气泡，流式填充
+  // 创建 AI 气泡，先显示加载态
   const wrapper = document.createElement('div');
   wrapper.style.cssText = 'display:flex;flex-direction:column;';
   const bubble = document.createElement('div');
   bubble.className = 'bubble assistant';
-  bubble.textContent = '';
+  bubble.textContent = '正在思考...';
+  bubble.style.cssText = 'opacity:0.5; animation:pulse 1.5s ease-in-out infinite;';
   wrapper.appendChild(bubble);
   container.appendChild(wrapper);
   container.scrollTop = container.scrollHeight;
@@ -1518,6 +1521,7 @@ async function sendHelp() {
     const decoder = new TextDecoder();
     let fullText = '';
     let buffer = '';
+    let firstChunk = true;
 
     while (true) {
       const { done, value } = await reader.read();
@@ -1537,6 +1541,11 @@ async function sendHelp() {
           const parsed = JSON.parse(payload);
           if (parsed.error) throw new Error(parsed.error);
           if (parsed.text) {
+            if (firstChunk) {
+              firstChunk = false;
+              bubble.textContent = '';
+              bubble.style.cssText = '';
+            }
             fullText += parsed.text;
             bubble.textContent = fullText;
             container.scrollTop = container.scrollHeight;
@@ -1561,7 +1570,7 @@ async function sendHelp() {
       helpHistory.push({ role: 'assistant', content: fullText });
     }
   } catch (err) {
-    bubble.textContent = '';
+    bubble.style.cssText = '';
     bubble.textContent = '出错了，请重试。';
   } finally {
     isChatting = false;
