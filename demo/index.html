@@ -717,6 +717,70 @@
     font-family: 'Inter', monospace;
   }
 
+  /* 麦克风按钮 */
+  .btn-mic {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.4rem;
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .btn-mic:hover {
+    background: rgba(239,68,68,0.1);
+    border-color: rgba(239,68,68,0.3);
+  }
+  .btn-mic.recording {
+    background: rgba(239,68,68,0.15);
+    border-color: rgba(239,68,68,0.5);
+    animation: micPulse 1s ease-in-out infinite;
+  }
+  @keyframes micPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(239,68,68,0); }
+  }
+
+  /* 录音中的输入区域脉冲 */
+  .help-input-row.voice-active {
+    border: 1px solid rgba(239,68,68,0.3);
+    border-radius: 12px;
+    background: rgba(239,68,68,0.03);
+    animation: inputVoicePulse 1.5s ease-in-out infinite;
+  }
+  @keyframes inputVoicePulse {
+    0%, 100% { border-color: rgba(239,68,68,0.3); }
+    50% { border-color: rgba(239,68,68,0.1); }
+  }
+
+  /* 录音中的实时转录提示 */
+  .voice-transcript-hint {
+    font-size: 0.72rem;
+    color: #ef4444;
+    margin-top: 0.3rem;
+    font-family: 'Inter', monospace;
+    letter-spacing: 0.03em;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .voice-transcript-hint .dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: #ef4444;
+    border-radius: 50%;
+    animation: dotBlink 0.8s infinite;
+  }
+  @keyframes dotBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+
   /* ---- 消息气泡（帮助面板内） ---- */
   .bubble {
     max-width: 90%;
@@ -926,7 +990,8 @@
     <div class="help-messages" id="helpMessages"></div>
     <div class="prompt-chips" id="promptChips"></div>
     <div class="help-input">
-      <div class="help-input-row">
+      <div class="help-input-row" id="helpInputRow">
+        <button class="btn-mic" id="btnMic" onclick="toggleVoice()" title="语音输入">🎙️</button>
         <input type="text" id="helpInput" placeholder="输入指令..."
           onkeydown="if(event.key==='Enter') sendHelp()"
           oninput="updateRunBtn()">
@@ -935,7 +1000,7 @@
           <span class="arrow">⚡</span>
         </button>
       </div>
-      <div class="input-hint">Press Enter to Run Protocol</div>
+      <div class="input-hint" id="inputHint">Press Enter to Run Protocol</div>
     </div>
   </div>
 </div>
@@ -1583,6 +1648,135 @@ document.addEventListener('click', (e) => {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') closeHelp();
 });
+
+// ==================== 语音识别 ====================
+let recognition = null;
+let isRecording = false;
+let voiceTranscript = '';
+
+function initSpeechRecognition() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) return null;
+
+  const rec = new SpeechRecognition();
+  rec.lang = 'zh-CN';
+  rec.continuous = true;
+  rec.interimResults = true;
+  rec.maxAlternatives = 1;
+
+  rec.onresult = (event) => {
+    let interim = '';
+    let final = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const transcript = event.results[i][0].transcript;
+      if (event.results[i].isFinal) {
+        final += transcript;
+      } else {
+        interim += transcript;
+      }
+    }
+    if (final) voiceTranscript += final;
+    // 实时更新输入框预览
+    const input = document.getElementById('helpInput');
+    const display = voiceTranscript + interim;
+    input.value = display;
+    updateRunBtn();
+  };
+
+  rec.onerror = (event) => {
+    console.warn('Speech error:', event.error);
+    if (event.error === 'not-allowed') {
+      showVoiceHint('麦克风权限被拒绝。请在浏览器设置中允许。');
+    }
+    stopRecording();
+  };
+
+  rec.onend = () => {
+    // 如果还在录音状态但识别自动结束了，重启（连续模式）
+    if (isRecording) {
+      try { rec.start(); } catch (e) { stopRecording(); }
+    }
+  };
+
+  return rec;
+}
+
+function toggleVoice() {
+  if (isRecording) {
+    stopRecording();
+  } else {
+    startRecording();
+  }
+}
+
+function startRecording() {
+  if (!recognition) recognition = initSpeechRecognition();
+  if (!recognition) {
+    showVoiceHint('当前浏览器不支持语音输入，请使用 Chrome 或 Edge。');
+    return;
+  }
+
+  isRecording = true;
+  voiceTranscript = '';
+
+  const btn = document.getElementById('btnMic');
+  const row = document.getElementById('helpInputRow');
+  const input = document.getElementById('helpInput');
+
+  btn.classList.add('recording');
+  row.classList.add('voice-active');
+  input.placeholder = '正在聆听...说出来，不要想。';
+  input.value = '';
+
+  showVoiceHint('🎙️ 意识流捕捉中。说出来，不管多乱，[Protocol] 帮你提纯。');
+
+  try {
+    recognition.start();
+  } catch (e) {
+    stopRecording();
+  }
+}
+
+function stopRecording() {
+  isRecording = false;
+
+  const btn = document.getElementById('btnMic');
+  const row = document.getElementById('helpInputRow');
+  const input = document.getElementById('helpInput');
+
+  btn.classList.remove('recording');
+  row.classList.remove('voice-active');
+  input.placeholder = '输入指令...';
+
+  if (recognition) {
+    try { recognition.stop(); } catch (e) {}
+  }
+
+  const raw = voiceTranscript.trim();
+  if (!raw) {
+    clearVoiceHint();
+    return;
+  }
+
+  // 把转录文本放入输入框
+  input.value = raw;
+  updateRunBtn();
+
+  // 显示提纯提示
+  showVoiceHint('转录完成。点击 RUN 执行，或编辑后发送。');
+}
+
+function showVoiceHint(text) {
+  const hint = document.getElementById('inputHint');
+  hint.innerHTML = `<span class="dot"></span> ${text}`;
+  hint.style.color = '#ef4444';
+}
+
+function clearVoiceHint() {
+  const hint = document.getElementById('inputHint');
+  hint.innerHTML = 'Press Enter to Run Protocol';
+  hint.style.color = '';
+}
 
 function updateRunBtn() {
   const input = document.getElementById('helpInput');
