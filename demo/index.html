@@ -506,29 +506,34 @@
   }
   .done-ai-msg:empty { display: none; }
 
-  /* ==================== Help Overlay ==================== */
-  #helpOverlay {
-    display: none;
+  /* ==================== Help Side Drawer ==================== */
+  #helpDrawer {
     position: fixed;
-    inset: 0;
+    top: 0;
+    right: 0;
+    width: 380px;
+    max-width: 90vw;
+    height: 100%;
     z-index: 50;
-    background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(4px);
-    animation: fadeIn 0.2s ease;
-  }
-  #helpOverlay.active { display: flex; align-items: center; justify-content: center; }
-
-  .help-panel {
-    width: 90%;
-    max-width: 500px;
-    max-height: 80vh;
     background: #111118;
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 20px;
+    border-left: 1px solid rgba(56,189,248,0.15);
+    box-shadow: -8px 0 32px rgba(0,0,0,0.4);
     display: flex;
     flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+  }
+  #helpDrawer.active {
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+
+  .help-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
     overflow: hidden;
-    animation: slideUp 0.3s ease;
   }
   .help-header {
     padding: 1rem 1.5rem;
@@ -793,12 +798,42 @@ function startProtocol() {
 }
 
 // ==================== Contract ====================
+function setContractButtonsDisabled(disabled) {
+  const btns = document.querySelectorAll('.contract-actions .btn');
+  btns.forEach(b => {
+    b.disabled = disabled;
+    b.style.opacity = disabled ? '0.5' : '';
+    b.style.pointerEvents = disabled ? 'none' : '';
+  });
+}
+
+function showContractLoading() {
+  const el = document.getElementById('contractAiMsg');
+  el.textContent = '正在思考...';
+  el.style.opacity = '0.6';
+}
+
+function clearContractLoading() {
+  const el = document.getElementById('contractAiMsg');
+  el.style.opacity = '';
+}
+
 function acceptContract() {
-  sendToAI('我同意契约，请帮我拆解任务');
+  if (isChatting) return;
+  setContractButtonsDisabled(true);
+  showContractLoading();
+  sendToAI('我同意契约，请帮我拆解任务')
+    .catch(() => {})
+    .finally(() => { setContractButtonsDisabled(false); clearContractLoading(); });
 }
 
 function questionContract() {
-  sendToAI('我怕做不好，不想做一份随便应付的东西');
+  if (isChatting) return;
+  setContractButtonsDisabled(true);
+  showContractLoading();
+  sendToAI('我怕做不好，不想做一份随便应付的东西')
+    .catch(() => {})
+    .finally(() => { setContractButtonsDisabled(false); clearContractLoading(); });
 }
 
 // ==================== Roadmap ====================
