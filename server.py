@@ -22,7 +22,7 @@ from typing import Literal
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from openai import OpenAI
 from pydantic import BaseModel, Field
@@ -349,14 +349,16 @@ def try_ai_reply(req: ChatRequest) -> str | None:
         return None
 
     system_prompt = (
-        '你是破冰协议的 AI 助手。用户正在一个分步工作流中完成任务。\n'
+        '你是 [Protocol]，破冰协议的 AI 助手。用户正在一个分步工作流中完成任务。\n'
         '你会收到完整的上下文：用户的总任务、已完成步骤的产出、当前步骤要求。\n\n'
         '规则：\n'
+        '- 你的名字是 [Protocol]，以此身份回复。\n'
         '- 不要安慰、不要讲道理、不要评价用户。\n'
         '- 直接产出内容：如果用户要标题就给标题，要代码就给代码，要消息就给消息。\n'
         '- 给出可以直接使用的具体内容，而不是「你可以试试...」这种空泛建议。\n'
         '- 如果用户没指定方向，基于上下文主动给出最合理的版本。\n'
-        '- 回复简洁，但可以包含多个选项供用户挑选。'
+        '- 回复简洁，但可以包含多个选项供用户挑选。\n'
+        '- 排版清晰：用换行分隔不同内容块，选项用编号列表。'
     )
     messages = [{"role": "system", "content": system_prompt}]
     messages.extend(safe_history(req.history))
@@ -437,6 +439,58 @@ async def chat(req: ChatRequest):
 
     task = extract_task(req)
     return ChatResponse(reply=CONTRACT_REPLY, screen="contract", task=task)
+
+
+def stream_ai_reply(req: ChatRequest):
+    """SSE 流式生成：逐 token 输出 AI 回复，最后发送 [DONE] 标记。"""
+    if client is None:
+        yield f"data: {json.dumps({'error': 'no_api_key'})}\n\n"
+        return
+
+    system_prompt = (
+        '你是 [Protocol]，破冰协议的 AI 助手。用户正在一个分步工作流中完成任务。\n'
+        '你会收到完整的上下文：用户的总任务、已完成步骤的产出、当前步骤要求。\n\n'
+        '规则：\n'
+        '- 你的名字是 [Protocol]，以此身份回复。\n'
+        '- 不要安慰、不要讲道理、不要评价用户。\n'
+        '- 直接产出内容：如果用户要标题就给标题，要代码就给代码，要消息就给消息。\n'
+        '- 给出可以直接使用的具体内容，而不是「你可以试试...」这种空泛建议。\n'
+        '- 如果用户没指定方向，基于上下文主动给出最合理的版本。\n'
+        '- 回复简洁，但可以包含多个选项供用户挑选。\n'
+        '- 排版清晰：用换行分隔不同内容块，选项用编号列表。'
+    )
+    messages = [{"role": "system", "content": system_prompt}]
+    messages.extend(safe_history(req.history))
+    messages.append({"role": "user", "content": req.message[:2000]})
+
+    try:
+        stream = client.chat.completions.create(
+            model=MODEL,
+            messages=messages,
+            max_tokens=500,
+            temperature=0.5,
+            stream=True,
+        )
+        for chunk in stream:
+            delta = chunk.choices[0].delta
+            if delta.content:
+                yield f"data: {json.dumps({'text': delta.content})}\n\n"
+        yield "data: [DONE]\n\n"
+    except Exception as e:
+        yield f"data: {json.dumps({'error': str(e)})}\n\n"
+        yield "data: [DONE]\n\n"
+
+
+@app.post("/api/chat/stream")
+async def chat_stream(req: ChatRequest):
+    return StreamingResponse(
+        stream_ai_reply(req),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 demo_dir = Path(__file__).parent / "demo"
