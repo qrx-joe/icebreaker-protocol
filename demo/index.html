@@ -627,10 +627,13 @@
     min-height: 200px;
   }
   .help-input {
-    padding: 0.8rem 1.5rem 1rem 1.5rem;
+    padding: 0.6rem 1.5rem 0.8rem 1.5rem;
     border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .help-input-row {
     display: flex;
     gap: 0.5rem;
+    align-items: stretch;
   }
   .help-input input {
     flex: 1;
@@ -642,18 +645,71 @@
     font-family: inherit;
     font-size: 0.9rem;
     outline: none;
+    transition: border-color 0.2s;
   }
   .help-input input:focus { border-color: rgba(56,189,248,0.45); }
-  .help-input input::placeholder { color: #444; }
-  .help-input button {
-    padding: 0.7rem 1.2rem;
-    background: linear-gradient(135deg, #38bdf8, #6366f1);
-    color: #fff;
+  .help-input input::placeholder { color: #3a3a4a; }
+
+  /* 执行按钮：idle / ready 双态 */
+  .btn-run {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0 1.1rem;
     border: none;
     border-radius: 10px;
-    font-family: inherit;
-    font-weight: 600;
+    font-family: 'Inter', 'Noto Sans SC', monospace;
+    font-weight: 700;
+    font-size: 0.82rem;
+    letter-spacing: 0.06em;
+    cursor: not-allowed;
+    transition: background 0.15s, color 0.15s, box-shadow 0.15s, transform 0.08s;
+    white-space: nowrap;
+    user-select: none;
+  }
+  .btn-run .label { line-height: 1; }
+  .btn-run .arrow {
+    font-size: 1rem;
+    line-height: 1;
+    transition: transform 0.15s;
+  }
+
+  /* idle 态 */
+  .btn-run.idle {
+    background: rgba(255,255,255,0.04);
+    color: #3a3a4a;
+  }
+
+  /* ready 态 */
+  .btn-run.ready {
+    background: linear-gradient(135deg, #38bdf8, #6366f1);
+    color: #fff;
     cursor: pointer;
+    box-shadow: 0 0 12px rgba(56,189,248,0.25);
+  }
+  .btn-run.ready:hover {
+    box-shadow: 0 0 18px rgba(56,189,248,0.4);
+  }
+  .btn-run.ready:hover .arrow {
+    transform: translateX(2px);
+  }
+
+  /* 点击动效：机械式频闪 + 位移 */
+  .btn-run.ready:active {
+    transform: translateX(1px);
+    box-shadow: 0 0 24px rgba(56,189,248,0.6);
+    filter: brightness(1.4);
+    transition: none;
+  }
+
+  /* 键盘提示 */
+  .input-hint {
+    margin-top: 0.35rem;
+    font-size: 0.68rem;
+    color: #2a2a35;
+    text-align: right;
+    letter-spacing: 0.04em;
+    font-family: 'Inter', monospace;
   }
 
   /* ---- 消息气泡（帮助面板内） ---- */
@@ -865,9 +921,16 @@
     <div class="help-messages" id="helpMessages"></div>
     <div class="prompt-chips" id="promptChips"></div>
     <div class="help-input">
-      <input type="text" id="helpInput" placeholder="这一步哪里不清楚？"
-        onkeydown="if(event.key==='Enter') sendHelp()">
-      <button onclick="sendHelp()">问</button>
+      <div class="help-input-row">
+        <input type="text" id="helpInput" placeholder="输入指令..."
+          onkeydown="if(event.key==='Enter') sendHelp()"
+          oninput="updateRunBtn()">
+        <button class="btn-run idle" id="btnRun" onclick="sendHelp()">
+          <span class="label">IDLE</span>
+          <span class="arrow">⚡</span>
+        </button>
+      </div>
+      <div class="input-hint">Press Enter to Run Protocol</div>
     </div>
   </div>
 </div>
@@ -1451,7 +1514,10 @@ function openHelp() {
 
   appendBubble(container, 'assistant', greeting, false);
   renderPromptChips();
-  setTimeout(() => document.getElementById('helpInput').focus(), 300);
+  setTimeout(() => {
+    document.getElementById('helpInput').focus();
+    updateRunBtn();
+  }, 300);
 }
 
 function closeHelp() {
@@ -1472,11 +1538,21 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') closeHelp();
 });
 
+function updateRunBtn() {
+  const input = document.getElementById('helpInput');
+  const btn = document.getElementById('btnRun');
+  if (!input || !btn) return;
+  const ready = input.value.trim().length > 0;
+  btn.className = ready ? 'btn-run ready' : 'btn-run idle';
+  btn.querySelector('.label').textContent = ready ? 'RUN' : 'IDLE';
+}
+
 async function sendHelp() {
   const input = document.getElementById('helpInput');
   const message = input.value.trim();
   if (!message || isChatting) return;
   input.value = '';
+  updateRunBtn();
 
   // 隐藏 chips（用户已开始自由对话）
   document.getElementById('promptChips').replaceChildren();
