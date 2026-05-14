@@ -1520,13 +1520,23 @@ async function archiveStep(step, index, output, timeSpent) {
     }
   } catch (e) { /* fallback to truncated text */ }
 
-  sessionLog.push({
+  const record = {
     step_title: step.title || `步骤 ${index + 1}`,
     step_index: index,
     user_output: output,
     summary: summary,
     time_spent_seconds: timeSpent
-  });
+  };
+
+  // 改进循环可能重新完成同一步，更新而非重复追加
+  const existingIdx = sessionLog.findIndex(r => r.step_index === index);
+  if (existingIdx >= 0) {
+    // 累计耗时
+    record.time_spent_seconds += sessionLog[existingIdx].time_spent_seconds;
+    sessionLog[existingIdx] = record;
+  } else {
+    sessionLog.push(record);
+  }
 }
 
 function renderBattleReport() {
