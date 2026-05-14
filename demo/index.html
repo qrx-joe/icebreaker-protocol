@@ -170,8 +170,13 @@
     color: #38bdf8;
     letter-spacing: 0.02em;
   }
-  .step-timer.warning { color: #f59e0b; }
-  .step-timer.danger { color: #f87171; animation: pulse 1s infinite; }
+  .step-timer.draft { color: #4ade80; }
+  .step-timer.refine { color: #38bdf8; }
+  .step-timer.panic { color: #f87171; animation: timerPanic 0.6s ease-in-out infinite; }
+  @keyframes timerPanic {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.08); }
+  }
 
   .step-body {
     flex: 1;
@@ -950,6 +955,8 @@ let stepOutputs = [];    // 每步的用户产出
 let currentStepIdx = 0;
 let stepTimerInterval = null;
 let stepTimeRemaining = 0;
+let stepTotalSeconds = 0;
+let stepTimerPhase = 'draft';
 
 // 帮助面板
 let helpHistory = [];
@@ -1109,35 +1116,74 @@ function goToStep(idx) {
 function startStepTimer(seconds) {
   if (stepTimerInterval) clearInterval(stepTimerInterval);
   stepTimeRemaining = seconds;
+  stepTotalSeconds = seconds;
+  stepTimerPhase = 'draft'; // draft → refine → panic
   updateTimerDisplay();
+  applyTimerPhase('draft');
+
+  // 显示乱写期指令
+  showPhaseMessage('draft');
 
   stepTimerInterval = setInterval(() => {
     stepTimeRemaining--;
     updateTimerDisplay();
 
-    if (stepTimeRemaining === 300) {
-      // 5 分钟提醒
-      document.getElementById('stepTimer').classList.add('warning');
+    const elapsed = stepTotalSeconds - stepTimeRemaining;
+    const draftEnd = Math.floor(stepTotalSeconds * 0.3);
+    const panicStart = 60;
+
+    // 阶段切换：乱写期 → 修整期
+    if (stepTimerPhase === 'draft' && elapsed >= draftEnd) {
+      stepTimerPhase = 'refine';
+      applyTimerPhase('refine');
+      showPhaseMessage('refine');
     }
 
-    if (stepTimeRemaining === 60) {
-      // 1 分钟提醒
-      document.getElementById('stepTimer').classList.remove('warning');
-      document.getElementById('stepTimer').classList.add('danger');
+    // 阶段切换：修整期 → 紧急状态
+    if (stepTimerPhase === 'refine' && stepTimeRemaining <= panicStart) {
+      stepTimerPhase = 'panic';
+      applyTimerPhase('panic');
+      showPhaseMessage('panic');
     }
 
     if (stepTimeRemaining <= 0) {
       clearInterval(stepTimerInterval);
       stepTimerInterval = null;
-      // 时间到，自动进入下一步
+      showPhaseMessage('overtime');
       if (confirm('时间到了。要进入下一步吗？\n点"取消"可以继续当前步骤。')) {
         finishStep();
       } else {
-        // 续 5 分钟
-        startStepTimer(300);
+        startStepTimer(120); // 续 2 分钟，不是 5 分钟
       }
     }
   }, 1000);
+}
+
+function applyTimerPhase(phase) {
+  const el = document.getElementById('stepTimer');
+  el.classList.remove('draft', 'refine', 'panic');
+  el.classList.add(phase);
+}
+
+function showPhaseMessage(phase) {
+  const el = document.getElementById('stepWarning');
+  const remaining = stepTimeRemaining;
+  const mins = Math.floor(remaining / 60);
+  const secs = remaining % 60;
+
+  if (phase === 'draft') {
+    el.style.color = '#4ade80';
+    el.textContent = '[Protocol]: 乱写模式启动。不准查资料，不准删除，哪怕全是垃圾话也先把框填满。开始！';
+  } else if (phase === 'refine') {
+    el.style.color = '#38bdf8';
+    el.textContent = `[Protocol]: 雏形已现。你有 ${mins} 分 ${secs > 0 ? secs + ' 秒' : ''} 将其修整到"可以被阅读"的程度。`;
+  } else if (phase === 'panic') {
+    el.style.color = '#f87171';
+    el.textContent = '[Warning]: 时间即将耗尽。立即交付，白纸是协议唯一的禁忌！';
+  } else if (phase === 'overtime') {
+    el.style.color = '#f87171';
+    el.textContent = '[Protocol]: 超时。你写下的东西就是你的产出，不要重来。';
+  }
 }
 
 function updateTimerDisplay() {
@@ -1230,7 +1276,7 @@ function finishStep() {
   stopInactivityMonitor();
 
   // 重置 timer 样式
-  document.getElementById('stepTimer').classList.remove('warning', 'danger');
+  document.getElementById('stepTimer').classList.remove('draft', 'refine', 'panic');
 
   if (currentStepIdx < steps.length - 1) {
     goToStep(currentStepIdx + 1);

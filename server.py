@@ -46,7 +46,7 @@ class Step(BaseModel):
     title: str
     instruction: str
     output: str
-    minutes: int = Field(ge=1, le=30)
+    minutes: int = Field(ge=1, le=15)
 
 
 class ChatRequest(BaseModel):
@@ -155,7 +155,7 @@ def build_rule_steps(task: str) -> list[Step]:
                 title="做最小可见物",
                 instruction="围绕这个方向做一个最小可见物：一段文字、一个文件、一个页面或一条可发送消息。",
                 output="最小可见物",
-                minutes=20,
+                minutes=12,
             ),
         ]
 
@@ -193,19 +193,19 @@ def build_rule_steps(task: str) -> list[Step]:
                 title="圈三个关键词",
                 instruction="从 JD 里圈出三个你能回应的关键词。不是优势分析，只看你做过的具体事。",
                 output="三个 JD 关键词",
-                minutes=10,
+                minutes=8,
             ),
             Step(
                 title="改一句简历",
                 instruction="把简历里一句经历改成包含这三个关键词的版本。只改一句。",
                 output="一条可投递的经历描述",
-                minutes=15,
+                minutes=8,
             ),
             Step(
                 title="完成一次投递动作",
                 instruction="把这份简历用于一次投递，或把投递材料打包到同一个文件夹。",
                 output="一次投递或投递包",
-                minutes=10,
+                minutes=5,
             ),
         ]
 
@@ -221,13 +221,13 @@ def build_rule_steps(task: str) -> list[Step]:
                 title="做出最小骨架",
                 instruction="创建最少文件，让页面、脚本或接口能打开。里面可以只有一个真实按钮或一条真实输出。",
                 output="可打开的最小骨架",
-                minutes=15,
+                minutes=10,
             ),
             Step(
                 title="跑通核心动作",
                 instruction="让那个唯一核心动作跑通一次，并记录看到的结果。不要加第二个功能。",
                 output="一次跑通记录",
-                minutes=20,
+                minutes=12,
             ),
             Step(
                 title="写下下一处改进",
@@ -249,19 +249,19 @@ def build_rule_steps(task: str) -> list[Step]:
                 title="写三个标题",
                 instruction="围绕这句话写 3 个标题。不要判断好坏，先列出来。",
                 output="三个标题",
-                minutes=10,
+                minutes=5,
             ),
             Step(
                 title="搭三段结构",
                 instruction="写出开头、主体、结尾各一句。每段只写一句。",
                 output="三段结构",
-                minutes=15,
+                minutes=8,
             ),
             Step(
                 title="扩成初稿",
                 instruction="把三段各扩写成一小段，凑成完整初稿。",
                 output="完整初稿",
-                minutes=20,
+                minutes=12,
             ),
         ]
 
@@ -276,13 +276,13 @@ def build_rule_steps(task: str) -> list[Step]:
             title="列出三个部件",
             instruction="写出这个雏形需要的三个最小部件。不要超过三个。",
             output="三个最小部件",
-            minutes=10,
+            minutes=8,
         ),
         Step(
             title="做第一个部件",
             instruction="只做第一个部件，让它变成看得见的东西。",
             output="第一个可见部件",
-            minutes=20,
+            minutes=12,
         ),
         Step(
             title="拼成初稿记录",
@@ -324,7 +324,7 @@ def try_ai_plan(task: str) -> list[Step] | None:
 
 规则：
 - 3 到 5 步。
-- 每步 5 到 30 分钟。
+- 每步 1 到 15 分钟。禁止生成超过 15 分钟的步骤，任务复杂就拆成多个原子步骤。
 - 每步必须有可见产出。
 - 第一版目标是可修改的雏形，不是完美成品。
 """
@@ -441,10 +441,25 @@ async def chat(req: ChatRequest):
     return ChatResponse(reply=CONTRACT_REPLY, screen="contract", task=task)
 
 
+def _fallback_reply(req: ChatRequest) -> str:
+    """AI 不可用时，用规则引擎生成回复。"""
+    message = normalize_text(req.message)
+    for trigger, reply in SHAME_REFRAMES.items():
+        if trigger in message:
+            return reply
+    current_index = max(0, min(req.current_step, len(req.steps) - 1)) if req.steps else 0
+    step = req.steps[current_index] if req.steps else None
+    if step:
+        return f"别跳走。当前只做这一格：{step.instruction} 做完你只需要交出：{step.output}。"
+    return "先写出一个最小版本。不要解释为什么还没准备好，直接留下一个可见产出。"
+
+
 def stream_ai_reply(req: ChatRequest):
     """SSE 流式生成：逐 token 输出 AI 回复，最后发送 [DONE] 标记。"""
     if client is None:
-        yield f"data: {json.dumps({'error': 'no_api_key'})}\n\n"
+        fallback = _fallback_reply(req)
+        yield f"data: {json.dumps({'text': fallback})}\n\n"
+        yield "data: [DONE]\n\n"
         return
 
     system_prompt = (
@@ -476,8 +491,9 @@ def stream_ai_reply(req: ChatRequest):
             if delta.content:
                 yield f"data: {json.dumps({'text': delta.content})}\n\n"
         yield "data: [DONE]\n\n"
-    except Exception as e:
-        yield f"data: {json.dumps({'error': str(e)})}\n\n"
+    except Exception:
+        fallback = _fallback_reply(req)
+        yield f"data: {json.dumps({'text': fallback})}\n\n"
         yield "data: [DONE]\n\n"
 
 
