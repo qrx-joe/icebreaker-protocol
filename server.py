@@ -299,7 +299,7 @@ def safe_history(history: list[dict[str, str]]) -> list[dict[str, str]]:
         role = item.get("role")
         content = normalize_text(item.get("content", ""))
         if role in {"user", "assistant"} and content:
-            cleaned.append({"role": role, "content": content[:1200]})
+            cleaned.append({"role": role, "content": content[:2000]})
     return cleaned
 
 
@@ -349,19 +349,25 @@ def try_ai_reply(req: ChatRequest) -> str | None:
         return None
 
     system_prompt = (
-        "你是破冰协议引导者。不要安慰，不要长篇讲道理。"
-        "只帮用户完成当前步骤。回复不超过120字，并给一个具体可执行动作。"
+        '你是破冰协议的 AI 助手。用户正在一个分步工作流中完成任务。\n'
+        '你会收到完整的上下文：用户的总任务、已完成步骤的产出、当前步骤要求。\n\n'
+        '规则：\n'
+        '- 不要安慰、不要讲道理、不要评价用户。\n'
+        '- 直接产出内容：如果用户要标题就给标题，要代码就给代码，要消息就给消息。\n'
+        '- 给出可以直接使用的具体内容，而不是「你可以试试...」这种空泛建议。\n'
+        '- 如果用户没指定方向，基于上下文主动给出最合理的版本。\n'
+        '- 回复简洁，但可以包含多个选项供用户挑选。'
     )
     messages = [{"role": "system", "content": system_prompt}]
     messages.extend(safe_history(req.history))
-    messages.append({"role": "user", "content": req.message[:1200]})
+    messages.append({"role": "user", "content": req.message[:2000]})
 
     try:
         response = client.chat.completions.create(
             model=MODEL,
             messages=messages,
-            max_tokens=220,
-            temperature=0.4,
+            max_tokens=500,
+            temperature=0.5,
         )
         return (response.choices[0].message.content or "").strip()
     except Exception:

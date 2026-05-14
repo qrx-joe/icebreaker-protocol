@@ -438,10 +438,12 @@
   /* ==================== Done ==================== */
   #pageDone {
     align-items: center;
-    justify-content: center;
+    overflow-y: auto;
     padding: 2rem;
     text-align: center;
   }
+  #pageDone > *:first-child { margin-top: auto; }
+  #pageDone > *:last-child { margin-bottom: auto; }
   .done-icon {
     font-size: 3rem;
     margin-bottom: 1rem;
@@ -626,6 +628,54 @@
     font-size: 0.82rem;
   }
 
+  /* ---- 一键采纳按钮 ---- */
+  .bubble-actions {
+    margin-top: 0.5rem;
+    display: flex;
+    gap: 0.4rem;
+  }
+  .btn-apply {
+    padding: 0.35rem 0.8rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    background: rgba(52,211,153,0.12);
+    border: 1px solid rgba(52,211,153,0.3);
+    color: #34d399;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .btn-apply:hover {
+    background: rgba(52,211,153,0.2);
+    box-shadow: 0 2px 8px rgba(52,211,153,0.15);
+  }
+
+  /* ---- 提示词起搏器 ---- */
+  .prompt-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0.6rem 1.5rem 0 1.5rem;
+  }
+  .prompt-chips:empty { display: none; }
+  .chip {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.78rem;
+    background: rgba(56,189,248,0.08);
+    border: 1px solid rgba(56,189,248,0.2);
+    color: #38bdf8;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .chip:hover {
+    background: rgba(56,189,248,0.15);
+    border-color: rgba(56,189,248,0.4);
+  }
+
   .watermark {
     position: fixed;
     bottom: 0.6rem;
@@ -750,6 +800,7 @@
       <button class="help-close" onclick="closeHelp()">&times;</button>
     </div>
     <div class="help-messages" id="helpMessages"></div>
+    <div class="prompt-chips" id="promptChips"></div>
     <div class="help-input">
       <input type="text" id="helpInput" placeholder="这一步哪里不清楚？"
         onkeydown="if(event.key==='Enter') sendHelp()">
@@ -1013,12 +1064,135 @@ function showDone() {
 }
 
 // ==================== Help Side Drawer ====================
-function appendBubble(container, role, text) {
+function appendBubble(container, role, text, showApply) {
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = 'display:flex;flex-direction:column;';
+
   const div = document.createElement('div');
   div.className = `bubble ${role}`;
   div.textContent = text;
-  container.appendChild(div);
+  wrapper.appendChild(div);
+
+  // 一键采纳按钮（仅 AI 回复且有实质内容时显示）
+  if (showApply && role === 'assistant' && text.length > 15) {
+    const actions = document.createElement('div');
+    actions.className = 'bubble-actions';
+    const btn = document.createElement('button');
+    btn.className = 'btn-apply';
+    btn.textContent = '采纳到左侧';
+    btn.onclick = () => applyToEditor(text);
+    actions.appendChild(btn);
+    wrapper.appendChild(actions);
+  }
+
+  container.appendChild(wrapper);
   return div;
+}
+
+// 构建全局上下文摘要
+function buildContextSummary() {
+  const parts = [];
+  parts.push(`用户的任务：${currentTask || '未确定'}`);
+
+  // 已完成步骤的产出
+  const completedOutputs = [];
+  for (let i = 0; i < currentStepIdx; i++) {
+    const out = (stepOutputs[i] || '').trim();
+    if (out) {
+      completedOutputs.push(`步骤${i + 1}「${steps[i]?.title || ''}」的产出：${out}`);
+    }
+  }
+  if (completedOutputs.length) {
+    parts.push('已完成的步骤和产出：\n' + completedOutputs.join('\n'));
+  }
+
+  // 当前步骤
+  const step = steps[currentStepIdx];
+  if (step) {
+    parts.push(`当前正在执行步骤 ${currentStepIdx + 1}/${steps.length}：${step.title}`);
+    parts.push(`步骤说明：${step.instruction}`);
+    parts.push(`要求产出：${step.output}`);
+    // 当前已写内容
+    const currentText = (document.getElementById('stepTextarea')?.value || '').trim();
+    if (currentText) {
+      parts.push(`用户当前已写的内容：${currentText}`);
+    }
+  }
+
+  return parts.join('\n');
+}
+
+// 生成提示词起搏器
+function renderPromptChips() {
+  const container = document.getElementById('promptChips');
+  container.replaceChildren();
+
+  const step = steps[currentStepIdx];
+  if (!step) return;
+
+  // 通用 chips
+  const chips = [];
+
+  // 基于当前步骤的智能 chips
+  const title = step.title || '';
+  const instruction = step.instruction || '';
+
+  // 从步骤说明中提取关键词生成 chips
+  if (instruction.includes('标题') || title.includes('标题')) {
+    chips.push('帮我想 3 个包含数字的标题');
+    chips.push('针对年轻人，语气夸张一点');
+  }
+  if (instruction.includes('观点') || title.includes('观点')) {
+    chips.push('帮我提炼一个有争议的观点');
+    chips.push('用一句话概括核心主张');
+  }
+  if (instruction.includes('消息') || title.includes('消息') || title.includes('联系')) {
+    chips.push('帮我写一条不尴尬的开场白');
+    chips.push('语气自然一点，不要太正式');
+  }
+  if (instruction.includes('简历') || title.includes('简历') || title.includes('岗位')) {
+    chips.push('帮我把经历改成 STAR 格式');
+    chips.push('突出技术关键词');
+  }
+  if (instruction.includes('代码') || title.includes('demo') || title.includes('骨架')) {
+    chips.push('给我一个最简代码模板');
+    chips.push('用 Python 实现');
+  }
+
+  // 始终可用的 chips
+  chips.push('给我一个具体示例');
+  if (currentStepIdx > 0) {
+    chips.push('结合我上一步的产出，给点建议');
+  }
+
+  // 渲染
+  chips.forEach(text => {
+    const chip = document.createElement('button');
+    chip.className = 'chip';
+    chip.textContent = text;
+    chip.onclick = () => {
+      document.getElementById('helpInput').value = text;
+      sendHelp();
+    };
+    container.appendChild(chip);
+  });
+}
+
+// 一键采纳到左侧编辑器
+function applyToEditor(text) {
+  const ta = document.getElementById('stepTextarea');
+  if (!ta) return;
+  // 如果编辑器已有内容，追加换行；否则直接替换
+  const existing = ta.value.trim();
+  ta.value = existing ? existing + '\n\n' + text : text;
+  ta.focus();
+  // 短暂高亮反馈
+  ta.style.borderColor = 'rgba(52,211,153,0.6)';
+  ta.style.boxShadow = '0 0 0 3px rgba(52,211,153,0.1)';
+  setTimeout(() => {
+    ta.style.borderColor = '';
+    ta.style.boxShadow = '';
+  }, 1200);
 }
 
 function openHelp() {
@@ -1028,13 +1202,46 @@ function openHelp() {
   const container = document.getElementById('helpMessages');
   container.replaceChildren();
 
-  // 当前步骤上下文提示
+  // 构建主动式欢迎语
   const step = steps[currentStepIdx];
-  const contextHint = step
-    ? `当前步骤：${step.title}\n${step.instruction}\n\n你可以问我任何关于这一步的问题。`
-    : '你可以问我任何关于当前步骤的问题。';
-  appendBubble(container, 'assistant', contextHint);
+  let greeting;
 
+  if (step) {
+    // 收集已有上下文
+    const prevOutputs = [];
+    for (let i = 0; i < currentStepIdx; i++) {
+      const out = (stepOutputs[i] || '').trim();
+      if (out) prevOutputs.push(`步骤${i + 1}「${steps[i]?.title}」：${out}`);
+    }
+
+    const currentText = (document.getElementById('stepTextarea')?.value || '').trim();
+
+    if (prevOutputs.length > 0) {
+      // 有历史上下文 → 主动提议
+      greeting = `你正在做「${currentTask}」的第 ${currentStepIdx + 1} 步：${step.title}。\n\n`;
+      greeting += `你前面已经完成了 ${prevOutputs.length} 步：\n`;
+      prevOutputs.forEach(p => { greeting += `  · ${p}\n`; });
+      greeting += `\n`;
+      if (currentText) {
+        greeting += `你当前已经写了：「${currentText.slice(0, 80)}${currentText.length > 80 ? '...' : ''}」\n\n`;
+      }
+      greeting += `需要我基于这些内容帮你推进吗？比如直接帮你起草、优化、或者给你几个方向参考。`;
+    } else {
+      // 第一步，无历史
+      greeting = `你正在做第 1 步：${step.title}。\n\n`;
+      greeting += `要求产出：${step.output}\n\n`;
+      if (currentText) {
+        greeting += `你已经写了一些内容，需要我帮你继续完善吗？`;
+      } else {
+        greeting += `还没开始写？我可以先帮你起个头，或者给你一个具体示例参考。`;
+      }
+    }
+  } else {
+    greeting = '有什么我能帮你的？';
+  }
+
+  appendBubble(container, 'assistant', greeting, false);
+  renderPromptChips();
   setTimeout(() => document.getElementById('helpInput').focus(), 300);
 }
 
@@ -1062,23 +1269,28 @@ async function sendHelp() {
   if (!message || isChatting) return;
   input.value = '';
 
+  // 隐藏 chips（用户已开始自由对话）
+  document.getElementById('promptChips').replaceChildren();
+
   const container = document.getElementById('helpMessages');
-  appendBubble(container, 'user', message);
+  appendBubble(container, 'user', message, false);
 
   helpHistory.push({ role: 'user', content: message });
 
-  const typingDiv = appendBubble(container, 'typing', '思考中...');
+  const typingDiv = appendBubble(container, 'typing', '思考中...', false);
   container.scrollTop = container.scrollHeight;
 
   isChatting = true;
   try {
-    const stepContext = `用户正在执行步骤 ${currentStepIdx + 1}/${steps.length}：${steps[currentStepIdx]?.title || ''}。步骤说明：${steps[currentStepIdx]?.instruction || ''}。用户的问题：`;
+    // 注入完整上下文
+    const contextSummary = buildContextSummary();
+    const contextualMessage = `[系统上下文]\n${contextSummary}\n\n[用户问题]\n${message}`;
 
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        message: stepContext + message,
+        message: contextualMessage,
         history: helpHistory.slice(0, -1),
         phase: 'step',
         task: currentTask,
@@ -1093,7 +1305,7 @@ async function sendHelp() {
     typingDiv.remove();
 
     const reply = data.reply || '';
-    appendBubble(container, 'assistant', reply);
+    appendBubble(container, 'assistant', reply, true);
     container.scrollTop = container.scrollHeight;
 
     helpHistory.push({ role: 'assistant', content: reply });
