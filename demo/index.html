@@ -874,10 +874,18 @@ function startProtocol() {
   input.value = '';
   currentPhase = 'contract';
   showPage('pageContract');
-  sendToAI(message);
+  // 立即显示加载状态，不用等 sendToAI
+  contractBusy = true;
+  showContractLoading();
+  setContractButtonsDisabled(true);
+  sendToAI(message)
+    .catch(() => {})
+    .finally(() => { contractBusy = false; setContractButtonsDisabled(false); clearContractLoading(); });
 }
 
 // ==================== Contract ====================
+let contractBusy = false; // 合约页面独立的加载锁，不依赖全局 isChatting
+
 function setContractButtonsDisabled(disabled) {
   const btns = document.querySelectorAll('.contract-actions .btn');
   btns.forEach(b => {
@@ -899,21 +907,23 @@ function clearContractLoading() {
 }
 
 function acceptContract() {
-  if (isChatting) return;
+  if (contractBusy) return;
+  contractBusy = true;
   setContractButtonsDisabled(true);
   showContractLoading();
   sendToAI('我同意契约，请帮我拆解任务')
     .catch(() => {})
-    .finally(() => { setContractButtonsDisabled(false); clearContractLoading(); });
+    .finally(() => { contractBusy = false; setContractButtonsDisabled(false); clearContractLoading(); });
 }
 
 function questionContract() {
-  if (isChatting) return;
+  if (contractBusy) return;
+  contractBusy = true;
   setContractButtonsDisabled(true);
   showContractLoading();
   sendToAI('我怕做不好，不想做一份随便应付的东西')
     .catch(() => {})
-    .finally(() => { setContractButtonsDisabled(false); clearContractLoading(); });
+    .finally(() => { contractBusy = false; setContractButtonsDisabled(false); clearContractLoading(); });
 }
 
 // ==================== Roadmap ====================
@@ -1535,6 +1545,9 @@ async function sendToAI(message) {
   chatHistory.push({ role: 'user', content: message });
 
   isChatting = true;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 30000); // 30s 超时
+
   try {
     const response = await fetch('/api/chat', {
       method: 'POST',
@@ -1547,7 +1560,8 @@ async function sendToAI(message) {
         steps,
         current_step: currentStepIdx,
         outputs: stepOutputs
-      })
+      }),
+      signal: controller.signal
     });
 
     if (!response.ok) throw new Error('请求失败');
@@ -1557,9 +1571,14 @@ async function sendToAI(message) {
     applyAIResponse(data);
 
   } catch (err) {
-    chatHistory.pop(); // 移除失败的消息
-    alert('出错了：' + err.message);
+    chatHistory.pop();
+    if (err.name === 'AbortError') {
+      alert('请求超时，请检查网络后重试。');
+    } else {
+      alert('出错了：' + err.message);
+    }
   } finally {
+    clearTimeout(timer);
     isChatting = false;
   }
 }
