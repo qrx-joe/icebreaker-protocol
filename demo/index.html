@@ -1126,6 +1126,7 @@ let sessionLog = [];
 // 无活动监控（方案 C）
 let inactivityTimer = null;
 let inactivityTriggered = false; // 每步只触发一次
+let isFinishing = false; // finishStep 防重入锁
 
 // ==================== 页面导航 ====================
 function showPage(id) {
@@ -1465,39 +1466,45 @@ function prevStep() {
   goToStep(currentStepIdx - 1);
 }
 
-function finishStep() {
-  // 保存当前产出
-  const ta = document.getElementById('stepTextarea');
-  const output = ta.value.trim();
-  if (output.length < 5) {
-    document.getElementById('stepWarning').style.color = '#f87171';
-    document.getElementById('stepWarning').textContent = '产出物不足。协议不接受空操作。至少写 5 个字。';
-    ta.focus();
-    return;
-  }
-  stepOutputs[currentStepIdx] = output;
+async function finishStep() {
+  if (isFinishing) return;
+  isFinishing = true;
 
-  // 归档到破冰日志
-  const step = steps[currentStepIdx];
-  const timeSpent = Math.round((Date.now() - stepStartTime) / 1000);
-  archiveStep(step, currentStepIdx, output, timeSpent);
+  try {
+    const ta = document.getElementById('stepTextarea');
+    const output = ta.value.trim();
+    if (output.length < 5) {
+      document.getElementById('stepWarning').style.color = '#f87171';
+      document.getElementById('stepWarning').textContent = '产出物不足。协议不接受空操作。至少写 5 个字。';
+      ta.focus();
+      return;
+    }
+    stepOutputs[currentStepIdx] = output;
 
-  if (stepTimerInterval) {
-    clearInterval(stepTimerInterval);
-    stepTimerInterval = null;
-  }
+    // 归档到破冰日志
+    const step = steps[currentStepIdx];
+    const timeSpent = Math.round((Date.now() - stepStartTime) / 1000);
 
-  stopInactivityMonitor();
+    if (stepTimerInterval) {
+      clearInterval(stepTimerInterval);
+      stepTimerInterval = null;
+    }
 
-  // 重置 timer 样式
-  document.getElementById('stepTimer').classList.remove('draft', 'refine', 'panic');
+    stopInactivityMonitor();
 
-  if (currentStepIdx < steps.length - 1) {
-    goToStep(currentStepIdx + 1);
-  } else {
-    // 最后一步，通知 AI 完成
-    currentPhase = 'done';
-    sendToAI('所有步骤都完成了，请帮我拼装成型');
+    document.getElementById('stepTimer').classList.remove('draft', 'refine', 'panic');
+
+    // 等待归档完成再跳转，确保 sessionLog 写入是事务性的
+    await archiveStep(step, currentStepIdx, output, timeSpent);
+
+    if (currentStepIdx < steps.length - 1) {
+      goToStep(currentStepIdx + 1);
+    } else {
+      currentPhase = 'done';
+      sendToAI('所有步骤都完成了，请帮我拼装成型');
+    }
+  } finally {
+    isFinishing = false;
   }
 }
 
