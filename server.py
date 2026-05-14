@@ -509,6 +509,51 @@ async def chat_stream(req: ChatRequest):
     )
 
 
+# ==================== 摘要归档 ====================
+
+class SummarizeRequest(BaseModel):
+    step_title: str
+    user_content: str
+
+
+class SummarizeResponse(BaseModel):
+    summary: str
+
+
+SUMMARIZE_PROMPT = """你是破冰协议的归档引擎。
+
+用户刚完成步骤「{step_title}」，提交了以下内容：
+{user_content}
+
+请将其压缩成一句话（不超过20字），用于破冰战报的归档展示。
+不要评价好坏，不要给建议，只提炼核心信息。
+如果内容很乱，就从中找出最关键的那个词或那件事。
+
+只返回那一句话，不要任何其他内容。"""
+
+
+@app.post("/api/summarize", response_model=SummarizeResponse)
+async def summarize(req: SummarizeRequest):
+    if client is None:
+        return SummarizeResponse(summary=req.user_content.strip()[:20])
+
+    prompt = SUMMARIZE_PROMPT.format(
+        step_title=req.step_title,
+        user_content=req.user_content[:1000],
+    )
+    try:
+        response = client.chat.completions.create(
+            model=MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=50,
+            temperature=0.2,
+        )
+        summary = (response.choices[0].message.content or "").strip()
+        return SummarizeResponse(summary=summary)
+    except Exception:
+        return SummarizeResponse(summary=req.user_content.strip()[:20])
+
+
 demo_dir = Path(__file__).parent / "demo"
 
 

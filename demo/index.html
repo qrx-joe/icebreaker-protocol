@@ -585,6 +585,39 @@
     color: #34d399;
     margin-right: 0.4rem;
   }
+
+  /* 破冰战报 */
+  .battle-report {
+    font-family: 'Inter', 'Noto Sans SC', monospace;
+    font-size: 0.82rem;
+    line-height: 1.8;
+  }
+  .report-header {
+    color: #38bdf8;
+    font-weight: 700;
+    margin-bottom: 0.8rem;
+    letter-spacing: 0.05em;
+  }
+  .report-step {
+    margin-top: 0.5rem;
+  }
+  .report-check { color: #4ade80; }
+  .report-title { color: #ddd; font-weight: 600; }
+  .report-time { color: #666; font-size: 0.78rem; }
+  .report-summary {
+    color: #888;
+    margin-left: 1.4rem;
+    font-size: 0.78rem;
+  }
+  .report-divider {
+    color: #333;
+    margin: 0.8rem 0;
+    letter-spacing: 0.05em;
+  }
+  .report-total {
+    color: #38bdf8;
+    font-weight: 600;
+  }
   .done-actions {
     display: flex;
     gap: 0.8rem;
@@ -1031,7 +1064,7 @@
   <div class="done-sub" id="doneSub">你把一个大任务拆开，一块一块做出了完整的东西。现在你有了一个可以改的初版。</div>
   <div class="done-summary" id="doneSummary"></div>
   <div class="done-actions">
-    <button class="btn btn-primary" onclick="sendToAI('帮我看看哪里可以改进')">继续改进</button>
+    <button class="btn btn-primary" id="btnImprove" onclick="startImprovement()">继续改进</button>
     <button class="btn btn-secondary" onclick="resetAll()">再来一次</button>
   </div>
   <div class="done-export">
@@ -1082,9 +1115,13 @@ let stepTimerInterval = null;
 let stepTimeRemaining = 0;
 let stepTotalSeconds = 0;
 let stepTimerPhase = 'draft';
+let stepStartTime = 0;
 
 // 帮助面板
 let helpHistory = [];
+
+// 破冰日志
+let sessionLog = [];
 
 // 无活动监控（方案 C）
 let inactivityTimer = null;
@@ -1204,6 +1241,7 @@ function goToStep(idx) {
   }
 
   currentStepIdx = idx;
+  stepStartTime = Date.now();
   const step = steps[idx];
 
   // 更新 UI
@@ -1236,6 +1274,51 @@ function goToStep(idx) {
 
   // 聚焦文本框
   setTimeout(() => document.getElementById('stepTextarea').focus(), 300);
+
+  // 非第一步：AI 主动提议
+  if (idx > 0) {
+    fetchProactiveSuggestion(idx);
+  }
+}
+
+async function fetchProactiveSuggestion(idx) {
+  const prevOutputs = [];
+  for (let i = 0; i < idx; i++) {
+    const out = (stepOutputs[i] || '').trim();
+    if (out) prevOutputs.push(`步骤${i + 1}「${steps[i]?.title}」：${out}`);
+  }
+  if (prevOutputs.length === 0) return;
+
+  const step = steps[idx];
+  const context = prevOutputs.join('\n');
+  const warning = document.getElementById('stepWarning');
+  warning.style.color = '#666';
+  warning.textContent = '[Protocol]: 正在分析你的前序产出...';
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: `基于用户前序产出，为当前步骤给出一句具体的开场建议（不超过30字）。不要复读步骤说明。\n\n前序产出：\n${context}\n\n当前步骤：${step.title}\n要求产出：${step.output}`,
+        phase: 'step',
+        task: currentTask,
+        steps,
+        current_step: idx,
+        outputs: stepOutputs
+      })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.reply) {
+        warning.style.color = '#38bdf8';
+        warning.textContent = `[Protocol]: ${data.reply}`;
+      }
+    }
+  } catch (e) {
+    // 静默失败，不影响用户体验
+    warning.textContent = '';
+  }
 }
 
 function startStepTimer(seconds) {
@@ -1386,12 +1469,18 @@ function finishStep() {
   // 保存当前产出
   const ta = document.getElementById('stepTextarea');
   const output = ta.value.trim();
-  if (!output) {
-    document.getElementById('stepWarning').textContent = '先留下一个可见产出，哪怕只有一句粗糙版本。空白不能进入下一步。';
+  if (output.length < 5) {
+    document.getElementById('stepWarning').style.color = '#f87171';
+    document.getElementById('stepWarning').textContent = '产出物不足。协议不接受空操作。至少写 5 个字。';
     ta.focus();
     return;
   }
   stepOutputs[currentStepIdx] = output;
+
+  // 归档到破冰日志
+  const step = steps[currentStepIdx];
+  const timeSpent = Math.round((Date.now() - stepStartTime) / 1000);
+  archiveStep(step, currentStepIdx, output, timeSpent);
 
   if (stepTimerInterval) {
     clearInterval(stepTimerInterval);
@@ -1412,31 +1501,152 @@ function finishStep() {
   }
 }
 
+// ==================== 破冰日志归档 ====================
+async function archiveStep(step, index, output, timeSpent) {
+  // 先用截断作为默认摘要
+  let summary = output.slice(0, 20);
+  try {
+    const res = await fetch('/api/summarize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        step_title: step.title || `步骤 ${index + 1}`,
+        user_content: output
+      })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.summary) summary = data.summary;
+    }
+  } catch (e) { /* fallback to truncated text */ }
+
+  sessionLog.push({
+    step_title: step.title || `步骤 ${index + 1}`,
+    step_index: index,
+    user_output: output,
+    summary: summary,
+    time_spent_seconds: timeSpent
+  });
+}
+
+function renderBattleReport() {
+  const container = document.getElementById('doneSummary');
+  if (!sessionLog.length) {
+    container.textContent = '';
+    return;
+  }
+
+  const totalTime = sessionLog.reduce((s, r) => s + r.time_spent_seconds, 0);
+  const m = Math.floor(totalTime / 60);
+  const s = totalTime % 60;
+
+  let html = '<div class="battle-report">';
+  html += '<div class="report-header">━━━━━━━━ 破冰日志 ━━━━━━━━</div>';
+  sessionLog.forEach((r, i) => {
+    const rm = Math.floor(r.time_spent_seconds / 60);
+    const rs = r.time_spent_seconds % 60;
+    const timeStr = rm > 0 ? `${rm}分${rs}秒` : `${rs}秒`;
+    html += `<div class="report-step">`;
+    html += `<span class="report-check">✅</span> `;
+    html += `<span class="report-title">步骤 ${r.step_index + 1} · ${r.step_title}</span> `;
+    html += `<span class="report-time">· ${timeStr}</span>`;
+    html += `</div>`;
+    html += `<div class="report-summary">${r.summary}</div>`;
+  });
+  html += '<div class="report-divider">━━━━━━━━━━━━━━━━━━━━━━━</div>';
+  html += `<div class="report-total">总耗时：${m > 0 ? m + '分' : ''}${s}秒 | 产出：${sessionLog.length}项</div>`;
+  html += '<div class="report-divider">━━━━━━━━━━━━━━━━━━━━━━━</div>';
+  html += '</div>';
+
+  container.innerHTML = html;
+}
+
 // ==================== Done ====================
 function showDone() {
   currentPhase = 'done';
   // 更新进度条到 100%
   document.getElementById('stepProgressFill').style.width = '100%';
 
-  // 生成产出汇总
-  const summaryEl = document.getElementById('doneSummary');
-  summaryEl.replaceChildren();
-
-  const title = document.createElement('div');
-  title.className = 'ds-title';
-  title.textContent = '产出汇总';
-  summaryEl.appendChild(title);
-
-  steps.forEach((s, i) => {
-    const output = stepOutputs[i] || '';
-    const preview = output.length > 60 ? output.substring(0, 60) + '...' : output;
-    const item = document.createElement('div');
-    item.className = 'ds-item';
-    item.textContent = `步骤 ${i + 1}：${s.title || ''}${preview ? ' — ' + preview : ''}`;
-    summaryEl.appendChild(item);
-  });
+  // 渲染破冰战报
+  renderBattleReport();
 
   showPage('pageDone');
+}
+
+// ==================== 改进循环 ====================
+let improvementRound = 0;
+
+async function startImprovement() {
+  improvementRound++;
+  const btn = document.getElementById('btnImprove');
+  btn.disabled = true;
+  btn.textContent = '分析中...';
+
+  // 轮次警告
+  if (improvementRound >= 3) {
+    const warning = improvementRound >= 4
+      ? `[Protocol 警告]: 你已经进行了 ${improvementRound} 轮改进。继续修改的边际收益趋近于零。发布一个 80 分的产出，比打磨一个永远发不出去的 100 分更有价值。`
+      : `[Protocol]: 这是第 ${improvementRound} 轮改进。协议建议你完成这一轮后发布或提交。你的完美主义正在这里等着你——先把它发出去。`;
+    const proceed = confirm(warning + '\n\n继续改进？');
+    if (!proceed) {
+      btn.disabled = false;
+      btn.textContent = '继续改进';
+      improvementRound--;
+      return;
+    }
+  }
+
+  // 构建所有步骤产出摘要
+  const outputsSummary = steps.map((s, i) => {
+    const output = stepOutputs[i] || '(无产出)';
+    return `步骤${i + 1}「${s.title}」: ${output}`;
+  }).join('\n');
+
+  try {
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: `基于以下所有步骤产出，找出最薄弱的一个点，给出一句具体的改进指令（不超过30字）。只返回JSON：{"step_index":0,"instruction":"具体改进指令"}\n\n${outputsSummary}`,
+        phase: 'step',
+        task: currentTask,
+        steps,
+        current_step: 0,
+        outputs: stepOutputs
+      })
+    });
+
+    if (!response.ok) throw new Error('请求失败');
+    const data = await response.json();
+    const reply = data.reply || '';
+
+    // 尝试解析 JSON
+    let targetIdx = 0;
+    let instruction = '完善这一部分的内容';
+    try {
+      const match = reply.match(/\{.*\}/s);
+      if (match) {
+        const parsed = JSON.parse(match[0]);
+        targetIdx = Math.min(parsed.step_index || 0, steps.length - 1);
+        instruction = parsed.instruction || instruction;
+      }
+    } catch (e) { /* fallback */ }
+
+    // 显示改进指令，让用户确认
+    const confirmed = confirm(`[Protocol]: 下一步改进：\n\n${instruction}\n\n确认进入修改？`);
+    if (confirmed) {
+      goToStep(targetIdx);
+    } else {
+      btn.disabled = false;
+      btn.textContent = '继续改进';
+      improvementRound--;
+    }
+  } catch (err) {
+    document.getElementById('doneAiMsg').textContent = '分析失败，请重试。';
+    btn.disabled = false;
+    btn.textContent = '继续改进';
+    improvementRound--;
+  }
 }
 
 // ==================== 导出 Markdown ====================
@@ -2265,6 +2475,8 @@ function resetAll() {
   stepOutputs = [];
   currentStepIdx = 0;
   helpHistory = [];
+  sessionLog = [];
+  improvementRound = 0;
   if (stepTimerInterval) clearInterval(stepTimerInterval);
   stopInactivityMonitor();
 
