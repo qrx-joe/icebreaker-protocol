@@ -2,9 +2,9 @@
 破冰协议 · 思考预算计时器
 
 用法：
-  python timer.py 5        # 5 分钟倒计时
-  python timer.py 30s      # 30 秒倒计时
-  python timer.py          # 默认 5 分钟
+  uv run python scripts/timer.py 5        # 5 分钟倒计时
+  uv run python scripts/timer.py 30s      # 30 秒倒计时
+  uv run python scripts/timer.py          # 默认 5 分钟
 
 时间到了会发出声音提醒。
 按 Ctrl+C 可提前结束。

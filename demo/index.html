@@ -189,6 +189,7 @@
     font-size: 0.95rem;
     line-height: 1.8;
     color: #ccc;
+    white-space: pre-wrap;
   }
   .step-instruction strong { color: #38bdf8; font-weight: 600; }
 
@@ -216,6 +217,13 @@
     border-color: rgba(56,189,248,0.3);
   }
   .step-workspace textarea::placeholder { color: #333; }
+
+  .step-warning {
+    min-height: 1.4rem;
+    margin-top: 0.5rem;
+    color: #f87171;
+    font-size: 0.82rem;
+  }
 
   .step-footer {
     flex-shrink: 0;
@@ -701,6 +709,7 @@
     <div class="step-instruction" id="stepInstruction"></div>
     <div class="step-workspace">
       <textarea id="stepTextarea" placeholder="在这里写下你的产出..."></textarea>
+      <div class="step-warning" id="stepWarning"></div>
     </div>
   </div>
   <div class="step-footer">
@@ -749,10 +758,11 @@
 // ==================== 状态 ====================
 let chatHistory = [];
 let currentTask = '';
+let currentPhase = 'landing';
 let isChatting = false;
 
 // 步骤数据
-let steps = [];          // [{text, time, title}]
+let steps = [];          // [{title, instruction, output, minutes}]
 let stepOutputs = [];    // 每步的用户产出
 let currentStepIdx = 0;
 let stepTimerInterval = null;
@@ -777,6 +787,7 @@ function startProtocol() {
     return;
   }
   input.value = '';
+  currentPhase = 'contract';
   showPage('pageContract');
   sendToAI(message);
 }
@@ -787,22 +798,37 @@ function acceptContract() {
 }
 
 function questionContract() {
-  sendToAI('我不想做一份随便应付的东西');
+  sendToAI('我怕做不好，不想做一份随便应付的东西');
 }
 
 // ==================== Roadmap ====================
 function showRoadmap(taskName, stepList) {
+  currentPhase = 'roadmap';
   const taskEl = document.getElementById('roadmapTask');
-  taskEl.innerHTML = taskName ? `<strong>"${taskName}"</strong> 的拆解方案` : '任务拆解方案';
+  taskEl.textContent = taskName ? `"${taskName}" 的拆解方案` : '任务拆解方案';
 
   const listEl = document.getElementById('roadmapStepsList');
-  listEl.innerHTML = stepList.map((s, i) => `
-    <div class="roadmap-step">
-      <div class="roadmap-step-num">${i + 1}</div>
-      <div class="roadmap-step-text">${s.title || s.text}</div>
-      <div class="roadmap-step-time">${s.time}分钟</div>
-    </div>
-  `).join('');
+  listEl.replaceChildren();
+
+  stepList.forEach((s, i) => {
+    const item = document.createElement('div');
+    item.className = 'roadmap-step';
+
+    const num = document.createElement('div');
+    num.className = 'roadmap-step-num';
+    num.textContent = String(i + 1);
+
+    const text = document.createElement('div');
+    text.className = 'roadmap-step-text';
+    text.textContent = s.title || s.instruction || `第 ${i + 1} 步`;
+
+    const time = document.createElement('div');
+    time.className = 'roadmap-step-time';
+    time.textContent = `${s.minutes || 15}分钟`;
+
+    item.append(num, text, time);
+    listEl.appendChild(item);
+  });
 
   showPage('pageRoadmap');
 }
@@ -810,6 +836,7 @@ function showRoadmap(taskName, stepList) {
 // ==================== Step ====================
 function goToStep(idx) {
   if (idx < 0 || idx >= steps.length) return;
+  currentPhase = 'step';
 
   // 保存当前步的产出
   if (currentStepIdx >= 0 && currentStepIdx < steps.length) {
@@ -823,8 +850,10 @@ function goToStep(idx) {
   // 更新 UI
   document.getElementById('stepBadge').textContent = `${idx + 1} / ${steps.length}`;
   document.getElementById('stepTitle').textContent = step.title || `第 ${idx + 1} 步`;
-  document.getElementById('stepInstruction').innerHTML = step.text;
+  document.getElementById('stepInstruction').textContent =
+    `${step.instruction || ''}\n\n产出：${step.output || '一个可见产出'}`;
   document.getElementById('stepTextarea').value = stepOutputs[idx] || '';
+  document.getElementById('stepWarning').textContent = '';
 
   // 进度条
   const pct = ((idx) / steps.length * 100);
@@ -841,7 +870,7 @@ function goToStep(idx) {
   showPage('pageStep');
 
   // 启动倒计时
-  startStepTimer(step.time * 60);
+  startStepTimer((step.minutes || 15) * 60);
 
   // 聚焦文本框
   setTimeout(() => document.getElementById('stepTextarea').focus(), 300);
@@ -895,7 +924,13 @@ function prevStep() {
 function finishStep() {
   // 保存当前产出
   const ta = document.getElementById('stepTextarea');
-  stepOutputs[currentStepIdx] = ta.value;
+  const output = ta.value.trim();
+  if (!output) {
+    document.getElementById('stepWarning').textContent = '先留下一个可见产出，哪怕只有一句粗糙版本。空白不能进入下一步。';
+    ta.focus();
+    return;
+  }
+  stepOutputs[currentStepIdx] = output;
 
   if (stepTimerInterval) {
     clearInterval(stepTimerInterval);
@@ -909,33 +944,53 @@ function finishStep() {
     goToStep(currentStepIdx + 1);
   } else {
     // 最后一步，通知 AI 完成
+    currentPhase = 'done';
     sendToAI('所有步骤都完成了，请帮我拼装成型');
   }
 }
 
 // ==================== Done ====================
 function showDone() {
+  currentPhase = 'done';
   // 更新进度条到 100%
   document.getElementById('stepProgressFill').style.width = '100%';
 
   // 生成产出汇总
   const summaryEl = document.getElementById('doneSummary');
-  const items = steps.map((s, i) => {
+  summaryEl.replaceChildren();
+
+  const title = document.createElement('div');
+  title.className = 'ds-title';
+  title.textContent = '产出汇总';
+  summaryEl.appendChild(title);
+
+  steps.forEach((s, i) => {
     const output = stepOutputs[i] || '';
     const preview = output.length > 60 ? output.substring(0, 60) + '...' : output;
-    return `<div class="ds-item"><strong>步骤 ${i + 1}</strong>：${s.title || ''}${preview ? ' — ' + preview : ''}</div>`;
-  }).join('');
-  summaryEl.innerHTML = `<div class="ds-title">产出汇总</div>${items}`;
+    const item = document.createElement('div');
+    item.className = 'ds-item';
+    item.textContent = `步骤 ${i + 1}：${s.title || ''}${preview ? ' — ' + preview : ''}`;
+    summaryEl.appendChild(item);
+  });
 
   showPage('pageDone');
 }
 
 // ==================== Help Overlay ====================
+function appendBubble(container, role, text) {
+  const div = document.createElement('div');
+  div.className = `bubble ${role}`;
+  div.textContent = text;
+  container.appendChild(div);
+  return div;
+}
+
 function openHelp() {
   document.getElementById('helpOverlay').classList.add('active');
   helpHistory = [];
-  document.getElementById('helpMessages').innerHTML =
-    '<div class="bubble assistant">你可以问我任何关于当前步骤的问题。</div>';
+  const container = document.getElementById('helpMessages');
+  container.replaceChildren();
+  appendBubble(container, 'assistant', '你可以问我任何关于当前步骤的问题。');
   setTimeout(() => document.getElementById('helpInput').focus(), 200);
 }
 
@@ -950,29 +1005,28 @@ async function sendHelp() {
   input.value = '';
 
   const container = document.getElementById('helpMessages');
-  const userDiv = document.createElement('div');
-  userDiv.className = 'bubble user';
-  userDiv.textContent = message;
-  container.appendChild(userDiv);
+  appendBubble(container, 'user', message);
 
   helpHistory.push({ role: 'user', content: message });
 
-  const typingDiv = document.createElement('div');
-  typingDiv.className = 'bubble typing';
-  typingDiv.textContent = '思考中...';
-  container.appendChild(typingDiv);
+  const typingDiv = appendBubble(container, 'typing', '思考中...');
   container.scrollTop = container.scrollHeight;
 
   isChatting = true;
   try {
-    const stepContext = `用户正在执行步骤 ${currentStepIdx + 1}/${steps.length}：${steps[currentStepIdx]?.title || ''}。步骤说明：${steps[currentStepIdx]?.text || ''}。用户的问题：`;
+    const stepContext = `用户正在执行步骤 ${currentStepIdx + 1}/${steps.length}：${steps[currentStepIdx]?.title || ''}。步骤说明：${steps[currentStepIdx]?.instruction || ''}。用户的问题：`;
 
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         message: stepContext + message,
-        history: helpHistory.slice(0, -1)
+        history: helpHistory.slice(0, -1),
+        phase: 'step',
+        task: currentTask,
+        steps,
+        current_step: currentStepIdx,
+        outputs: stepOutputs
       })
     });
 
@@ -980,12 +1034,8 @@ async function sendHelp() {
     const data = await response.json();
     typingDiv.remove();
 
-    const reply = data.reply.replace(/\[SCREEN:\w+\]\s*$/, '').replace(/\[TASK:.+?\]/g, '').replace(/\[STEPS:\d+\]/g, '').replace(/\[STEP:\d+\/\d+\]/g, '').trim();
-
-    const replyDiv = document.createElement('div');
-    replyDiv.className = 'bubble assistant';
-    replyDiv.textContent = reply;
-    container.appendChild(replyDiv);
+    const reply = data.reply || '';
+    appendBubble(container, 'assistant', reply);
     container.scrollTop = container.scrollHeight;
 
     helpHistory.push({ role: 'assistant', content: reply });
@@ -1002,6 +1052,81 @@ async function sendHelp() {
 }
 
 // ==================== AI 对话核心 ====================
+function normalizeStep(raw) {
+  return {
+    title: raw.title || '未命名步骤',
+    instruction: raw.instruction || raw.text || '',
+    output: raw.output || '一个可见产出',
+    minutes: Number(raw.minutes || raw.time || 15)
+  };
+}
+
+function showInlineMessage(reply) {
+  if (!reply) return;
+  if (currentPhase === 'contract') {
+    document.getElementById('contractAiMsg').textContent = reply;
+  } else if (currentPhase === 'roadmap') {
+    document.getElementById('roadmapAiMsg').textContent = reply;
+  } else if (currentPhase === 'done') {
+    document.getElementById('doneAiMsg').textContent = reply;
+  } else if (currentPhase === 'step') {
+    document.getElementById('stepWarning').textContent = reply;
+  }
+}
+
+function applyAIResponse(data) {
+  const reply = data.reply || '';
+  if (data.task) currentTask = data.task;
+  if (Array.isArray(data.steps) && data.steps.length) {
+    const incomingSteps = data.steps.map(normalizeStep);
+    if (data.screen === 'roadmap' || steps.length === 0) {
+      steps = incomingSteps;
+      stepOutputs = new Array(steps.length).fill('');
+    } else {
+      steps = incomingSteps;
+    }
+  }
+
+  if (data.screen === 'contract') {
+    currentPhase = 'contract';
+    document.getElementById('contractAiMsg').textContent = reply;
+    showPage('pageContract');
+    return;
+  }
+
+  if (data.screen === 'roadmap') {
+    currentPhase = 'roadmap';
+    document.getElementById('roadmapAiMsg').textContent = reply;
+    showRoadmap(currentTask, steps);
+    return;
+  }
+
+  if (data.screen === 'step') {
+    currentPhase = 'step';
+    const idx = Math.max(0, Number(data.current_step || 0));
+    goToStep(idx);
+    return;
+  }
+
+  if (data.screen === 'thinking_budget') {
+    currentPhase = 'step';
+    document.getElementById('stepWarning').textContent = reply;
+    if (data.thinking_budget_seconds) {
+      startStepTimer(data.thinking_budget_seconds);
+    }
+    return;
+  }
+
+  if (data.screen === 'done') {
+    currentPhase = 'done';
+    document.getElementById('doneAiMsg').textContent = reply;
+    showDone();
+    return;
+  }
+
+  showInlineMessage(reply);
+}
+
 async function sendToAI(message) {
   chatHistory.push({ role: 'user', content: message });
 
@@ -1012,78 +1137,20 @@ async function sendToAI(message) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         message: message,
-        history: chatHistory.slice(0, -1)
+        history: chatHistory.slice(0, -1),
+        phase: currentPhase,
+        task: currentTask,
+        steps,
+        current_step: currentStepIdx,
+        outputs: stepOutputs
       })
     });
 
     if (!response.ok) throw new Error('请求失败');
     const data = await response.json();
 
-    let reply = data.reply;
-    const screenMatch = reply.match(/\[SCREEN:(\w+)\]\s*$/);
-    const taskMatch = reply.match(/\[TASK:(.+?)\]/);
-    const stepsMatch = reply.match(/\[STEPS:(\d+)\]/);
-    const stepMatch = reply.match(/\[STEP:(\d+)\/(\d+)\]/);
-
-    reply = reply
-      .replace(/\[SCREEN:\w+\]\s*$/, '')
-      .replace(/\[TASK:.+?\]/g, '')
-      .replace(/\[STEPS:\d+\]/g, '')
-      .replace(/\[STEP:\d+\/\d+\]/g, '')
-      .trim();
-
-    if (taskMatch) currentTask = taskMatch[1].trim();
-
-    chatHistory.push({ role: 'assistant', content: reply });
-
-    if (screenMatch) {
-      const target = screenMatch[1];
-
-      if (target === 'contract') {
-        // 显示 AI 的引导文字
-        document.getElementById('contractAiMsg').textContent = reply;
-
-      } else if (target === 'roadmap') {
-        // 显示 AI 的拆解说明
-        document.getElementById('roadmapAiMsg').textContent = reply;
-        // 解析步骤列表
-        const stepLines = reply.match(/^\s*\d+[.、]\s*.+$/gm) || [];
-        const parsedSteps = stepLines.map(s => {
-          const text = s.replace(/^\s*\d+[.、]\s*/, '').trim();
-          // 尝试提取时间（如 "（15分钟）" 或 "15min"）
-          const timeMatch = text.match(/[（(](\d+)\s*分钟/);
-          const time = timeMatch ? parseInt(timeMatch[1]) : 15;
-          const title = text.replace(/[（(]\d+\s*分钟.*?[）)]/, '').trim();
-          return { text, title, time };
-        });
-
-        if (parsedSteps.length > 0) {
-          steps = parsedSteps;
-          stepOutputs = new Array(steps.length).fill('');
-          showRoadmap(currentTask, steps);
-        }
-
-      } else if (target === 'step') {
-        const stepNum = stepMatch ? parseInt(stepMatch[1]) : currentStepIdx + 1;
-        const stepTotal = stepMatch ? parseInt(stepMatch[2]) : steps.length;
-
-        // 如果还没有 roadmap 数据，创建默认步骤
-        if (steps.length === 0) {
-          steps = [{ text: reply, title: `第 1 步`, time: 15 }];
-          stepOutputs = [''];
-          currentStepIdx = 0;
-        } else if (stepNum <= steps.length) {
-          steps[stepNum - 1].text = reply;
-          if (!steps[stepNum - 1].title) steps[stepNum - 1].title = `第 ${stepNum} 步`;
-        }
-
-        goToStep(stepNum - 1);
-
-      } else if (target === 'done') {
-        document.getElementById('doneAiMsg').textContent = reply;
-        showDone();
-      }
-    }
+    chatHistory.push({ role: 'assistant', content: data.reply || '' });
+    applyAIResponse(data);
 
   } catch (err) {
     chatHistory.pop(); // 移除失败的消息
@@ -1097,6 +1164,7 @@ async function sendToAI(message) {
 function resetAll() {
   chatHistory = [];
   currentTask = '';
+  currentPhase = 'landing';
   steps = [];
   stepOutputs = [];
   currentStepIdx = 0;

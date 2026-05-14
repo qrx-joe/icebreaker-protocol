@@ -1,163 +1,412 @@
 """
-破冰协议 · LLM 聊天后端
+破冰协议 · AI 引导 demo 后端
 
 启动方式：
-  python server.py
+  uv run icebreaker-demo
 
-环境变量（或 .env 文件）：
+环境变量（或 .env 文件，可选）：
   DEEPSEEK_API_KEY=sk-xxx
-  DEEPSEEK_BASE_URL=https://api.deepseek.com  （可选，默认值）
-  DEEPSEEK_MODEL=deepseek-chat                 （可选，默认值）
+  DEEPSEEK_BASE_URL=https://api.deepseek.com
+  DEEPSEEK_MODEL=deepseek-chat
+
+没有 API key 时，后端会使用内置规则引擎，保证 demo 仍然能跑通。
 """
 
+from __future__ import annotations
+
+import json
 import os
+import re
 from pathlib import Path
+from typing import Literal
+
 from dotenv import load_dotenv
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
+from fastapi.staticfiles import StaticFiles
 from openai import OpenAI
+from pydantic import BaseModel, Field
 
 load_dotenv()
 
-# ---------- 配置 ----------
 
 API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
 BASE_URL = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
 MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
 
-if not API_KEY:
-    raise ValueError("请设置 DEEPSEEK_API_KEY 环境变量（或创建 .env 文件）")
-
-client = OpenAI(api_key=API_KEY, base_url=BASE_URL)
-
-# ---------- System Prompt ----------
-
-SYSTEM_PROMPT = """你是破冰协议（Icebreaker Protocol）的引导者。你的用户是完美主义者——脑子里永远在推演，但身体卡在起跑线上。
-
-## 你的核心原则
-
-1. **不给鸡汤，只给下一步操作**。禁止说"相信自己""你可以的"。
-2. **回复简洁**，每次不超过 200 字。
-3. **用"你"直接对话**，语气坦率，像一个冷静但关心你的朋友。
-4. **始终引导用户做具体的、可交付的动作**，不是"想一想"而是"写出/做出/创建出"。
-5. **不要求用户降低质量标准**。你的任务是帮他把大任务拆成可执行的小块，一步步做出一个完整的雏形。
-
-## 你的工作流程
-
-### 阶段一：启动契约
-
-当用户描述了想做的事，先展示契约，让用户确认。
-
-契约内容：
-"本次的目标不是做到完美，而是做出一个可以改的雏形。约定：雏形不需要完美，但要完整到可以看、可以改。每一步足够小，小到不需要勇气就能执行。允许自己不满意——初稿就是用来改的。唯一不允许：什么都不产出。白纸什么都改不了。"
-
-如果用户说"但我想做得好一点"：
-> "你想做好，这没问题。但你现在的卡点不是质量，是启动。一个60分的初稿可以改到90分，一张白纸什么都改不了。先拿到可以改的东西。"
-
-### 阶段二：任务拆解
-
-用户同意契约后，把任务拆成 3-6 个执行步骤。每个步骤必须：
-1. 有明确的、可交付的产出（不是"想一想"，是"写出/做出"）
-2. 可在 10-30 分钟内完成
-3. 步骤之间有逻辑顺序
-
-**禁止空操作**：不准出现"打开编辑器""新建文件夹""输入标题"这种没有实质产出的步骤。每一步做完，用户手里必须有一个可以看的东西。
-
-向用户展示拆解结果，然后说"我们从第 1 步开始"。
-
-**重要：每一步必须附带预估时间**，格式为 `（X分钟）`，X 为 5-30 的整数。前端依赖这个格式解析时间。
-
-常见拆解示例（注意每步必须带时间标注）：
-- 写小红书脚本：
-  1. 确定选题（从最近经历/痛点/热点中选一个）（10分钟）
-  2. 写3个备选标题（10分钟）
-  3. 写脚本大纲：开头hook+中间内容+结尾CTA（15分钟）
-  4. 逐段扩写成完整脚本（20分钟）
-  5. 检查节奏和口语化（10分钟）
-- 写博客文章：
-  1. 确定文章核心观点，一句话说清（10分钟）
-  2. 写大纲，3-5个支撑要点（15分钟）
-  3. 每要点写核心论点和例子（20分钟）
-  4. 写开头hook和结尾（10分钟）
-  5. 通读修改（10分钟）
-- 做Python爬虫：
-  1. 确定目标URL和要抓的字段（10分钟）
-  2. 写请求+解析代码并跑通（20分钟）
-  3. 处理翻页逻辑（15分钟）
-  4. 数据存到文件（10分钟）
-  5. 测试完整流程（10分钟）
-
-**选题/方向迷茫时的拆解**：如果用户说"不知道写什么/做什么"，第一步不是"随便选一个"，而是帮他们收敛：
-1. 问2-3个二选一问题（你最近在关注什么？你希望读者收获什么？）
-2. 基于回答给2-3个具体选题建议
-3. 用户选一个后，再进入后续步骤
-
-### 阶段三：逐步执行
-
-对每一步，给用户具体的执行指令，然后等他完成。规则：
-- 每次只推进一步
-- 等用户说"做完了""好了""下一步"再给下一步
-- 用户卡住了→帮他解决当前步的具体问题，可以给示例或模板
-- 用户说"这一步太难了"→把当前步再拆成更小的子步骤
-- 用户说"还没想清楚"→启动思考预算
-- 用户想跳步→温和拉回："先把这一步做完，后面的我们会走到。"
-
-### 阶段四：拼装成型
-
-所有步骤完成后，帮用户把各步产出拼成完整雏形，然后给一个具体的改进建议。
-
-## 辅助模块
-
-### 羞耻感重构
-当用户表达焦虑/自卑/害怕时：
-- "我怕做得不好" → "第一版不需要完美，但需要存在。所有好东西都是从一个不完美的初稿改出来的。你先拿到可以改的东西。"
-- "别人会怎么看我" → "当前没有人看你的初稿。初稿是给你自己改的，不是给别人看的。"
-- "我觉得我不行" → "不是'你不行'，是'你还没开始'。行不行得做了才知道，坐在原地猜不到答案。"
-- "等我想清楚再做" → "'想清楚'是一个无终止条件的循环。一个60分的初稿可以迭代到90分，但一张白纸什么都迭代不了。"
-- "我不想让别人失望" → "不开始 = 100% 失望。一个可以改的初稿，至少有改好的可能。"
-- "我做得太烂了" → "初稿的价值不在于它好不好，在于它给了你一个可以改的对象。继续改。"
-
-### 思考预算
-用户说"还没想清楚"→ "你现在的思考预算是5分钟。5分钟后，无论想没想好，先写出一个版本来。"
-用户说"再给我一点时间"→ "思考的边际收益已经为零了。你脑子里的信息足够执行，缺的不是信息，是动作。"
-
-### 方向探索（当用户不知道做什么时）
-快速问3个问题（每个二选一）：时间、能量、目的。
-然后给恰好3个方向（安全/探索/冒险）。禁止超过3个。用户说"都行"→默认A。
-
-## 对话风格
-- 不要长篇大论
-- 不要用 markdown 格式（聊天界面）
-- 像面对面说话一样自然
-- 每次只推进一步
-
-## 屏幕切换协议
-
-根据对话阶段，在回复末尾添加屏幕切换标记：
-
-- 用户描述了想做的事 → 展示契约，添加 [SCREEN:contract]
-- 用户同意契约 → 展示拆解路线图，添加 [SCREEN:roadmap]，同时用 [TASK:任务简述] 标记任务，用 [STEPS:步骤数] 标记总步骤数
-- 每一步的执行指令 → 添加 [SCREEN:step]，同时用 [STEP:当前/总数] 标记进度
-- 所有步骤完成 → 添加 [SCREEN:done]
-
-规则：
-- 标记放在回复最末尾，与正文用换行分隔
-- 每次最多一个 [SCREEN:xxx] 标记
-- 不需要切换屏幕时不加标记（比如用户表达焦虑、你在做羞耻感重构）
-- 正文中不要提及这些标记的存在"""
+client = OpenAI(api_key=API_KEY, base_url=BASE_URL) if API_KEY else None
+HOST = "0.0.0.0"
+PORT = 8000
 
 
-# ---------- API ----------
+Screen = Literal["contract", "roadmap", "step", "done", "message", "thinking_budget"]
+
+
+class Step(BaseModel):
+    title: str
+    instruction: str
+    output: str
+    minutes: int = Field(ge=1, le=30)
+
 
 class ChatRequest(BaseModel):
     message: str
-    history: list[dict] = []  # [{"role": "user"/"assistant", "content": "..."}]
+    history: list[dict[str, str]] = Field(default_factory=list)
+    phase: str | None = None
+    task: str | None = None
+    steps: list[Step] = Field(default_factory=list)
+    current_step: int = 0
+    outputs: list[str] = Field(default_factory=list)
 
 
 class ChatResponse(BaseModel):
     reply: str
+    screen: Screen = "message"
+    task: str | None = None
+    steps: list[Step] = Field(default_factory=list)
+    current_step: int | None = None
+    thinking_budget_seconds: int | None = None
+
+
+CONTRACT_REPLY = (
+    "先签破冰契约：这次目标不是完美，而是做出一个能改的雏形。"
+    "每一步都要有看得见的产出；允许不满意，但不允许空白。"
+)
+
+SHAME_REFRAMES = {
+    "怕做不好": "第一版不需要完美，但必须存在。先拿到一个能改的对象。",
+    "别人会怎么看": "当前没有别人。初稿是给你自己改的，不是给别人审判的。",
+    "我不行": "不是你不行，是你还没有开始。行不行得做了才知道。",
+    "想清楚再做": "想清楚是无终止条件。先写出一个版本，再用版本继续思考。",
+    "做得太烂": "初稿的价值不在于好不好，在于它给了你一个可以修改的对象。",
+}
+
+
+def normalize_text(value: str) -> str:
+    return re.sub(r"\s+", " ", value or "").strip()
+
+
+def is_agreement(message: str) -> bool:
+    text = normalize_text(message).lower()
+    return any(token in text for token in ("同意", "开始", "拆解", "继续", "ok", "好", "go"))
+
+
+def is_done_request(message: str) -> bool:
+    text = normalize_text(message)
+    return any(token in text for token in ("所有步骤", "全部完成", "都完成", "拼装成型", "雏形完成"))
+
+
+def is_thinking_delay(message: str) -> bool:
+    text = normalize_text(message)
+    return any(token in text for token in ("没想清楚", "再想想", "还没准备", "不知道怎么开始", "准备好再"))
+
+
+def is_stuck(message: str) -> bool:
+    text = normalize_text(message)
+    return any(token in text for token in ("卡住", "不会", "太难", "不知道怎么写", "下不了手", "没有思路"))
+
+
+def extract_task(req: ChatRequest) -> str:
+    if req.task:
+        return req.task
+
+    ignored = ("同意", "开始", "拆解", "下一步", "做完", "所有步骤", "拼装")
+    for item in req.history:
+        if item.get("role") != "user":
+            continue
+        content = normalize_text(item.get("content", ""))
+        if content and not any(token in content for token in ignored):
+            return content
+
+    return normalize_text(req.message) or "做出一个最小雏形"
+
+
+def detect_category(task: str) -> str:
+    text = normalize_text(task)
+    if any(token in text for token in ("认识", "开口", "联系", "消息", "社交", "同行")):
+        return "social"
+    if any(token in text for token in ("简历", "求职", "面试", "jd", "岗位", "投递")):
+        return "job"
+    if any(token in text for token in ("代码", "编程", "python", "项目", "demo", "网站", "爬虫", "app")):
+        return "code"
+    if any(token in text for token in ("文章", "博客", "小红书", "脚本", "笔记", "写")):
+        return "content"
+    return "general"
+
+
+def build_rule_steps(task: str) -> list[Step]:
+    category = detect_category(task)
+
+    if "不知道" in task and category in {"code", "content", "general"}:
+        return [
+            Step(
+                title="回答三个约束",
+                instruction="写下三个二选一答案：时间是一整天还是2小时；能量是高还是低；目的是学习还是产出。",
+                output="三个约束答案",
+                minutes=5,
+            ),
+            Step(
+                title="选一个安全方向",
+                instruction="从安全、探索、冒险里选一个。选不出来就默认安全方向，别在选项里继续打转。",
+                output="一个被选中的方向",
+                minutes=5,
+            ),
+            Step(
+                title="做最小可见物",
+                instruction="围绕这个方向做一个最小可见物：一段文字、一个文件、一个页面或一条可发送消息。",
+                output="最小可见物",
+                minutes=20,
+            ),
+        ]
+
+    if category == "social":
+        return [
+            Step(
+                title="锁定对象和目的",
+                instruction="写下你要联系谁，以及你只想完成的一个目的。不要评价自己配不配。",
+                output="对象 + 一个联系目的",
+                minutes=5,
+            ),
+            Step(
+                title="生成可复制消息",
+                instruction="用这个模板改成一条能直接复制的消息：hi，看到你在做[方向]，我也在关注相关内容，方便加个微信交流一下吗？",
+                output="一条完整消息",
+                minutes=5,
+            ),
+            Step(
+                title="发送或保存发送稿",
+                instruction="复制这条消息。能发就发；今天实在发不出去，就把发送稿保存到一个固定位置。",
+                output="已发送状态或保存好的发送稿",
+                minutes=2,
+            ),
+        ]
+
+    if category == "job":
+        return [
+            Step(
+                title="摘出一个岗位",
+                instruction="只选一个岗位，把岗位名和链接写下来。不要比较十个岗位。",
+                output="一个目标岗位",
+                minutes=5,
+            ),
+            Step(
+                title="圈三个关键词",
+                instruction="从 JD 里圈出三个你能回应的关键词。不是优势分析，只看你做过的具体事。",
+                output="三个 JD 关键词",
+                minutes=10,
+            ),
+            Step(
+                title="改一句简历",
+                instruction="把简历里一句经历改成包含这三个关键词的版本。只改一句。",
+                output="一条可投递的经历描述",
+                minutes=15,
+            ),
+            Step(
+                title="完成一次投递动作",
+                instruction="把这份简历用于一次投递，或把投递材料打包到同一个文件夹。",
+                output="一次投递或投递包",
+                minutes=10,
+            ),
+        ]
+
+    if category == "code":
+        return [
+            Step(
+                title="写一句 demo 目标",
+                instruction="用一句话写清楚这个 demo 第一版要让用户看到什么。只允许一个核心动作。",
+                output="一句 demo 目标",
+                minutes=5,
+            ),
+            Step(
+                title="做出最小骨架",
+                instruction="创建最少文件，让页面、脚本或接口能打开。里面可以只有一个真实按钮或一条真实输出。",
+                output="可打开的最小骨架",
+                minutes=15,
+            ),
+            Step(
+                title="跑通核心动作",
+                instruction="让那个唯一核心动作跑通一次，并记录看到的结果。不要加第二个功能。",
+                output="一次跑通记录",
+                minutes=20,
+            ),
+            Step(
+                title="写下下一处改进",
+                instruction="只写一个下一轮最值得改的点。写完就停。",
+                output="一个明确改进点",
+                minutes=5,
+            ),
+        ]
+
+    if category == "content":
+        return [
+            Step(
+                title="写一句核心观点",
+                instruction="写一句话说明你想表达什么。句子难看没关系，但必须是一句话。",
+                output="一句核心观点",
+                minutes=5,
+            ),
+            Step(
+                title="写三个标题",
+                instruction="围绕这句话写 3 个标题。不要判断好坏，先列出来。",
+                output="三个标题",
+                minutes=10,
+            ),
+            Step(
+                title="搭三段结构",
+                instruction="写出开头、主体、结尾各一句。每段只写一句。",
+                output="三段结构",
+                minutes=15,
+            ),
+            Step(
+                title="扩成初稿",
+                instruction="把三段各扩写成一小段，凑成完整初稿。",
+                output="完整初稿",
+                minutes=20,
+            ),
+        ]
+
+    return [
+        Step(
+            title="定义雏形",
+            instruction="用一句话写下这件事完成到什么程度就算有雏形。",
+            output="一句雏形定义",
+            minutes=5,
+        ),
+        Step(
+            title="列出三个部件",
+            instruction="写出这个雏形需要的三个最小部件。不要超过三个。",
+            output="三个最小部件",
+            minutes=10,
+        ),
+        Step(
+            title="做第一个部件",
+            instruction="只做第一个部件，让它变成看得见的东西。",
+            output="第一个可见部件",
+            minutes=20,
+        ),
+        Step(
+            title="拼成初稿记录",
+            instruction="把已经有的东西整理成一段记录，并写下下一步只改哪里。",
+            output="初稿记录 + 一个改进点",
+            minutes=10,
+        ),
+    ]
+
+
+def safe_history(history: list[dict[str, str]]) -> list[dict[str, str]]:
+    cleaned: list[dict[str, str]] = []
+    for item in history[-12:]:
+        role = item.get("role")
+        content = normalize_text(item.get("content", ""))
+        if role in {"user", "assistant"} and content:
+            cleaned.append({"role": role, "content": content[:1200]})
+    return cleaned
+
+
+def try_ai_plan(task: str) -> list[Step] | None:
+    if client is None:
+        return None
+
+    prompt = f"""
+你是破冰协议的任务拆解器。用户任务：{task}
+
+请只返回 JSON，不要 Markdown：
+{{
+  "steps": [
+    {{
+      "title": "短标题",
+      "instruction": "具体执行指令，不能是想一想，必须让用户产出东西",
+      "output": "做完后可见的产出物",
+      "minutes": 5
+    }}
+  ]
+}}
+
+规则：
+- 3 到 5 步。
+- 每步 5 到 30 分钟。
+- 每步必须有可见产出。
+- 第一版目标是可修改的雏形，不是完美成品。
+"""
+    try:
+        response = client.chat.completions.create(
+            model=MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=700,
+            temperature=0.2,
+        )
+        raw = response.choices[0].message.content or ""
+        match = re.search(r"\{.*\}", raw, flags=re.S)
+        payload = json.loads(match.group(0) if match else raw)
+        steps = [Step(**item) for item in payload.get("steps", [])]
+        return steps if 3 <= len(steps) <= 5 else None
+    except Exception:
+        return None
+
+
+def try_ai_reply(req: ChatRequest) -> str | None:
+    if client is None:
+        return None
+
+    system_prompt = (
+        "你是破冰协议引导者。不要安慰，不要长篇讲道理。"
+        "只帮用户完成当前步骤。回复不超过120字，并给一个具体可执行动作。"
+    )
+    messages = [{"role": "system", "content": system_prompt}]
+    messages.extend(safe_history(req.history))
+    messages.append({"role": "user", "content": req.message[:1200]})
+
+    try:
+        response = client.chat.completions.create(
+            model=MODEL,
+            messages=messages,
+            max_tokens=220,
+            temperature=0.4,
+        )
+        return (response.choices[0].message.content or "").strip()
+    except Exception:
+        return None
+
+
+def build_roadmap(req: ChatRequest) -> ChatResponse:
+    task = extract_task(req)
+    steps = try_ai_plan(task) or build_rule_steps(task)
+    reply = f"任务先收窄：{task}。我把它拆成 {len(steps)} 步，每步都有一个可见产出。我们只从第 1 步开始。"
+    return ChatResponse(reply=reply, screen="roadmap", task=task, steps=steps, current_step=0)
+
+
+def build_step_help(req: ChatRequest) -> ChatResponse:
+    current_index = max(0, min(req.current_step, len(req.steps) - 1)) if req.steps else 0
+    step = req.steps[current_index] if req.steps else None
+
+    if is_thinking_delay(req.message):
+        return ChatResponse(
+            reply="你的思考预算是 5 分钟。时间到以后，不管满意不满意，先写出一个版本。",
+            screen="thinking_budget",
+            task=req.task,
+            steps=req.steps,
+            current_step=current_index,
+            thinking_budget_seconds=300,
+        )
+
+    ai_reply = try_ai_reply(req)
+    if ai_reply:
+        return ChatResponse(reply=ai_reply, screen="message", task=req.task, steps=req.steps, current_step=current_index)
+
+    if step:
+        reply = f"别跳走。当前只做这一格：{step.instruction} 做完你只需要交出：{step.output}。"
+    else:
+        reply = "先写出一个最小版本。不要解释为什么还没准备好，直接留下一个可见产出。"
+    return ChatResponse(reply=reply, screen="message", task=req.task, steps=req.steps, current_step=current_index)
+
+
+def build_done(req: ChatRequest) -> ChatResponse:
+    visible_outputs = [normalize_text(item) for item in req.outputs if normalize_text(item)]
+    if visible_outputs:
+        reply = f"雏形已经成立：你产出了 {len(visible_outputs)} 个可见块。下一轮只改一个地方，别开新战场。"
+    else:
+        reply = "雏形还很薄，但流程已经跑通。下一轮先补一个真实产出，再谈优化。"
+    return ChatResponse(reply=reply, screen="done", task=req.task, steps=req.steps, current_step=len(req.steps))
 
 
 app = FastAPI(title="破冰协议 API")
@@ -165,22 +414,24 @@ app = FastAPI(title="破冰协议 API")
 
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest):
-    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
-    messages.extend(req.history)
-    messages.append({"role": "user", "content": req.message})
+    message = normalize_text(req.message)
 
-    response = client.chat.completions.create(
-        model=MODEL,
-        messages=messages,
-        max_tokens=400,
-        temperature=0.7,
-    )
+    for trigger, reply in SHAME_REFRAMES.items():
+        if trigger in message:
+            return ChatResponse(reply=reply, screen="message", task=req.task, steps=req.steps, current_step=req.current_step)
 
-    reply = response.choices[0].message.content.strip()
-    return ChatResponse(reply=reply)
+    if is_done_request(message):
+        return build_done(req)
 
+    if req.phase == "step" or is_stuck(message) or is_thinking_delay(message):
+        return build_step_help(req)
 
-# ---------- 静态文件 ----------
+    if is_agreement(message):
+        return build_roadmap(req)
+
+    task = extract_task(req)
+    return ChatResponse(reply=CONTRACT_REPLY, screen="contract", task=task)
+
 
 demo_dir = Path(__file__).parent / "demo"
 
@@ -193,10 +444,13 @@ async def index():
 app.mount("/static", StaticFiles(directory=demo_dir), name="static")
 
 
-# ---------- 启动 ----------
+def run_demo() -> None:
+    import uvicorn
+
+    print("\n  破冰协议 · AI 引导 demo")
+    print(f"  http://localhost:{PORT}\n")
+    uvicorn.run(app, host=HOST, port=PORT)
+
 
 if __name__ == "__main__":
-    import uvicorn
-    print("\n  破冰协议 · LLM 聊天后端")
-    print("  http://localhost:8000\n")
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    run_demo()
