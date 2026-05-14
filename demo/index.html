@@ -1838,6 +1838,88 @@ function clearVoiceHint() {
   hint.style.color = '';
 }
 
+// ==================== 首页语音输入 ====================
+let landingRecognition = null;
+let isLandingRecording = false;
+let landingVoiceTranscript = '';
+
+function toggleLandingVoice() {
+  if (isLandingRecording) {
+    stopLandingRecording();
+  } else {
+    startLandingRecording();
+  }
+}
+
+function startLandingRecording() {
+  if (!landingRecognition) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('当前浏览器不支持语音输入，请使用 Chrome 或 Edge。');
+      return;
+    }
+    landingRecognition = new SpeechRecognition();
+    landingRecognition.lang = 'zh-CN';
+    landingRecognition.continuous = true;
+    landingRecognition.interimResults = true;
+
+    landingRecognition.onresult = (event) => {
+      let interim = '';
+      let final = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          final += transcript;
+        } else {
+          interim += transcript;
+        }
+      }
+      if (final) landingVoiceTranscript += final;
+      const input = document.getElementById('landingInput');
+      input.value = landingVoiceTranscript + interim;
+    };
+
+    landingRecognition.onerror = (event) => {
+      if (event.error === 'not-allowed') {
+        alert('麦克风权限被拒绝。请在浏览器设置中允许。');
+      }
+      stopLandingRecording();
+    };
+
+    landingRecognition.onend = () => {
+      if (isLandingRecording) {
+        try { landingRecognition.start(); } catch (e) { stopLandingRecording(); }
+      }
+    };
+  }
+
+  isLandingRecording = true;
+  landingVoiceTranscript = '';
+
+  const btn = document.getElementById('landingMic');
+  const input = document.getElementById('landingInput');
+  btn.classList.add('recording');
+  btn.textContent = '🔴';
+  input.placeholder = '正在聆听...说出来，不要想。';
+  input.value = '';
+
+  try { landingRecognition.start(); } catch (e) { stopLandingRecording(); }
+}
+
+function stopLandingRecording() {
+  isLandingRecording = false;
+
+  const btn = document.getElementById('landingMic');
+  const input = document.getElementById('landingInput');
+  btn.classList.remove('recording');
+  btn.textContent = '🎙️';
+  input.placeholder = '比如：我想写一篇博客但不知道怎么开头...';
+
+  if (landingRecognition) {
+    try { landingRecognition.stop(); } catch (e) {}
+  }
+}
+
 // ==================== 主工作区语音输入 ====================
 let mainRecognition = null;
 let isMainRecording = false;
