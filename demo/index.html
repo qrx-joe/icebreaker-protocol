@@ -518,6 +518,46 @@
     gap: 0.8rem;
   }
   .roadmap-actions .btn { flex: 1; }
+  .roadmap-improve-msg {
+    max-width: 550px;
+    width: 100%;
+    margin-bottom: 1rem;
+    padding: 1rem 1.2rem;
+    background: rgba(99,102,241,0.06);
+    border: 1px solid rgba(99,102,241,0.2);
+    border-radius: 14px;
+    font-size: 0.92rem;
+    line-height: 1.7;
+    color: #ccc;
+    animation: fadeIn 0.3s ease;
+  }
+  .roadmap-improve-msg:empty { display: none; }
+  .roadmap-round-warning {
+    max-width: 550px;
+    width: 100%;
+    margin-bottom: 1rem;
+    padding: 0.8rem 1.2rem;
+    background: rgba(251,191,36,0.06);
+    border: 1px solid rgba(251,191,36,0.25);
+    border-radius: 12px;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: #fbbf24;
+    animation: fadeIn 0.3s ease;
+  }
+  .roadmap-round-warning:empty { display: none; }
+  .roadmap-round-warning.danger {
+    background: rgba(239,68,68,0.06);
+    border-color: rgba(239,68,68,0.25);
+    color: #f87171;
+  }
+  .roadmap-step.highlight {
+    opacity: 1 !important;
+    background: rgba(99,102,241,0.08);
+    border-radius: 8px;
+    padding-left: 0.5rem;
+    margin-left: -0.5rem;
+  }
   .roadmap-ai-msg {
     max-width: 550px;
     width: 100%;
@@ -1013,12 +1053,18 @@
 <!-- ==================== Roadmap ==================== -->
 <div class="page" id="pageRoadmap">
   <div class="roadmap-ai-msg" id="roadmapAiMsg"></div>
+  <div class="roadmap-improve-msg" id="roadmapImproveMsg"></div>
+  <div class="roadmap-round-warning" id="roadmapRoundWarning"></div>
   <div class="roadmap-card">
-    <h3>拆解路线图</h3>
+    <h3 id="roadmapTitle">拆解路线图</h3>
     <div class="roadmap-task" id="roadmapTask"></div>
     <div class="roadmap-steps" id="roadmapStepsList"></div>
-    <div class="roadmap-actions">
+    <div class="roadmap-actions" id="roadmapActions">
       <button class="btn btn-primary" onclick="goToStep(0)">开始第 1 步</button>
+    </div>
+    <div class="roadmap-actions" id="roadmapImproveActions" style="display:none">
+      <button class="btn btn-primary" id="btnConfirmImprove" onclick="confirmImprovement()">确认改进</button>
+      <button class="btn btn-secondary" onclick="skipImprovement()">跳过，回到完成页</button>
     </div>
   </div>
 </div>
@@ -1199,7 +1245,7 @@ function questionContract() {
 }
 
 // ==================== Roadmap ====================
-function showRoadmap(taskName, stepList) {
+function showRoadmap(taskName, stepList, highlightIdx) {
   currentPhase = 'roadmap';
   const taskEl = document.getElementById('roadmapTask');
   taskEl.textContent = taskName ? `"${taskName}" 的拆解方案` : '任务拆解方案';
@@ -1209,7 +1255,7 @@ function showRoadmap(taskName, stepList) {
 
   stepList.forEach((s, i) => {
     const item = document.createElement('div');
-    item.className = 'roadmap-step';
+    item.className = 'roadmap-step' + (i === highlightIdx ? ' highlight' : '');
 
     const num = document.createElement('div');
     num.className = 'roadmap-step-num';
@@ -1592,26 +1638,13 @@ function showDone() {
 
 // ==================== 改进循环 ====================
 let improvementRound = 0;
+let improvementTargetIdx = 0;
 
 async function startImprovement() {
   improvementRound++;
   const btn = document.getElementById('btnImprove');
   btn.disabled = true;
   btn.textContent = '分析中...';
-
-  // 轮次警告
-  if (improvementRound >= 3) {
-    const warning = improvementRound >= 4
-      ? `[Protocol 警告]: 你已经进行了 ${improvementRound} 轮改进。继续修改的边际收益趋近于零。发布一个 80 分的产出，比打磨一个永远发不出去的 100 分更有价值。`
-      : `[Protocol]: 这是第 ${improvementRound} 轮改进。协议建议你完成这一轮后发布或提交。你的完美主义正在这里等着你——先把它发出去。`;
-    const proceed = confirm(warning + '\n\n继续改进？');
-    if (!proceed) {
-      btn.disabled = false;
-      btn.textContent = '继续改进';
-      improvementRound--;
-      return;
-    }
-  }
 
   // 构建所有步骤产出摘要
   const outputsSummary = steps.map((s, i) => {
@@ -1649,21 +1682,68 @@ async function startImprovement() {
       }
     } catch (e) { /* fallback */ }
 
-    // 显示改进指令，让用户确认
-    const confirmed = confirm(`[Protocol]: 下一步改进：\n\n${instruction}\n\n确认进入修改？`);
-    if (confirmed) {
-      goToStep(targetIdx);
-    } else {
-      btn.disabled = false;
-      btn.textContent = '继续改进';
-      improvementRound--;
-    }
+    improvementTargetIdx = targetIdx;
+    showImprovementRoadmap(targetIdx, instruction);
   } catch (err) {
     document.getElementById('doneAiMsg').textContent = '分析失败，请重试。';
     btn.disabled = false;
     btn.textContent = '继续改进';
     improvementRound--;
   }
+}
+
+function showImprovementRoadmap(targetIdx, instruction) {
+  // 设置标题
+  document.getElementById('roadmapTitle').textContent = `第 ${improvementRound} 轮改进`;
+
+  // 清空常规 AI 消息，显示改进指令
+  document.getElementById('roadmapAiMsg').textContent = '';
+  document.getElementById('roadmapImproveMsg').textContent =
+    `[Protocol]: 下一步改进 → ${instruction}`;
+
+  // 轮次警告
+  const warningEl = document.getElementById('roadmapRoundWarning');
+  if (improvementRound >= 4) {
+    warningEl.className = 'roadmap-round-warning danger';
+    warningEl.textContent = `[Protocol 警告]: 你已经进行了 ${improvementRound} 轮改进。继续修改的边际收益趋近于零。发布一个 80 分的产出，比打磨一个永远发不出去的 100 分更有价值。`;
+  } else if (improvementRound >= 3) {
+    warningEl.className = 'roadmap-round-warning';
+    warningEl.textContent = `[Protocol]: 这是第 ${improvementRound} 轮改进。协议建议你完成这一轮后发布或提交。你的完美主义正在这里等着你——先把它发出去。`;
+  } else {
+    warningEl.textContent = '';
+  }
+
+  // 显示路线图，高亮目标步骤
+  showRoadmap(currentTask, steps, targetIdx);
+
+  // 切换按钮：隐藏常规操作，显示改进操作
+  document.getElementById('roadmapActions').style.display = 'none';
+  document.getElementById('roadmapImproveActions').style.display = 'flex';
+
+  // 恢复按钮状态
+  const btn = document.getElementById('btnImprove');
+  btn.disabled = false;
+  btn.textContent = '继续改进';
+}
+
+function confirmImprovement() {
+  // 恢复 Roadmap 为常规模式
+  resetRoadmapMode();
+  goToStep(improvementTargetIdx);
+}
+
+function skipImprovement() {
+  improvementRound--;
+  resetRoadmapMode();
+  showDone();
+}
+
+function resetRoadmapMode() {
+  document.getElementById('roadmapTitle').textContent = '拆解路线图';
+  document.getElementById('roadmapImproveMsg').textContent = '';
+  document.getElementById('roadmapRoundWarning').textContent = '';
+  document.getElementById('roadmapActions').style.display = 'flex';
+  document.getElementById('roadmapImproveActions').style.display = 'none';
 }
 
 // ==================== 导出 Markdown ====================
