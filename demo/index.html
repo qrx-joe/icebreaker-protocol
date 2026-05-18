@@ -16,6 +16,29 @@
     color: #e0e0e0;
     height: 100%;
     overflow: hidden;
+    scrollbar-color: rgba(56,189,248,0.35) rgba(255,255,255,0.04);
+    scrollbar-width: thin;
+  }
+
+  * {
+    scrollbar-color: rgba(56,189,248,0.35) rgba(255,255,255,0.04);
+    scrollbar-width: thin;
+  }
+  *::-webkit-scrollbar {
+    width: 0.72rem;
+    height: 0.72rem;
+  }
+  *::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.035);
+    border-radius: 999px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(56,189,248,0.45), rgba(99,102,241,0.42));
+    border: 2px solid rgba(8,10,18,0.9);
+    border-radius: 999px;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(56,189,248,0.68), rgba(99,102,241,0.6));
   }
 
   @keyframes fadeIn {
@@ -703,6 +726,75 @@
   }
   .done-ai-msg:empty { display: none; }
 
+  /* Done: ship the draft first, improve only one place after that. */
+  #pageDone {
+    justify-content: center;
+    overflow: hidden;
+    padding: 2rem;
+  }
+  #pageDone > *:first-child,
+  #pageDone > *:last-child {
+    margin: 0;
+  }
+  .done-icon {
+    font-size: 1.6rem;
+    margin-bottom: 0.65rem;
+    color: rgba(224,224,224,0.45);
+  }
+  .done-title {
+    font-size: 2.15rem;
+    margin-bottom: 1rem;
+  }
+  .done-ai-msg {
+    max-width: 560px;
+    margin-bottom: 1.2rem;
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+    color: #aeb3bb;
+  }
+  .done-sub {
+    display: none;
+  }
+  .done-summary {
+    max-width: 560px;
+    margin-bottom: 1.4rem;
+    padding: 1.35rem 1.45rem;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.035);
+  }
+  .battle-report {
+    font-size: 0.88rem;
+    line-height: 1.75;
+  }
+  .report-header {
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+  .report-step {
+    margin-top: 0.8rem;
+  }
+  .report-summary {
+    margin-left: 1.45rem;
+    color: #7f8792;
+  }
+  .done-actions {
+    justify-content: center;
+    margin-bottom: 1.2rem;
+  }
+  .done-actions .btn {
+    min-width: 9rem;
+    min-height: 3.2rem;
+  }
+  .done-export {
+    margin-top: 0;
+    gap: 0.9rem;
+  }
+  #pageDone .btn-export {
+    padding: 0.5rem 1.25rem;
+    min-width: 8.6rem;
+    opacity: 0.82;
+  }
+
   /* ==================== Help Side Drawer ==================== */
   #helpDrawer {
     position: fixed;
@@ -1000,11 +1092,370 @@
     z-index: 5;
   }
 
+  /* Landing: command surface first, brand second. */
+  #pageLanding {
+    justify-content: center;
+    padding: 2rem;
+    transform: translateY(clamp(-3.5rem, -5vh, -1.5rem));
+  }
+  #pageLanding .tag {
+    margin-bottom: 1.1rem;
+    opacity: 0.72;
+    transform: scale(0.92);
+  }
+  .landing-title {
+    font-size: clamp(2.45rem, 7vw, 4.25rem);
+    line-height: 1;
+    margin-bottom: 1.15rem;
+  }
+  .landing-sub {
+    max-width: 560px;
+    margin-bottom: 2.1rem;
+    font-size: clamp(1rem, 2.1vw, 1.28rem);
+    color: #8b8f98;
+  }
+  .landing-input-wrap {
+    max-width: 720px;
+  }
+  .landing-input-wrap input {
+    min-height: 4.15rem;
+    padding: 1.1rem 4.3rem 1.1rem 1.55rem;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.055);
+    border-color: rgba(56,189,248,0.35);
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    box-shadow: 0 18px 60px rgba(0,0,0,0.28);
+  }
+  .landing-input-wrap input:focus {
+    border-color: rgba(56,189,248,0.8);
+    box-shadow:
+      0 0 0 3px rgba(56,189,248,0.1),
+      0 22px 70px rgba(0,0,0,0.34);
+  }
+  .landing-input-wrap input::placeholder {
+    color: rgba(224,224,224,0.32);
+  }
+  .landing-mic {
+    right: 0.75rem;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 12px;
+  }
+  .landing-hint {
+    margin-top: 1rem;
+    color: rgba(224,224,224,0.28);
+  }
+  .landing-hint kbd {
+    color: rgba(224,224,224,0.48);
+  }
+
+  /* Contract: lock the rule, then move. */
+  #pageContract {
+    justify-content: flex-start;
+    padding-top: clamp(3rem, 9vh, 5.5rem);
+  }
+  .contract-ai-msg {
+    max-width: 680px;
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    font-size: 0.86rem;
+    color: #8f949d;
+    background: rgba(255,255,255,0.025);
+  }
+  .contract-box {
+    max-width: 680px;
+    padding: 1.75rem 2.1rem 1.65rem;
+    border-radius: 14px;
+    background: rgba(7,15,25,0.78);
+    border-color: rgba(56,189,248,0.28);
+  }
+  .contract-box h3 {
+    margin-bottom: 1.25rem;
+    font-size: 1.35rem;
+    letter-spacing: 0;
+  }
+  .contract-box ul {
+    margin-bottom: 1.1rem;
+  }
+  .contract-box li {
+    display: flex;
+    gap: 0.85rem;
+    padding: 0.4rem 0;
+    font-size: 0.96rem;
+    line-height: 1.45;
+    color: #c4c8cf;
+  }
+  .contract-box li::before {
+    flex: 0 0 auto;
+    margin: 0;
+    content: "\2611";
+    color: #38bdf8;
+  }
+  .contract-box .c-forbidden {
+    margin-top: 0.85rem;
+    padding: 0.85rem 0 0;
+    font-size: 1rem;
+    color: #ff707a;
+  }
+  .contract-box .c-forbidden::before {
+    content: "\2716";
+    color: #ff707a;
+  }
+  .contract-actions {
+    max-width: 680px;
+    gap: 0.85rem;
+  }
+  .contract-actions .btn-primary {
+    flex: 1.25;
+    min-height: 3.25rem;
+    font-size: 1rem;
+  }
+  .contract-actions .btn-secondary {
+    flex: 0.75;
+    min-height: 3.25rem;
+    background: transparent;
+    border-color: rgba(255,255,255,0.1);
+    color: #777d86;
+  }
+
+  /* Roadmap: emphasize the next executable step, not the whole mountain. */
+  #pageRoadmap {
+    justify-content: flex-start;
+    padding-top: clamp(4rem, 9vh, 6rem);
+  }
+  .roadmap-ai-msg {
+    max-width: 680px;
+    margin-bottom: 0.75rem;
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    color: #8f949d;
+    background: rgba(255,255,255,0.025);
+  }
+  .roadmap-card {
+    max-width: 680px;
+    padding: 1.8rem 2rem 1.6rem;
+    border-radius: 14px;
+    background: rgba(10,13,27,0.78);
+    border-color: rgba(99,102,241,0.28);
+  }
+  .roadmap-card h3 {
+    font-size: 1.35rem;
+    margin-bottom: 0.5rem;
+  }
+  .roadmap-task {
+    margin-bottom: 1.35rem;
+    font-size: 0.9rem;
+    color: #8b8f98;
+  }
+  .roadmap-task strong {
+    color: #d6d9df;
+    font-weight: 600;
+  }
+  .roadmap-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    margin-bottom: 1.45rem;
+  }
+  .roadmap-step {
+    align-items: center;
+    gap: 1rem;
+    padding: 0.85rem 0.95rem;
+    border: 1px solid transparent;
+    border-bottom-color: rgba(255,255,255,0.055);
+    border-radius: 10px;
+    color: #777d86;
+    opacity: 0.42;
+  }
+  .roadmap-step:last-child {
+    border-bottom-color: transparent;
+  }
+  .roadmap-step.highlight {
+    opacity: 1;
+    margin-left: 0;
+    padding-left: 0.95rem;
+    background: rgba(56,189,248,0.075);
+    border-color: rgba(56,189,248,0.2);
+    box-shadow: 0 12px 36px rgba(0,0,0,0.18);
+  }
+  .roadmap-step.highlight .roadmap-step-num {
+    background: rgba(56,189,248,0.16);
+    border-color: rgba(56,189,248,0.45);
+    color: #38bdf8;
+  }
+  .roadmap-step.highlight .roadmap-step-title {
+    color: #e8eaee;
+  }
+  .roadmap-step-num {
+    width: 2.1rem;
+    height: 2.1rem;
+    font-size: 0.85rem;
+  }
+  .roadmap-step-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.18rem;
+    min-width: 0;
+  }
+  .roadmap-step-title {
+    color: #aeb3bb;
+    font-size: 0.98rem;
+    font-weight: 700;
+  }
+  .roadmap-step-output {
+    color: #626975;
+    font-size: 0.8rem;
+    line-height: 1.45;
+  }
+  .roadmap-step-time {
+    align-self: flex-start;
+    min-width: 3.6rem;
+    padding-top: 0.2rem;
+    text-align: right;
+    color: #5b6069;
+  }
+  .roadmap-actions .btn-primary {
+    min-height: 3.45rem;
+    font-size: 1rem;
+  }
+
+  /* Step: compact execution slot, not a blank-page abyss. */
+  #pageStep .step-header {
+    padding: 1rem 2rem 0.7rem;
+  }
+  .step-body {
+    gap: 0.9rem;
+    padding-bottom: 0.8rem;
+  }
+  .step-instruction {
+    padding: 1rem 1.25rem;
+    line-height: 1.55;
+  }
+  .step-instruction-block {
+    display: grid;
+    gap: 0.45rem;
+  }
+  .step-instruction-row {
+    display: grid;
+    grid-template-columns: 4.2rem 1fr;
+    gap: 0.75rem;
+  }
+  .step-instruction-label {
+    color: #38bdf8;
+    font-weight: 700;
+  }
+  .step-workspace {
+    flex: 0 1 auto;
+    min-height: clamp(19rem, 52vh, 32rem);
+  }
+  .step-workspace textarea {
+    min-height: clamp(19rem, 52vh, 32rem);
+    padding-bottom: 5.4rem;
+    resize: none;
+  }
+  .step-workspace textarea::placeholder {
+    color: rgba(224,224,224,0.22);
+  }
+  .pill-help {
+    right: 0.85rem;
+    min-width: 6.2rem;
+    text-align: center;
+  }
+  .pill-mic {
+    right: 7.6rem;
+    min-width: 4.5rem;
+    text-align: center;
+  }
+  .step-warning {
+    margin-top: 0.35rem;
+    color: #4ade80;
+  }
+  .attachment-btn {
+    position: absolute;
+    bottom: 2.2rem;
+    right: 12.7rem;
+    padding: 0.35rem 0.75rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    color: #8b8f98;
+    font-size: 0.82rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s;
+    z-index: 5;
+    white-space: nowrap;
+    min-width: 4.8rem;
+  }
+  .attachment-btn:hover {
+    color: #38bdf8;
+    border-color: rgba(56,189,248,0.3);
+    background: rgba(56,189,248,0.08);
+  }
+  .attachment-list {
+    position: absolute;
+    left: 0.85rem;
+    right: 0.85rem;
+    bottom: 4.55rem;
+    z-index: 6;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    min-height: 1.4rem;
+    pointer-events: none;
+  }
+  .attachment-list:empty {
+    display: none;
+  }
+  .attachment-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    max-width: 16rem;
+    padding: 0.28rem 0.55rem;
+    border: 1px solid rgba(56,189,248,0.18);
+    border-radius: 999px;
+    background: rgba(56,189,248,0.07);
+    color: #9fb6c8;
+    font-size: 0.76rem;
+    pointer-events: auto;
+  }
+  .attachment-chip span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .attachment-remove {
+    border: none;
+    background: transparent;
+    color: #6f7884;
+    cursor: pointer;
+    font-size: 0.95rem;
+    line-height: 1;
+  }
+  .step-footer {
+    padding-top: 0.65rem;
+  }
+
   @media (max-width: 480px) {
-    .landing-title { font-size: 2.2rem; }
-    .landing-sub { font-size: 1rem; }
+    #pageLanding { padding: 1.2rem; transform: translateY(-1rem); }
+    .landing-title { font-size: 2.55rem; }
+    .landing-sub { font-size: 1rem; margin-bottom: 1.8rem; }
+    .landing-input-wrap input { min-height: 3.7rem; }
+    #pageContract { padding: 2.2rem 1rem 1rem; }
+    .contract-box { padding: 1.5rem 1.2rem; }
+    .contract-actions { flex-direction: column; }
+    #pageRoadmap { padding: 2.2rem 1rem 1rem; }
+    .roadmap-card { padding: 1.4rem 1rem; }
+    .roadmap-step { gap: 0.75rem; padding: 0.8rem 0.7rem; }
+    .roadmap-step-time { min-width: 3rem; font-size: 0.72rem; }
     #pageStep .step-header { padding: 1rem 1.2rem 0.6rem 1.2rem; }
     .step-body { padding: 0 1.2rem 1rem 1.2rem; }
+    .step-instruction-row { grid-template-columns: 1fr; gap: 0.2rem; }
+    .step-workspace,
+    .step-workspace textarea { min-height: 17rem; }
     .step-footer { padding: 0.6rem 1.2rem 1rem 1.2rem; }
     .step-timer { font-size: 1.2rem; }
     #helpDrawer { width: 100vw; max-width: 100vw; }
@@ -1087,9 +1538,12 @@
     <div class="step-instruction" id="stepInstruction"></div>
     <div class="step-workspace">
       <textarea id="stepTextarea" placeholder="在这里写下你的产出..."></textarea>
+      <input type="file" id="attachmentInput" multiple hidden onchange="handleAttachmentUpload(this.files); this.value = '';">
+      <button class="attachment-btn" id="attachmentBtn" onclick="document.getElementById('attachmentInput').click()">📎 附件</button>
       <button class="pill-mic" id="pillMic" onclick="toggleMainVoice()">🎙️ 语音</button>
       <button class="pill-help" id="pillHelp" onclick="openHelp()">⚡ 启动破冰引导</button>
       <div class="step-warning" id="stepWarning"></div>
+      <div class="attachment-list" id="attachmentList"></div>
     </div>
   </div>
   <div class="step-footer">
@@ -1110,12 +1564,12 @@
   <div class="done-sub" id="doneSub">你把一个大任务拆开，一块一块做出了完整的东西。现在你有了一个可以改的初版。</div>
   <div class="done-summary" id="doneSummary"></div>
   <div class="done-actions">
-    <button class="btn btn-primary" id="btnImprove" onclick="startImprovement()">继续改进</button>
-    <button class="btn btn-secondary" onclick="resetAll()">再来一次</button>
+    <button class="btn btn-primary" id="btnExportMain" onclick="downloadMarkdown()">导出雏形</button>
+    <button class="btn btn-secondary" id="btnImprove" onclick="startImprovement()">只改一处</button>
   </div>
   <div class="done-export">
     <button class="btn-export" onclick="copyMarkdown()">复制 Markdown</button>
-    <button class="btn-export" onclick="downloadMarkdown()">下载 .md</button>
+    <button class="btn-export" onclick="resetAll()">再来一次</button>
   </div>
 </div>
 
@@ -1166,6 +1620,9 @@ let stepStartTime = 0;
 // 帮助面板
 let helpHistory = [];
 
+// 会话附件：文本类附件会被读取并带入 AI 上下文。
+let attachments = [];
+
 // 破冰日志
 let sessionLog = [];
 
@@ -1178,6 +1635,147 @@ let isFinishing = false; // finishStep 防重入锁
 function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  if (id === 'pageContract') applyContractCopy();
+}
+
+function isReadableAttachment(file) {
+  const name = file.name.toLowerCase();
+  return file.type.startsWith('text/')
+    || ['.txt', '.md', '.csv', '.json', '.yaml', '.yml', '.log'].some(ext => name.endsWith(ext));
+}
+
+function isBackendParsableAttachment(file) {
+  const name = file.name.toLowerCase();
+  return ['.pdf', '.docx', '.xlsx', '.pptx'].some(ext => name.endsWith(ext));
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const value = String(reader.result || '');
+      resolve(value.includes(',') ? value.split(',').pop() : value);
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
+async function parseAttachmentOnServer(file) {
+  const dataBase64 = await fileToBase64(file);
+  const response = await fetch('/api/attachments/parse', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: file.name,
+      type: file.type || 'unknown',
+      data_base64: dataBase64
+    })
+  });
+  if (!response.ok) throw new Error('parse_failed');
+  return response.json();
+}
+
+function formatAttachmentSize(bytes) {
+  if (!bytes) return '0B';
+  if (bytes < 1024) return `${bytes}B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)}KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)}MB`;
+}
+
+function renderAttachments() {
+  const list = document.getElementById('attachmentList');
+  if (!list) return;
+  list.replaceChildren();
+  attachments.forEach((item, index) => {
+    const chip = document.createElement('div');
+    chip.className = 'attachment-chip';
+    chip.title = item.text ? `${item.name}\n${item.text.slice(0, 500)}` : `${item.name}\n${item.error || '未解析内容，仅记录文件名'}`;
+    const label = document.createElement('span');
+    label.textContent = `📎 ${item.name} · ${item.text ? '已解析' : '未解析'} · ${formatAttachmentSize(item.size)}`;
+    const remove = document.createElement('button');
+    remove.className = 'attachment-remove';
+    remove.type = 'button';
+    remove.textContent = '×';
+    remove.onclick = () => {
+      attachments.splice(index, 1);
+      renderAttachments();
+    };
+    chip.append(label, remove);
+    list.appendChild(chip);
+  });
+}
+
+function attachmentContextText() {
+  if (!attachments.length) return '';
+  return attachments.map((item, index) => {
+    const text = item.text ? `\n${item.text.slice(0, 1500)}` : '\n（未解析正文，仅可参考文件名）';
+    return `附件 ${index + 1}: ${item.name} (${item.type || 'unknown'}, ${formatAttachmentSize(item.size)})${text}`;
+  }).join('\n\n');
+}
+
+function apiAttachments() {
+  return attachments.map(item => ({
+    name: item.name,
+    type: item.type,
+    size: item.size,
+    text: item.text ? item.text.slice(0, 5000) : ''
+  }));
+}
+
+async function handleAttachmentUpload(fileList) {
+  const files = Array.from(fileList || []);
+  const warning = document.getElementById('stepWarning');
+  if (warning && files.length) {
+    warning.style.color = '#38bdf8';
+    warning.textContent = `[Protocol]: 正在解析 ${files.length} 个附件...`;
+  }
+
+  for (const file of files) {
+    const base = {
+      name: file.name,
+      type: file.type || 'unknown',
+      size: file.size,
+      text: '',
+      error: ''
+    };
+
+    if (isBackendParsableAttachment(file)) {
+      try {
+        const parsed = await parseAttachmentOnServer(file);
+        attachments.push({
+          ...base,
+          size: parsed.size || file.size,
+          text: parsed.text || '',
+          error: parsed.error || (parsed.parsed ? '' : '未提取到文本')
+        });
+      } catch (err) {
+        attachments.push({ ...base, error: '后端解析失败' });
+      }
+      renderAttachments();
+      continue;
+    }
+
+    if (!isReadableAttachment(file)) {
+      attachments.push(base);
+      renderAttachments();
+      continue;
+    }
+
+    try {
+      const text = await file.text();
+      attachments.push({ ...base, text: text.slice(0, 60000) });
+    } catch (err) {
+      attachments.push({ ...base, error: '前端读取失败' });
+    }
+    renderAttachments();
+  }
+
+  if (warning && files.length) {
+    warning.style.color = '#38bdf8';
+    const parsedCount = attachments.filter(item => item.text).length;
+    warning.textContent = `[Protocol]: 已挂载 ${files.length} 个附件，${parsedCount} 个可进入 AI 上下文。`;
+  }
 }
 
 // ==================== Landing ====================
@@ -1222,6 +1820,79 @@ function showContractLoading() {
 function clearContractLoading() {
   const el = document.getElementById('contractAiMsg');
   el.style.opacity = '';
+}
+
+function applyContractCopy() {
+  const msg = document.getElementById('contractAiMsg');
+  if (msg && !contractBusy) {
+    msg.textContent = '[Protocol] 先锁定约束，然后开始第 1 步。';
+  }
+
+  const title = document.querySelector('.contract-box h3');
+  if (title) title.textContent = '破冰契约';
+
+  const list = document.querySelector('.contract-box ul');
+  if (list) {
+    list.replaceChildren();
+    [
+      '只做可修改的雏形',
+      '每一步必须留下可见产出',
+      '单步限时，不无限准备',
+      '不满意也提交',
+    ].forEach(text => {
+      const item = document.createElement('li');
+      item.textContent = text;
+      list.appendChild(item);
+    });
+
+    const forbidden = document.createElement('li');
+    forbidden.className = 'c-forbidden';
+    forbidden.textContent = '禁止：空白提交';
+    list.appendChild(forbidden);
+  }
+
+  const primary = document.querySelector('.contract-actions .btn-primary');
+  if (primary) primary.textContent = '启动第 1 步';
+
+  const secondary = document.querySelector('.contract-actions .btn-secondary');
+  if (secondary) secondary.textContent = '我卡住了';
+}
+
+// Contract v2 copy override: keep the lock screen terse.
+function applyContractCopy() {
+  const msg = document.getElementById('contractAiMsg');
+  if (msg && !contractBusy) {
+    msg.textContent = '[Protocol] 第一版只要求存在。';
+  }
+
+  const title = document.querySelector('.contract-box h3');
+  if (title) title.textContent = '破冰契约';
+
+  const list = document.querySelector('.contract-box ul');
+  if (list) {
+    list.replaceChildren();
+    [
+      '只做可修改的雏形',
+      '每一步必须留下可见产出',
+      '单步限时，不无限准备',
+      '不满意也提交',
+    ].forEach(text => {
+      const item = document.createElement('li');
+      item.textContent = text;
+      list.appendChild(item);
+    });
+
+    const forbidden = document.createElement('li');
+    forbidden.className = 'c-forbidden';
+    forbidden.textContent = '禁止：空白提交';
+    list.appendChild(forbidden);
+  }
+
+  const primary = document.querySelector('.contract-actions .btn-primary');
+  if (primary) primary.textContent = '启动第 1 步';
+
+  const secondary = document.querySelector('.contract-actions .btn-secondary');
+  if (secondary) secondary.textContent = '说出阻力';
 }
 
 function acceptContract() {
@@ -1272,6 +1943,69 @@ function showRoadmap(taskName, stepList, highlightIdx) {
     item.append(num, text, time);
     listEl.appendChild(item);
   });
+
+  showPage('pageRoadmap');
+}
+
+// Roadmap v2: override the legacy renderer with a next-step-first layout.
+function showRoadmap(taskName, stepList, highlightIdx) {
+  currentPhase = 'roadmap';
+  const activeIdx = Number.isInteger(highlightIdx) ? highlightIdx : 0;
+  const activeStep = stepList[activeIdx] || stepList[0] || {};
+  const activeMinutes = activeStep.minutes || 15;
+
+  const aiMsg = document.getElementById('roadmapAiMsg');
+  if (aiMsg) {
+    aiMsg.textContent = `[Protocol] 只启动第 ${activeIdx + 1} 步。其余步骤先不要管。`;
+  }
+
+  const titleEl = document.getElementById('roadmapTitle');
+  if (titleEl) titleEl.textContent = '拆解路线图';
+
+  const taskEl = document.getElementById('roadmapTask');
+  if (taskEl) {
+    taskEl.innerHTML = taskName
+      ? `任务：<strong>${taskName}</strong><br>当前只执行：第 ${activeIdx + 1} 步 · ${activeMinutes} 分钟`
+      : `当前只执行：第 ${activeIdx + 1} 步 · ${activeMinutes} 分钟`;
+  }
+
+  const listEl = document.getElementById('roadmapStepsList');
+  listEl.replaceChildren();
+
+  stepList.forEach((s, i) => {
+    const item = document.createElement('div');
+    item.className = 'roadmap-step' + (i === activeIdx ? ' highlight' : '');
+
+    const num = document.createElement('div');
+    num.className = 'roadmap-step-num';
+    num.textContent = String(i + 1);
+
+    const text = document.createElement('div');
+    text.className = 'roadmap-step-text';
+
+    const title = document.createElement('div');
+    title.className = 'roadmap-step-title';
+    title.textContent = s.title || s.instruction || `第 ${i + 1} 步`;
+
+    const output = document.createElement('div');
+    output.className = 'roadmap-step-output';
+    output.textContent = `产出：${s.output || '一个可见产出'}`;
+
+    text.append(title, output);
+
+    const time = document.createElement('div');
+    time.className = 'roadmap-step-time';
+    time.textContent = `${s.minutes || 15}分钟`;
+
+    item.append(num, text, time);
+    listEl.appendChild(item);
+  });
+
+  const startBtn = document.querySelector('#roadmapActions .btn-primary');
+  if (startBtn) {
+    startBtn.textContent = `启动第 ${activeIdx + 1} 步 · ${activeMinutes} 分钟`;
+    startBtn.onclick = () => goToStep(activeIdx);
+  }
 
   showPage('pageRoadmap');
 }
@@ -1328,6 +2062,102 @@ function goToStep(idx) {
   }
 }
 
+function buildStepPlaceholder(step) {
+  const output = step?.output || '';
+  if (output.includes('标题') || output.includes('选题') || output.includes('主题')) {
+    return '核心主题：\n\n备选标题 1：\n备选标题 2：\n备选标题 3：';
+  }
+  if (output.includes('提纲') || output.includes('框架')) {
+    return '开头：\n\n要点 1：\n要点 2：\n要点 3：\n\n结尾：';
+  }
+  return '先写一个粗糙版本：\n\n';
+}
+
+function renderStepInstruction(step) {
+  const escapeHtml = (value) => String(value || '').replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[char]));
+  const instruction = escapeHtml(step.instruction || '');
+  const output = escapeHtml(step.output || '一个可见产出');
+  return `
+    <div class="step-instruction-block">
+      <div class="step-instruction-row">
+        <span class="step-instruction-label">要求</span>
+        <span>${instruction}</span>
+      </div>
+      <div class="step-instruction-row">
+        <span class="step-instruction-label">交付</span>
+        <span>${output}</span>
+      </div>
+    </div>
+  `;
+}
+
+function updateStepSubmitState() {
+  const ta = document.getElementById('stepTextarea');
+  const btn = document.querySelector('.step-footer-right .btn-primary');
+  if (!ta || !btn) return;
+  const ready = ta.value.trim().length >= 5;
+  btn.disabled = !ready;
+  btn.textContent = ready ? '做完了，下一步' : '写 5 个字后提交';
+}
+
+// Step v2: make the execution screen feel like a small output slot.
+function goToStep(idx) {
+  if (idx < 0 || idx >= steps.length) return;
+  currentPhase = 'step';
+
+  if (currentStepIdx >= 0 && currentStepIdx < steps.length) {
+    const existingTa = document.getElementById('stepTextarea');
+    if (existingTa) stepOutputs[currentStepIdx] = existingTa.value;
+  }
+
+  currentStepIdx = idx;
+  stepStartTime = Date.now();
+  const step = steps[idx];
+
+  document.getElementById('stepBadge').textContent = `${idx + 1} / ${steps.length}`;
+  document.getElementById('stepTitle').textContent = step.title || `第 ${idx + 1} 步`;
+  document.getElementById('stepInstruction').innerHTML = renderStepInstruction(step);
+
+  const ta = document.getElementById('stepTextarea');
+  ta.value = stepOutputs[idx] || '';
+  ta.placeholder = buildStepPlaceholder(step);
+  if (ta._submitStateHandler) ta.removeEventListener('input', ta._submitStateHandler);
+  ta._submitStateHandler = updateStepSubmitState;
+  ta.addEventListener('input', ta._submitStateHandler);
+
+  const help = document.getElementById('pillHelp');
+  if (help) help.textContent = '⚡ 给我起头';
+  renderAttachments();
+
+  const warning = document.getElementById('stepWarning');
+  warning.style.color = '#4ade80';
+  warning.textContent = '[Protocol]: 乱写模式启动。不准查资料，不准删除，先把框填满。';
+
+  const pct = (idx / steps.length) * 100;
+  document.getElementById('stepProgressFill').style.width = pct + '%';
+  document.getElementById('btnPrev').disabled = idx === 0;
+  updateStepSubmitState();
+
+  document.querySelectorAll('.roadmap-step').forEach((el, i) => {
+    el.style.opacity = i === idx ? '1' : '0.42';
+  });
+
+  showPage('pageStep');
+  startStepTimer((step.minutes || 15) * 60);
+  startInactivityMonitor();
+  setTimeout(() => ta.focus(), 300);
+
+  if (idx > 0) {
+    fetchProactiveSuggestion(idx);
+  }
+}
+
 async function fetchProactiveSuggestion(idx) {
   const prevOutputs = [];
   for (let i = 0; i < idx; i++) {
@@ -1352,7 +2182,8 @@ async function fetchProactiveSuggestion(idx) {
         task: currentTask,
         steps,
         current_step: idx,
-        outputs: stepOutputs
+        outputs: stepOutputs,
+        attachments: apiAttachments()
       })
     });
     if (res.ok) {
@@ -1624,6 +2455,47 @@ function renderBattleReport() {
   container.innerHTML = html;
 }
 
+// Done v2: make the report the artifact, not a celebration receipt.
+function renderBattleReport() {
+  const container = document.getElementById('doneSummary');
+  if (!sessionLog.length) {
+    container.textContent = '';
+    return;
+  }
+
+  const escapeHtml = (value) => String(value || '').replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[char]));
+
+  const totalTime = sessionLog.reduce((sum, record) => sum + record.time_spent_seconds, 0);
+  const mins = Math.floor(totalTime / 60);
+  const secs = totalTime % 60;
+  const totalText = `${mins ? mins + '分' : ''}${secs}秒`;
+
+  let html = '<div class="battle-report">';
+  html += '<div class="report-header">━━━━ 破冰日志 ━━━━</div>';
+  sessionLog.forEach((record) => {
+    const rm = Math.floor(record.time_spent_seconds / 60);
+    const rs = record.time_spent_seconds % 60;
+    const timeText = `${rm ? rm + '分' : ''}${rs}秒`;
+    html += '<div class="report-step">';
+    html += '<span class="report-check">✓</span> ';
+    html += `<span class="report-title">步骤 ${record.step_index + 1} · ${escapeHtml(record.step_title)}</span> `;
+    html += `<span class="report-time">· ${timeText}</span>`;
+    html += '</div>';
+    html += `<div class="report-summary">${escapeHtml(record.summary)}</div>`;
+  });
+  html += '<div class="report-divider"></div>';
+  html += `<div class="report-total">总耗时：${totalText} | 产出：${sessionLog.length}项</div>`;
+  html += '</div>';
+
+  container.innerHTML = html;
+}
+
 // ==================== Done ====================
 function showDone() {
   currentPhase = 'done';
@@ -1631,6 +2503,9 @@ function showDone() {
   document.getElementById('stepProgressFill').style.width = '100%';
 
   // 渲染破冰战报
+  document.querySelector('.done-title').textContent = '雏形已生成';
+  document.getElementById('doneAiMsg').textContent =
+    `你完成了 ${sessionLog.length || steps.length || 0} 个可见块。现在先导出，或只改一处。`;
   renderBattleReport();
 
   showPage('pageDone');
@@ -1662,7 +2537,8 @@ async function startImprovement() {
         task: currentTask,
         steps,
         current_step: 0,
-        outputs: stepOutputs
+        outputs: stepOutputs,
+        attachments: apiAttachments()
       })
     });
 
@@ -1687,7 +2563,7 @@ async function startImprovement() {
   } catch (err) {
     document.getElementById('doneAiMsg').textContent = '分析失败，请重试。';
     btn.disabled = false;
-    btn.textContent = '继续改进';
+    btn.textContent = '只改一处';
     improvementRound--;
   }
 }
@@ -1723,7 +2599,7 @@ function showImprovementRoadmap(targetIdx, instruction) {
   // 恢复按钮状态
   const btn = document.getElementById('btnImprove');
   btn.disabled = false;
-  btn.textContent = '继续改进';
+  btn.textContent = '只改一处';
 }
 
 function confirmImprovement() {
@@ -1781,6 +2657,17 @@ function buildMarkdown() {
     lines.push('## AI 改进建议');
     lines.push('');
     lines.push(doneMsg);
+    lines.push('');
+  }
+
+  if (attachments.length) {
+    lines.push('---');
+    lines.push('');
+    lines.push('## 附件');
+    lines.push('');
+    attachments.forEach((item, index) => {
+      lines.push(`${index + 1}. ${item.name} (${formatAttachmentSize(item.size)})`);
+    });
     lines.push('');
   }
 
@@ -1867,6 +2754,11 @@ function buildContextSummary() {
     }
   }
 
+  const attached = attachmentContextText();
+  if (attached) {
+    parts.push(`附件上下文：\n${attached}`);
+  }
+
   return parts.join('\n');
 }
 
@@ -1935,6 +2827,10 @@ function applyToEditor(text) {
   // 如果编辑器已有内容，追加换行；否则直接替换
   const existing = ta.value.trim();
   ta.value = existing ? existing + '\n\n' + text : text;
+  stepOutputs[currentStepIdx] = ta.value;
+  ta.dispatchEvent(new Event('input', { bubbles: true }));
+  ta.dispatchEvent(new Event('change', { bubbles: true }));
+  if (typeof updateStepSubmitState === 'function') updateStepSubmitState();
   ta.focus();
   // 短暂高亮反馈
   ta.style.borderColor = 'rgba(52,211,153,0.6)';
@@ -2378,7 +3274,8 @@ async function sendHelp() {
         task: currentTask,
         steps,
         current_step: currentStepIdx,
-        outputs: stepOutputs
+        outputs: stepOutputs,
+        attachments: apiAttachments()
       })
     });
 
@@ -2483,7 +3380,7 @@ function applyAIResponse(data) {
 
   if (data.screen === 'contract') {
     currentPhase = 'contract';
-    document.getElementById('contractAiMsg').textContent = reply;
+    document.getElementById('contractAiMsg').textContent = '[Protocol] 先锁定约束，然后开始第 1 步。';
     showPage('pageContract');
     return;
   }
@@ -2539,7 +3436,8 @@ async function sendToAI(message) {
         task: currentTask,
         steps,
         current_step: currentStepIdx,
-        outputs: stepOutputs
+        outputs: stepOutputs,
+        attachments: apiAttachments()
       }),
       signal: controller.signal
     });
@@ -2564,6 +3462,14 @@ async function sendToAI(message) {
 }
 
 // ==================== 重置 ====================
+function applyLandingCopy() {
+  document.querySelector('#pageLanding .tag').textContent = 'Protocol Mode';
+  document.querySelector('.landing-title').innerHTML = '<span class="ice">破冰</span>协议';
+  document.querySelector('.landing-sub').innerHTML = '别解释。写下你要启动的事。<br>协议会把它拆成下一步，并逼它变成可修改的雏形。';
+  document.getElementById('landingInput').setAttribute('placeholder', '输入一个你迟迟没开始的任务');
+  document.querySelector('.landing-hint').innerHTML = '<kbd>Enter</kbd> = 启动协议';
+}
+
 function resetAll() {
   chatHistory = [];
   currentTask = '';
@@ -2572,6 +3478,8 @@ function resetAll() {
   stepOutputs = [];
   currentStepIdx = 0;
   helpHistory = [];
+  attachments = [];
+  renderAttachments();
   sessionLog = [];
   improvementRound = 0;
   if (stepTimerInterval) clearInterval(stepTimerInterval);
@@ -2582,11 +3490,13 @@ function resetAll() {
   document.getElementById('landingInput').setAttribute('placeholder', '比如：我想写一篇博客但不知道怎么开头...');
 
   showPage('pageLanding');
+  applyLandingCopy();
   setTimeout(() => document.getElementById('landingInput').focus(), 300);
 }
 
 // ==================== 初始化 ====================
 window.addEventListener('DOMContentLoaded', () => {
+  applyLandingCopy();
   document.getElementById('landingInput').focus();
 });
 </script>

@@ -17,12 +17,14 @@ from __future__ import annotations
 import json
 import os
 import re
+import base64
+from io import BytesIO
 from pathlib import Path
 from typing import Literal
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from openai import OpenAI
 from pydantic import BaseModel, Field
@@ -49,6 +51,28 @@ class Step(BaseModel):
     minutes: int = Field(ge=1, le=15)
 
 
+class Attachment(BaseModel):
+    name: str
+    type: str | None = None
+    size: int | None = None
+    text: str | None = None
+
+
+class ParseAttachmentRequest(BaseModel):
+    name: str
+    type: str | None = None
+    data_base64: str
+
+
+class ParseAttachmentResponse(BaseModel):
+    name: str
+    type: str | None = None
+    size: int
+    text: str = ""
+    parsed: bool = False
+    error: str | None = None
+
+
 class ChatRequest(BaseModel):
     message: str
     history: list[dict[str, str]] = Field(default_factory=list)
@@ -57,6 +81,7 @@ class ChatRequest(BaseModel):
     steps: list[Step] = Field(default_factory=list)
     current_step: int = 0
     outputs: list[str] = Field(default_factory=list)
+    attachments: list[Attachment] = Field(default_factory=list)
 
 
 class ChatResponse(BaseModel):
@@ -66,6 +91,10 @@ class ChatResponse(BaseModel):
     steps: list[Step] = Field(default_factory=list)
     current_step: int | None = None
     thinking_budget_seconds: int | None = None
+
+
+class UTF8JSONResponse(JSONResponse):
+    media_type = "application/json; charset=utf-8"
 
 
 CONTRACT_REPLY = (
@@ -303,10 +332,27 @@ def safe_history(history: list[dict[str, str]]) -> list[dict[str, str]]:
     return cleaned
 
 
-def try_ai_plan(task: str) -> list[Step] | None:
+def attachment_context(attachments: list[Attachment]) -> str:
+    if not attachments:
+        return ""
+
+    lines = ["", "[附件摘要]"]
+    for item in attachments[:8]:
+        name = normalize_text(item.name)[:120] or "未命名附件"
+        file_type = normalize_text(item.type or "unknown")
+        size = f"{item.size} bytes" if item.size else "unknown size"
+        text = normalize_text(item.text or "")
+        lines.append(f"- {name} ({file_type}, {size})")
+        if text:
+            lines.append(text[:1200])
+    return "\n".join(lines)[:5000]
+
+
+def try_ai_plan(task: str, attachments: list[Attachment] | None = None) -> list[Step] | None:
     if client is None:
         return None
 
+    attached_context = attachment_context(attachments or [])
     prompt = f"""
 你是破冰协议的任务拆解器。用户任务：{task}
 
@@ -328,6 +374,8 @@ def try_ai_plan(task: str) -> list[Step] | None:
 - 每步必须有可见产出。
 - 第一版目标是可修改的雏形，不是完美成品。
 """
+    if attached_context:
+        prompt += attached_context
     try:
         response = client.chat.completions.create(
             model=MODEL,
@@ -362,7 +410,7 @@ def try_ai_reply(req: ChatRequest) -> str | None:
     )
     messages = [{"role": "system", "content": system_prompt}]
     messages.extend(safe_history(req.history))
-    messages.append({"role": "user", "content": req.message[:2000]})
+    messages.append({"role": "user", "content": (req.message[:2000] + attachment_context(req.attachments))[:7000]})
 
     try:
         response = client.chat.completions.create(
@@ -378,7 +426,7 @@ def try_ai_reply(req: ChatRequest) -> str | None:
 
 def build_roadmap(req: ChatRequest) -> ChatResponse:
     task = extract_task(req)
-    steps = try_ai_plan(task) or build_rule_steps(task)
+    steps = try_ai_plan(task, req.attachments) or build_rule_steps(task)
     reply = f"任务先收窄：{task}。我把它拆成 {len(steps)} 步，每步都有一个可见产出。我们只从第 1 步开始。"
     return ChatResponse(reply=reply, screen="roadmap", task=task, steps=steps, current_step=0)
 
@@ -417,7 +465,7 @@ def build_done(req: ChatRequest) -> ChatResponse:
     return ChatResponse(reply=reply, screen="done", task=req.task, steps=req.steps, current_step=len(req.steps))
 
 
-app = FastAPI(title="破冰协议 API")
+app = FastAPI(title="破冰协议 API", default_response_class=UTF8JSONResponse)
 
 
 @app.post("/api/chat", response_model=ChatResponse)
@@ -476,7 +524,7 @@ def stream_ai_reply(req: ChatRequest):
     )
     messages = [{"role": "system", "content": system_prompt}]
     messages.extend(safe_history(req.history))
-    messages.append({"role": "user", "content": req.message[:2000]})
+    messages.append({"role": "user", "content": (req.message[:2000] + attachment_context(req.attachments))[:7000]})
 
     try:
         stream = client.chat.completions.create(
@@ -510,6 +558,89 @@ async def chat_stream(req: ChatRequest):
 
 
 # ==================== 摘要归档 ====================
+
+def parse_pdf(data: bytes) -> str:
+    from pypdf import PdfReader
+    reader = PdfReader(BytesIO(data))
+    return "\n\n".join((page.extract_text() or "") for page in reader.pages)
+
+
+def parse_docx(data: bytes) -> str:
+    from docx import Document
+    doc = Document(BytesIO(data))
+    parts: list[str] = [p.text for p in doc.paragraphs if p.text.strip()]
+    for table in doc.tables:
+        for row in table.rows:
+            cells = [cell.text.strip() for cell in row.cells]
+            if any(cells):
+                parts.append(" | ".join(cells))
+    return "\n".join(parts)
+
+
+def parse_xlsx(data: bytes) -> str:
+    from openpyxl import load_workbook
+    wb = load_workbook(BytesIO(data), read_only=True, data_only=True)
+    parts: list[str] = []
+    for ws in wb.worksheets[:10]:
+        parts.append(f"# Sheet: {ws.title}")
+        for row in ws.iter_rows(max_row=200, values_only=True):
+            values = ["" if value is None else str(value) for value in row]
+            if any(value.strip() for value in values):
+                parts.append("\t".join(values).rstrip())
+    return "\n".join(parts)
+
+
+def parse_pptx(data: bytes) -> str:
+    from pptx import Presentation
+    prs = Presentation(BytesIO(data))
+    parts: list[str] = []
+    for index, slide in enumerate(prs.slides, start=1):
+        slide_text: list[str] = []
+        for shape in slide.shapes:
+            if hasattr(shape, "text") and shape.text.strip():
+                slide_text.append(shape.text.strip())
+        if slide_text:
+            parts.append(f"# Slide {index}\n" + "\n".join(slide_text))
+    return "\n\n".join(parts)
+
+
+def parse_office_attachment(name: str, data: bytes) -> tuple[str, bool, str | None]:
+    suffix = Path(name).suffix.lower()
+    try:
+        if suffix == ".pdf":
+            return parse_pdf(data), True, None
+        if suffix == ".docx":
+            return parse_docx(data), True, None
+        if suffix == ".xlsx":
+            return parse_xlsx(data), True, None
+        if suffix == ".pptx":
+            return parse_pptx(data), True, None
+        return "", False, "unsupported_type"
+    except Exception as exc:
+        return "", False, str(exc)[:200]
+
+
+@app.post("/api/attachments/parse", response_model=ParseAttachmentResponse)
+async def parse_attachment(req: ParseAttachmentRequest):
+    try:
+        data = base64.b64decode(req.data_base64, validate=True)
+    except Exception:
+        return ParseAttachmentResponse(name=req.name, type=req.type, size=0, error="invalid_base64")
+
+    if len(data) > 15 * 1024 * 1024:
+        return ParseAttachmentResponse(name=req.name, type=req.type, size=len(data), error="file_too_large")
+
+    text, parsed, error = parse_office_attachment(req.name, data)
+    text = normalize_text(text)[:60000]
+    return ParseAttachmentResponse(
+        name=req.name,
+        type=req.type,
+        size=len(data),
+        text=text,
+        parsed=parsed and bool(text),
+        error=error if not text else None,
+    )
+
 
 class SummarizeRequest(BaseModel):
     step_title: str
