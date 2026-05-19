@@ -1461,10 +1461,21 @@
     #helpDrawer { width: 100vw; max-width: 100vw; }
   }
 </style>
+<link rel="stylesheet" href="/static/protocol-ui.css">
 </head>
 <body>
 
 <div class="ice-bg"></div>
+<header class="protocol-shell">
+  <div class="protocol-brand">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span class="brand-name">破冰协议</span>
+  </div>
+  <div class="protocol-actions">
+    <button type="button" onclick="openHistoryPanel()">历史记录</button>
+    <button type="button" onclick="openSettingsPanel()">协议设置</button>
+  </div>
+</header>
 
 <!-- ==================== Landing ==================== -->
 <div class="page active" id="pageLanding">
@@ -1478,6 +1489,7 @@
     <input type="text" id="landingInput" placeholder="比如：我想写一篇博客但不知道怎么开头..."
       onkeydown="if(event.key==='Enter') startProtocol()" autofocus>
     <button class="landing-mic" id="landingMic" onclick="toggleLandingVoice()">🎙️</button>
+    <button class="landing-start" onclick="startProtocol()">启动协议</button>
   </div>
   <p class="landing-hint">按 <kbd>Enter</kbd> 开始</p>
 </div>
@@ -1599,6 +1611,61 @@
 </div>
 
 <div class="watermark">icebreaker-protocol</div>
+<footer class="protocol-footer">
+  <span>icebreaker-protocol skill</span>
+  <span>一次启动，一次产出</span>
+</footer>
+
+<div class="protocol-modal" id="historyPanel" aria-hidden="true">
+  <div class="protocol-modal-card">
+    <div class="protocol-modal-head">
+      <div>
+        <div class="modal-kicker">Local Runs</div>
+        <h3>历史记录</h3>
+      </div>
+      <button type="button" class="modal-close" onclick="closeProtocolPanel('historyPanel')">&times;</button>
+    </div>
+    <div class="history-empty">本地只保留最近的协议运行记录。完成一次协议后，会显示任务、耗时、产出数量和导出状态。</div>
+    <div class="history-sample">
+      <div>
+        <strong>示例：写一篇小红书笔记</strong>
+        <span>5 步 · 12分34秒 · 5 项产出</span>
+      </div>
+      <button type="button">复制 Markdown</button>
+    </div>
+  </div>
+</div>
+
+<div class="protocol-modal" id="settingsPanel" aria-hidden="true">
+  <div class="protocol-modal-card settings-card">
+    <div class="protocol-modal-head">
+      <div>
+        <div class="modal-kicker">Protocol Settings</div>
+        <h3>协议设置</h3>
+      </div>
+      <button type="button" class="modal-close" onclick="closeProtocolPanel('settingsPanel')">&times;</button>
+    </div>
+    <div class="settings-grid">
+      <section>
+        <h4>协议强度</h4>
+        <div class="segmented"><button class="active">标准</button><button>温和</button><button>严厉</button></div>
+      </section>
+      <section>
+        <h4>单步时间</h4>
+        <div class="segmented"><button>3 分钟</button><button class="active">5 分钟</button><button>10 分钟</button></div>
+      </section>
+      <section>
+        <h4>产出模式</h4>
+        <div class="segmented"><button class="active">只要草稿</button><button>可交付</button><button>作品集</button></div>
+      </section>
+      <section>
+        <h4>附件解析</h4>
+        <label class="setting-toggle"><input type="checkbox" checked> 自动解析文本 / PDF / Office</label>
+        <label class="setting-toggle"><input type="checkbox" checked> 解析失败时明确提醒</label>
+      </section>
+    </div>
+  </div>
+</div>
 
 <script>
 // ==================== 状态 ====================
@@ -1852,7 +1919,7 @@ function applyContractCopy() {
   }
 
   const primary = document.querySelector('.contract-actions .btn-primary');
-  if (primary) primary.textContent = '启动第 1 步';
+  if (primary) primary.textContent = '同意，启动第 1 步';
 
   const secondary = document.querySelector('.contract-actions .btn-secondary');
   if (secondary) secondary.textContent = '我卡住了';
@@ -2912,6 +2979,23 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') closeHelp();
 });
 
+function openHistoryPanel() {
+  document.getElementById('historyPanel').classList.add('active');
+}
+
+function openSettingsPanel() {
+  document.getElementById('settingsPanel').classList.add('active');
+}
+
+function closeProtocolPanel(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+document.addEventListener('click', (event) => {
+  const modal = event.target.closest('.protocol-modal');
+  if (modal && event.target === modal) modal.classList.remove('active');
+});
+
 // ==================== 语音识别 ====================
 let recognition = null;
 let isRecording = false;
@@ -3497,6 +3581,43 @@ function resetAll() {
 // ==================== 初始化 ====================
 window.addEventListener('DOMContentLoaded', () => {
   applyLandingCopy();
+  document.getElementById('landingInput').focus();
+});
+
+function ensureLandingConsoleV2() {
+  if (document.querySelector('.landing-console')) return;
+  const oldWrap = document.querySelector('.landing-input-wrap');
+  if (!oldWrap) return;
+  const consoleWrap = document.createElement('div');
+  consoleWrap.className = 'landing-console';
+  consoleWrap.innerHTML = `
+    <div class="landing-input-wrap">
+      <textarea id="landingInput" maxlength="500" placeholder="输入一个你迟迟没开始的任务"
+        oninput="updateLandingCountV2()"
+        onkeydown="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); startProtocol(); }" autofocus></textarea>
+      <div class="landing-count" id="landingCount">0 / 500</div>
+    </div>
+    <div class="landing-toolbar">
+      <div class="landing-tools">
+        <button class="landing-tool" type="button">📎 附件</button>
+        <span class="tool-divider"></span>
+        <button class="landing-tool" id="landingMic" type="button" onclick="toggleLandingVoice()">🎙️ 语音</button>
+      </div>
+      <button class="landing-start" onclick="startProtocol()">⚡ 启动协议</button>
+    </div>`;
+  oldWrap.replaceWith(consoleWrap);
+}
+
+function updateLandingCountV2() {
+  const input = document.getElementById('landingInput');
+  const count = document.getElementById('landingCount');
+  if (input && count) count.textContent = `${input.value.length} / 500`;
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  ensureLandingConsoleV2();
+  applyLandingCopy();
+  updateLandingCountV2();
   document.getElementById('landingInput').focus();
 });
 </script>
