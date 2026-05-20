@@ -1,0 +1,267 @@
+import json
+import re
+
+
+def normalize_text(value):
+    return str(value or "").strip()
+
+
+def json_response(handler, payload, status=200):
+    body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    handler.send_response(status)
+    handler.send_header("Content-Type", "application/json; charset=utf-8")
+    handler.send_header("Cache-Control", "no-store")
+    handler.send_header("Content-Length", str(len(body)))
+    handler.end_headers()
+    handler.wfile.write(body)
+
+
+def read_json(handler):
+    length = int(handler.headers.get("content-length") or 0)
+    if length <= 0:
+        return {}
+    raw = handler.rfile.read(length).decode("utf-8", errors="replace")
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        return {}
+
+
+def step(title, instruction, output, minutes=3):
+    return {
+        "title": title,
+        "instruction": instruction,
+        "output": output,
+        "minutes": minutes,
+    }
+
+
+def infer_steps(task):
+    task = normalize_text(task) or "这个任务"
+    lowered = task.lower()
+
+    if any(word in lowered for word in ["博客", "文章", "小红书", "笔记", "内容"]):
+        return [
+            step("确定选题与核心卖点", "写出主题、受众和一个最想让人记住的点。", "一个主题 + 3 个关键词", 3),
+            step("撰写标题与封面文案", "写 3 个标题候选和 1 句封面文案。", "3 个标题 + 1 句封面文案", 3),
+            step("搭建正文框架", "写开头、3 个要点和结尾句。", "正文骨架", 5),
+            step("填充正文内容", "把每个要点补成可以读的一段话。", "完整初稿", 6),
+            step("检查并提交", "只检查错别字、空白段和最明显的不通顺。", "可提交版本", 3),
+        ]
+
+    if any(word in lowered for word in ["网站", "网页", "页面", "landing", "前端", "作品集"]):
+        return [
+            step("明确页面目标", "写出这个页面要让用户完成的一件事。", "一句页面目标", 3),
+            step("列出关键内容块", "列出首页必须出现的 3 个内容块。", "内容块清单", 3),
+            step("画出首屏结构", "用文字写出从上到下的布局。", "首屏布局草稿", 4),
+            step("生成第一版文案", "为每个内容块写最小可用文案。", "页面文案初稿", 5),
+            step("确定下一处修改", "只挑一个最影响观感的地方作为下一轮。", "一个改进点", 2),
+        ]
+
+    return [
+        step("写下当前状态", f"围绕「{task}」写出现在已经有什么、卡在哪里。", "一段当前状态描述", 3),
+        step("列出三个目标", "列出这件事完成后必须出现的 3 个可见结果。", "3 个结果指标", 5),
+        step("选择优先目标", "从 3 个结果里选一个最小、最先做的。", "一个优先目标", 3),
+        step("拆解第一步行动", "把优先目标拆成 1 个今天能做完的动作。", "一个可执行动作", 4),
+    ]
+
+
+def extract_task(payload):
+    task = normalize_text(payload.get("task"))
+    if task:
+        return task
+    message = normalize_text(payload.get("message"))
+    message = re.sub(r"^\[系统上下文\].*?\[用户问题\]", "", message, flags=re.S).strip()
+    return message[:80] or "这个任务"
+
+
+def is_agreement(message):
+    return any(token in message for token in ["同意", "开始", "启动", "第 1 步", "第一步", "走起"])
+
+
+def is_done_request(message):
+    return any(token in message for token in ["所有步骤", "完成了", "拼装成型", "结束", "交付"])
+
+
+def is_stuck(message):
+    return any(token in message for token in ["卡", "不会", "不知道", "没思路", "写不出", "阻力"])
+
+
+def current_step(payload):
+    steps = payload.get("steps") or []
+    current = int(payload.get("current_step") or 0)
+    current = max(0, min(current, len(steps) - 1)) if steps else 0
+    return steps, current, steps[current] if steps else {}
+
+
+def last_visible_output(payload):
+    outputs = payload.get("outputs") or []
+    for item in reversed(outputs):
+        text = normalize_text(item)
+        if text:
+            return text
+    return ""
+
+
+def clean_task(payload):
+    task = normalize_text(payload.get("task") or extract_task(payload))
+    return task[:60] or "这件事"
+
+
+def draft_for_step(task, active):
+    title = normalize_text(active.get("title"))
+    output = normalize_text(active.get("output"))
+
+    if any(token in title + output for token in ["目标", "结果指标"]):
+        return (
+            f"先用这一版，不要再空转：\n\n"
+            f"1. 完成「{task}」的最小可见版本，能被别人看见或使用。\n"
+            f"2. 明确 3 个判断完成的标准，避免只停留在“感觉差不多”。\n"
+            f"3. 留下一个下一轮可修改的入口：问题清单、待补材料或改进点。\n\n"
+            f"采纳到左侧后，最多改 1 分钟。"
+        )
+
+    if any(token in title + output for token in ["标题", "封面"]):
+        return (
+            f"给你 3 个可直接改的版本：\n\n"
+            f"1. 我用 30 分钟把「{task}」推进了一步\n"
+            f"2. 别再准备了：先做出一个能改的版本\n"
+            f"3. 从空白到雏形：一次小启动记录\n\n"
+            f"封面文案：先让它存在，再让它变好。"
+        )
+
+    if any(token in title + output for token in ["框架", "结构", "布局"]):
+        return (
+            f"可以先按这个骨架写：\n\n"
+            f"开头：我一直卡在「{task}」，不是因为不会，而是启动成本太高。\n"
+            f"要点 1：先把目标缩小到一个可见产出。\n"
+            f"要点 2：限制时间，避免无限准备。\n"
+            f"要点 3：允许粗糙，因为初稿的用途是被修改。\n"
+            f"结尾：今天不追求完美，只追求留下一个能继续改的版本。"
+        )
+
+    if any(token in title + output for token in ["状态", "当前"]):
+        return (
+            f"当前状态：我想推进「{task}」，但还没有形成可见产出。现在已有的是一个大致方向，缺的是可以落地的第一块内容。"
+            f"我先不继续扩展范围，只把它压缩成下一步能完成的动作。"
+        )
+
+    return (
+        f"直接写这一版：\n\n"
+        f"围绕「{task}」，我先产出一个最小版本。它不追求完整，只要能被看见、能被修改、能推动下一步。"
+    )
+
+
+def directions_for_step(task, active):
+    title = normalize_text(active.get("title") or "当前步骤")
+    output = normalize_text(active.get("output") or "可见产出")
+    return (
+        f"给你 3 个方向，选一个就写，别全都要：\n\n"
+        f"1. 实用方向：把「{title}」写成清单，最后交付「{output}」。\n"
+        f"2. 叙事方向：先写为什么要做「{task}」，再写一个最小结果。\n"
+        f"3. 验收方向：直接写完成后能看见什么、谁能判断它完成、下一步改哪里。\n\n"
+        f"我建议选第 3 个，因为它最不容易变成空话。"
+    )
+
+
+def advice_for_output(task, active, previous):
+    title = normalize_text(active.get("title") or "当前步骤")
+    if not previous:
+        return draft_for_step(task, active)
+    excerpt = previous[:120]
+    return (
+        f"基于你左侧已有内容，我的建议是只改一处：把它从“描述任务”改成“验收结果”。\n\n"
+        f"你现在的核心内容：{excerpt}\n\n"
+        f"下一版这样补：\n"
+        f"1. 加一个具体对象：这次到底产出什么。\n"
+        f"2. 加一个数量或边界：几个、多少字、哪一页、哪一个文件。\n"
+        f"3. 加一个判断标准：别人看到什么算完成。\n\n"
+        f"当前步骤「{title}」不要扩展，只补这 3 行。"
+    )
+
+
+def assistant_reply(payload):
+    message = normalize_text(payload.get("message"))
+    task = clean_task(payload)
+    _, _, active = current_step(payload)
+    previous = last_visible_output(payload)
+
+    if any(token in message for token in ["起草", "帮我写", "草一下", "直接写", "生成"]):
+        return draft_for_step(task, active)
+    if any(token in message for token in ["方向", "思路", "参考", "选项"]):
+        return directions_for_step(task, active)
+    if any(token in message for token in ["结合", "建议", "优化", "上一", "产出"]):
+        return advice_for_output(task, active, previous)
+    if is_stuck(message):
+        return (
+            f"你现在不是缺信息，是缺一个可提交版本。直接填这句：\n\n"
+            f"我先围绕「{task}」完成当前步骤：{normalize_text(active.get('instruction')) or '写出一个最小版本'}。\n"
+            f"本轮只交付：{normalize_text(active.get('output')) or '一个可见产出'}。"
+        )
+    return advice_for_output(task, active, previous)
+
+
+def contract_response(payload):
+    task = extract_task(payload)
+    return {
+        "reply": "[Protocol] 先锁定约束，然后开始第 1 步。",
+        "screen": "contract",
+        "task": task,
+        "steps": payload.get("steps") or [],
+        "current_step": 0,
+    }
+
+
+def roadmap_response(payload):
+    task = extract_task(payload)
+    steps = infer_steps(task)
+    return {
+        "reply": "[Protocol] 只启动第 1 步。其余步骤先不要管。",
+        "screen": "roadmap",
+        "task": task,
+        "steps": steps,
+        "current_step": 0,
+    }
+
+
+def step_help_response(payload):
+    steps, current, _ = current_step(payload)
+    return {
+        "reply": assistant_reply(payload),
+        "screen": "message",
+        "task": payload.get("task") or extract_task(payload),
+        "steps": steps,
+        "current_step": current,
+    }
+
+
+def done_response(payload):
+    outputs = [normalize_text(item) for item in payload.get("outputs") or [] if normalize_text(item)]
+    count = len(outputs)
+    reply = f"雏形已经成立：你产出了 {count} 个可见块。下一轮只改一个地方，别开新战场。" if count else "流程已经跑通。下一轮先补一个真实产出，再谈优化。"
+    return {
+        "reply": reply,
+        "screen": "done",
+        "task": payload.get("task") or extract_task(payload),
+        "steps": payload.get("steps") or [],
+        "current_step": len(payload.get("steps") or []),
+    }
+
+
+def chat_response(payload):
+    message = normalize_text(payload.get("message"))
+    phase = normalize_text(payload.get("phase"))
+
+    if is_done_request(message):
+        return done_response(payload)
+    if phase == "step" or is_stuck(message):
+        return step_help_response(payload)
+    if phase == "contract" and is_agreement(message):
+        return roadmap_response(payload)
+    return contract_response(payload)
+
+
+def summarize_text(text):
+    text = normalize_text(text).replace("\n", " ")
+    text = re.sub(r"\s+", " ", text)
+    return text[:36] or "已留下一个可见产出"
