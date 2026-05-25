@@ -1,5 +1,16 @@
 import json
+import os
 import re
+import urllib.error
+import urllib.request
+
+
+API_KEY = os.getenv("DEEPSEEK_API_KEY") or os.getenv("OPENAI_API_KEY") or ""
+BASE_URL = os.getenv(
+    "DEEPSEEK_BASE_URL",
+    "https://api.deepseek.com" if os.getenv("DEEPSEEK_API_KEY") else "https://api.openai.com/v1",
+).rstrip("/")
+MODEL = os.getenv("DEEPSEEK_MODEL") or os.getenv("OPENAI_MODEL") or ("deepseek-chat" if os.getenv("DEEPSEEK_API_KEY") else "gpt-4o-mini")
 
 
 def normalize_text(value):
@@ -34,6 +45,149 @@ def step(title, instruction, output, minutes=3):
         "output": output,
         "minutes": minutes,
     }
+
+
+def chat_completions_url():
+    return BASE_URL + "/chat/completions"
+
+
+def call_ai(messages, max_tokens=600, temperature=0.4):
+    if not API_KEY:
+        return ""
+
+    body = json.dumps(
+        {
+            "model": MODEL,
+            "messages": messages,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+        },
+        ensure_ascii=False,
+    ).encode("utf-8")
+    request = urllib.request.Request(
+        chat_completions_url(),
+        data=body,
+        headers={
+            "Authorization": f"Bearer {API_KEY}",
+            "Content-Type": "application/json; charset=utf-8",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=28) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+        return normalize_text(payload["choices"][0]["message"]["content"])
+    except (urllib.error.URLError, urllib.error.HTTPError, KeyError, IndexError, json.JSONDecodeError, TimeoutError):
+        return ""
+
+
+def safe_history(history):
+    cleaned = []
+    for item in (history or [])[-10:]:
+        role = item.get("role")
+        content = normalize_text(item.get("content"))
+        if role in {"user", "assistant"} and content:
+            cleaned.append({"role": role, "content": content[:1800]})
+    return cleaned
+
+
+def attachment_context(attachments):
+    attachments = attachments or []
+    if not attachments:
+        return ""
+    lines = ["", "[附件摘要]"]
+    for item in attachments[:6]:
+        name = normalize_text(item.get("name"))[:100] or "未命名附件"
+        file_type = normalize_text(item.get("type") or "unknown")
+        text = normalize_text(item.get("text"))
+        lines.append(f"- {name} ({file_type})")
+        if text:
+            lines.append(text[:1000])
+    return "\n".join(lines)[:4500]
+
+
+def parse_json_object(text):
+    text = normalize_text(text)
+    if not text:
+        return {}
+    match = re.search(r"\{.*\}", text, flags=re.S)
+    raw = match.group(0) if match else text
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        return {}
+
+
+def try_ai_plan(task, attachments=None):
+    prompt = f"""
+你是「破冰协议」的任务拆解器。用户任务：{task}
+
+请只返回 JSON，不要 Markdown，不要解释：
+{{
+  "steps": [
+    {{
+      "title": "短标题",
+      "instruction": "具体执行指令，不能是想一想，必须让用户产出东西",
+      "output": "做完后可见的产出物",
+      "minutes": 5
+    }}
+  ]
+}}
+
+规则：
+- 3 到 5 步。
+- 每步 1 到 15 分钟，越小越好。
+- 每步必须有可见产出。
+- 第一版目标是可修改的雏形，不是完美成品。
+"""
+    prompt += attachment_context(attachments)
+    raw = call_ai([{"role": "user", "content": prompt}], max_tokens=800, temperature=0.2)
+    payload = parse_json_object(raw)
+    steps = []
+    for item in payload.get("steps", [])[:5]:
+        title = normalize_text(item.get("title"))
+        instruction = normalize_text(item.get("instruction"))
+        output = normalize_text(item.get("output"))
+        if not (title and instruction and output):
+            continue
+        try:
+            minutes = int(item.get("minutes") or 5)
+        except (TypeError, ValueError):
+            minutes = 5
+        steps.append(step(title, instruction, output, max(1, min(minutes, 15))))
+    return steps if 3 <= len(steps) <= 5 else []
+
+
+def try_ai_reply(payload):
+    steps, current, active = current_step(payload)
+    task = clean_task(payload)
+    outputs = payload.get("outputs") or []
+    context = {
+        "task": task,
+        "current_step_index": current + 1,
+        "current_step": active,
+        "previous_outputs": [normalize_text(item)[:1200] for item in outputs if normalize_text(item)][-5:],
+    }
+    system_prompt = (
+        "你是 [Protocol]，破冰协议的 AI 助手。用户正在一个分步工作流中完成任务。\n"
+        "规则：\n"
+        "- 不要安慰、不要讲道理、不要评价用户。\n"
+        "- 直接产出内容：如果用户要标题就给标题，要代码就给代码，要消息就给消息。\n"
+        "- 给出可以直接使用的具体内容，不要空泛建议。\n"
+        "- 只服务当前步骤，不要扩大范围。\n"
+        "- 中文回复，简洁，但要有实质内容。"
+    )
+    user_prompt = (
+        "[工作流上下文]\n"
+        + json.dumps(context, ensure_ascii=False)
+        + attachment_context(payload.get("attachments"))
+        + "\n\n[用户请求]\n"
+        + normalize_text(payload.get("message"))[:2000]
+    )
+    messages = [{"role": "system", "content": system_prompt}]
+    messages.extend(safe_history(payload.get("history")))
+    messages.append({"role": "user", "content": user_prompt[:7000]})
+    return call_ai(messages, max_tokens=650, temperature=0.5)
 
 
 def infer_steps(task):
@@ -214,9 +368,9 @@ def contract_response(payload):
 
 def roadmap_response(payload):
     task = extract_task(payload)
-    steps = infer_steps(task)
+    steps = try_ai_plan(task, payload.get("attachments")) or infer_steps(task)
     return {
-        "reply": "[Protocol] 只启动第 1 步。其余步骤先不要管。",
+        "reply": f"[Protocol] 已按你的任务拆成 {len(steps)} 个可见步骤。只启动第 1 步，其余先别管。",
         "screen": "roadmap",
         "task": task,
         "steps": steps,
@@ -227,7 +381,7 @@ def roadmap_response(payload):
 def step_help_response(payload):
     steps, current, _ = current_step(payload)
     return {
-        "reply": assistant_reply(payload),
+        "reply": try_ai_reply(payload) or assistant_reply(payload),
         "screen": "message",
         "task": payload.get("task") or extract_task(payload),
         "steps": steps,

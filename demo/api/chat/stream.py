@@ -4,13 +4,13 @@ from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
-from _common import read_json, step_help_response
+from _common import assistant_reply, read_json, try_ai_reply
 
 
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
         payload = read_json(self)
-        reply = step_help_response(payload).get("reply") or "先写一个最小版本。"
+        reply = try_ai_reply(payload) or assistant_reply(payload) or "先写一个最小版本。"
         body = (
             f"data: {json.dumps({'text': reply}, ensure_ascii=False)}\n\n"
             "data: [DONE]\n\n"
