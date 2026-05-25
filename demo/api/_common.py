@@ -118,12 +118,18 @@ def parse_json_object(text):
         return {}
 
 
-def try_ai_plan(task, attachments=None, time_preference='standard'):
+def try_ai_plan(task, attachments=None, time_preference='standard', output_mode='deliverable'):
     # 根据时间偏好生成时间规则说明
     time_rules = {
         'compact': '每步 1 到 8 分钟，尽量控制在 3 分钟以内，节奏紧凑',
         'loose': '每步 3 到 20 分钟，复杂步骤可以给更多时间，节奏宽松',
     }.get(time_preference, '每步 1 到 15 分钟，根据难度合理分配')
+
+    # 根据产出模式生成步骤规则说明
+    output_rules = {
+        'draft': '只需粗略框架，步骤可以宽泛，追求"有东西可改"即可',
+        'portfolio': '步骤要精细，可能需要增加检查、打磨、排版等额外步骤',
+    }.get(output_mode, '标准拆解，每步必须有明确可见产出')
 
     prompt = f"""
 你是「破冰协议」的任务拆解器。用户任务：{task}
@@ -143,6 +149,7 @@ def try_ai_plan(task, attachments=None, time_preference='standard'):
 规则：
 - 3 到 5 步。
 - {time_rules}。
+- {output_rules}。
 - 每步必须有可见产出。
 - 第一版目标是可修改的雏形，不是完美成品。
 """
@@ -156,7 +163,14 @@ def try_ai_plan(task, attachments=None, time_preference='standard'):
     min_min = 1 if time_preference == 'compact' else 3
     max_min = 8 if time_preference == 'compact' else (20 if time_preference == 'loose' else 15)
 
-    for item in payload.get("steps", [])[:5]:
+    # 产出模式影响步骤数
+    step_limits = {
+        'draft': (3, 3),
+        'portfolio': (5, 6),
+    }.get(output_mode, (4, 5))
+    min_steps, max_steps = step_limits
+
+    for item in payload.get("steps", [])[:max_steps]:
         title = normalize_text(item.get("title"))
         instruction = normalize_text(item.get("instruction"))
         output = normalize_text(item.get("output"))
@@ -169,7 +183,7 @@ def try_ai_plan(task, attachments=None, time_preference='standard'):
         # 应用时间偏好系数
         minutes = int(round(minutes * multiplier))
         steps.append(step(title, instruction, output, max(min_min, min(minutes, max_min))))
-    return steps if 3 <= len(steps) <= 5 else []
+    return steps if min_steps <= len(steps) <= max_steps else []
 
 
 def try_ai_reply(payload):
@@ -204,7 +218,7 @@ def try_ai_reply(payload):
     return call_ai(messages, max_tokens=650, temperature=0.5)
 
 
-def infer_steps(task, time_preference='standard'):
+def infer_steps(task, time_preference='standard', output_mode='deliverable'):
     task = normalize_text(task) or "这个任务"
     lowered = task.lower()
 
@@ -216,6 +230,21 @@ def infer_steps(task, time_preference='standard'):
         return max(min_min, min(int(round(minutes * multiplier)), max_min))
 
     if any(word in lowered for word in ["博客", "文章", "小红书", "笔记", "内容"]):
+        if output_mode == 'draft':
+            return [
+                step("确定选题", "写出主题和核心卖点。", "主题 + 3个关键词", adjust(3)),
+                step("写个大概", "把要点快速写成一段可读的内容。", "初稿大意", adjust(5)),
+                step("快速检查", "扫一眼错别字和不通顺的地方。", "可修改版本", adjust(3)),
+            ]
+        if output_mode == 'portfolio':
+            return [
+                step("选题研究", "确定主题、受众、核心卖点和竞品差异。", "选题报告", adjust(4)),
+                step("标题与封面文案", "写 3 个标题候选和封面文案。", "3 个标题 + 封面文案", adjust(3)),
+                step("搭建正文大纲", "写开头、3-5 个要点、结尾句。", "详细大纲", adjust(5)),
+                step("填充正文内容", "把每个要点扩展成完整段落。", "完整正文", adjust(6)),
+                step("润色与打磨", "优化措辞、调整节奏、增强吸引力。", "润色版", adjust(5)),
+                step("排版检查", "检查分段、标点、错别字和格式。", "最终版本", adjust(3)),
+            ]
         return [
             step("确定选题与核心卖点", "写出主题、受众和一个最想让人记住的点。", "一个主题 + 3 个关键词", adjust(3)),
             step("撰写标题与封面文案", "写 3 个标题候选和 1 句封面文案。", "3 个标题 + 1 句封面文案", adjust(3)),
@@ -225,6 +254,21 @@ def infer_steps(task, time_preference='standard'):
         ]
 
     if any(word in lowered for word in ["网站", "网页", "页面", "landing", "前端", "作品集"]):
+        if output_mode == 'draft':
+            return [
+                step("明确目标", "写出页面要让人完成的一件事。", "页面目标", adjust(3)),
+                step("画出大致结构", "用文字写出从上到下的大致布局。", "结构草图", adjust(5)),
+                step("填充内容", "为每个区域写最小可用文案。", "有内容的页面", adjust(5)),
+            ]
+        if output_mode == 'portfolio':
+            return [
+                step("明确页面目标", "写出页面要让用户完成的一件事。", "一句页面目标", adjust(3)),
+                step("列出内容块", "列出必须出现的所有内容块和优先级。", "完整内容清单", adjust(3)),
+                step("首屏结构", "写出从上到下的详细布局。", "首屏布局", adjust(4)),
+                step("文案初稿", "为每个内容块写可用文案。", "页面文案", adjust(5)),
+                step("视觉检查", "检查间距、对齐、层次和可读性。", "视觉优化版", adjust(4)),
+                step("交互动线", "确认用户从进入到完成目标的完整路径。", "最终版本", adjust(3)),
+            ]
         return [
             step("明确页面目标", "写出这个页面要让用户完成的一件事。", "一句页面目标", adjust(3)),
             step("列出关键内容块", "列出首页必须出现的 3 个内容块。", "内容块清单", adjust(3)),
@@ -233,6 +277,21 @@ def infer_steps(task, time_preference='standard'):
             step("确定下一处修改", "只挑一个最影响观感的地方作为下一轮。", "一个改进点", adjust(2)),
         ]
 
+    if output_mode == 'draft':
+        return [
+            step("写下当前状态", f"围绕「{task}」写出现在有什么、卡在哪里。", "状态描述", adjust(3)),
+            step("列出目标", "列出完成后必须出现的可见结果。", "目标清单", adjust(5)),
+            step("拆解第一步", "把目标拆成 1 个今天能做完的动作。", "可执行动作", adjust(4)),
+        ]
+    if output_mode == 'portfolio':
+        return [
+            step("写下当前状态", f"围绕「{task}」写出现在已经有什么、卡在哪里。", "一段当前状态描述", adjust(3)),
+            step("列出三个目标", "列出这件事完成后必须出现的 3 个可见结果。", "3 个结果指标", adjust(5)),
+            step("选择优先目标", "从 3 个结果里选一个最小、最先做的。", "一个优先目标", adjust(3)),
+            step("拆解第一步行动", "把优先目标拆成 1 个今天能做完的动作。", "一个可执行动作", adjust(4)),
+            step("执行并记录", "完成第一步，记录产出和遇到的问题。", "执行记录", adjust(5)),
+            step("复盘与优化", "回顾产出，找出可以改进的地方。", "优化方案", adjust(4)),
+        ]
     return [
         step("写下当前状态", f"围绕「{task}」写出现在已经有什么、卡在哪里。", "一段当前状态描述", adjust(3)),
         step("列出三个目标", "列出这件事完成后必须出现的 3 个可见结果。", "3 个结果指标", adjust(5)),
@@ -392,7 +451,10 @@ def roadmap_response(payload):
     time_preference = normalize_text(payload.get("time_preference")) or "standard"
     if time_preference not in {"compact", "standard", "loose"}:
         time_preference = "standard"
-    steps = try_ai_plan(task, payload.get("attachments"), time_preference) or infer_steps(task, time_preference)
+    output_mode = normalize_text(payload.get("output_mode")) or "deliverable"
+    if output_mode not in {"draft", "deliverable", "portfolio"}:
+        output_mode = "deliverable"
+    steps = try_ai_plan(task, payload.get("attachments"), time_preference, output_mode) or infer_steps(task, time_preference, output_mode)
     return {
         "reply": f"[Protocol] 已按你的任务拆成 {len(steps)} 个可见步骤。只启动第 1 步，其余先别管。",
         "screen": "roadmap",

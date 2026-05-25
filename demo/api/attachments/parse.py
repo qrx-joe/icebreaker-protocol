@@ -7,7 +7,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 from _common import json_response, read_json
 
 
-TEXT_EXTENSIONS = (".txt", ".md", ".csv", ".json", ".yaml", ".yml", ".log")
+TEXT_EXTENSIONS = (".txt", ".md", ".csv", ".json", ".yaml", ".yml", ".log", ".html", ".htm")
 
 
 class handler(BaseHTTPRequestHandler):
