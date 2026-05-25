@@ -35,12 +35,7 @@ function startStepTimer(seconds) {
     if (stepTimeRemaining <= 0) {
       clearInterval(stepTimerInterval);
       stepTimerInterval = null;
-      showPhaseMessage('overtime');
-      if (confirm('时间到了。要进入下一步吗？\n点"取消"可以继续当前步骤。')) {
-        finishStep();
-      } else {
-        startStepTimer(120); // 续 2 分钟，不是 5 分钟
-      }
+      showOvertimeActions();
     }
   }, 1000);
 }
@@ -77,4 +72,27 @@ function updateTimerDisplay() {
   const s = stepTimeRemaining % 60;
   const display = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
   document.getElementById('stepTimer').textContent = display;
+}
+
+// ==================== 超时内联确认（替代 confirm 弹窗） ====================
+function showOvertimeActions() {
+  const warning = document.getElementById('stepWarning');
+  warning.style.color = '#f87171';
+  warning.innerHTML = `
+    [Protocol]: 时间到了。你写下的东西就是你的产出，不要重来。
+    <div style="margin-top:0.5rem;display:flex;gap:0.6rem;flex-wrap:wrap;">
+      <button onclick="finishStepFromOvertime()" style="padding:0.45rem 1rem;border:none;border-radius:8px;background:linear-gradient(135deg,#38bdf8,#6366f1);color:#fff;font-family:inherit;font-size:0.85rem;font-weight:600;cursor:pointer;">进入下一步 →</button>
+      <button onclick="extendTimerFromOvertime()" style="padding:0.45rem 1rem;border:1px solid rgba(255,255,255,0.1);border-radius:8px;background:rgba(255,255,255,0.04);color:#888;font-family:inherit;font-size:0.85rem;font-weight:600;cursor:pointer;">续 2 分钟</button>
+    </div>
+  `;
+}
+
+function finishStepFromOvertime() {
+  document.getElementById('stepWarning').innerHTML = '';
+  finishStep();
+}
+
+function extendTimerFromOvertime() {
+  document.getElementById('stepWarning').innerHTML = '';
+  startStepTimer(120);
 }
