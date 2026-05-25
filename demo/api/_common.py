@@ -118,7 +118,13 @@ def parse_json_object(text):
         return {}
 
 
-def try_ai_plan(task, attachments=None):
+def try_ai_plan(task, attachments=None, time_preference='standard'):
+    # 根据时间偏好生成时间规则说明
+    time_rules = {
+        'compact': '每步 1 到 8 分钟，尽量控制在 3 分钟以内，节奏紧凑',
+        'loose': '每步 3 到 20 分钟，复杂步骤可以给更多时间，节奏宽松',
+    }.get(time_preference, '每步 1 到 15 分钟，根据难度合理分配')
+
     prompt = f"""
 你是「破冰协议」的任务拆解器。用户任务：{task}
 
@@ -136,7 +142,7 @@ def try_ai_plan(task, attachments=None):
 
 规则：
 - 3 到 5 步。
-- 每步 1 到 15 分钟，越小越好。
+- {time_rules}。
 - 每步必须有可见产出。
 - 第一版目标是可修改的雏形，不是完美成品。
 """
@@ -144,6 +150,12 @@ def try_ai_plan(task, attachments=None):
     raw = call_ai([{"role": "user", "content": prompt}], max_tokens=800, temperature=0.2)
     payload = parse_json_object(raw)
     steps = []
+
+    # 系数映射
+    multiplier = {'compact': 0.6, 'loose': 1.5}.get(time_preference, 1.0)
+    min_min = 1 if time_preference == 'compact' else 3
+    max_min = 8 if time_preference == 'compact' else (20 if time_preference == 'loose' else 15)
+
     for item in payload.get("steps", [])[:5]:
         title = normalize_text(item.get("title"))
         instruction = normalize_text(item.get("instruction"))
@@ -154,7 +166,9 @@ def try_ai_plan(task, attachments=None):
             minutes = int(item.get("minutes") or 5)
         except (TypeError, ValueError):
             minutes = 5
-        steps.append(step(title, instruction, output, max(1, min(minutes, 15))))
+        # 应用时间偏好系数
+        minutes = int(round(minutes * multiplier))
+        steps.append(step(title, instruction, output, max(min_min, min(minutes, max_min))))
     return steps if 3 <= len(steps) <= 5 else []
 
 
@@ -190,33 +204,40 @@ def try_ai_reply(payload):
     return call_ai(messages, max_tokens=650, temperature=0.5)
 
 
-def infer_steps(task):
+def infer_steps(task, time_preference='standard'):
     task = normalize_text(task) or "这个任务"
     lowered = task.lower()
 
+    multiplier = {'compact': 0.6, 'loose': 1.5}.get(time_preference, 1.0)
+    min_min = 1 if time_preference == 'compact' else 3
+    max_min = 8 if time_preference == 'compact' else (20 if time_preference == 'loose' else 15)
+
+    def adjust(minutes):
+        return max(min_min, min(int(round(minutes * multiplier)), max_min))
+
     if any(word in lowered for word in ["博客", "文章", "小红书", "笔记", "内容"]):
         return [
-            step("确定选题与核心卖点", "写出主题、受众和一个最想让人记住的点。", "一个主题 + 3 个关键词", 3),
-            step("撰写标题与封面文案", "写 3 个标题候选和 1 句封面文案。", "3 个标题 + 1 句封面文案", 3),
-            step("搭建正文框架", "写开头、3 个要点和结尾句。", "正文骨架", 5),
-            step("填充正文内容", "把每个要点补成可以读的一段话。", "完整初稿", 6),
-            step("检查并提交", "只检查错别字、空白段和最明显的不通顺。", "可提交版本", 3),
+            step("确定选题与核心卖点", "写出主题、受众和一个最想让人记住的点。", "一个主题 + 3 个关键词", adjust(3)),
+            step("撰写标题与封面文案", "写 3 个标题候选和 1 句封面文案。", "3 个标题 + 1 句封面文案", adjust(3)),
+            step("搭建正文框架", "写开头、3 个要点和结尾句。", "正文骨架", adjust(5)),
+            step("填充正文内容", "把每个要点补成可以读的一段话。", "完整初稿", adjust(6)),
+            step("检查并提交", "只检查错别字、空白段和最明显的不通顺。", "可提交版本", adjust(3)),
         ]
 
     if any(word in lowered for word in ["网站", "网页", "页面", "landing", "前端", "作品集"]):
         return [
-            step("明确页面目标", "写出这个页面要让用户完成的一件事。", "一句页面目标", 3),
-            step("列出关键内容块", "列出首页必须出现的 3 个内容块。", "内容块清单", 3),
-            step("画出首屏结构", "用文字写出从上到下的布局。", "首屏布局草稿", 4),
-            step("生成第一版文案", "为每个内容块写最小可用文案。", "页面文案初稿", 5),
-            step("确定下一处修改", "只挑一个最影响观感的地方作为下一轮。", "一个改进点", 2),
+            step("明确页面目标", "写出这个页面要让用户完成的一件事。", "一句页面目标", adjust(3)),
+            step("列出关键内容块", "列出首页必须出现的 3 个内容块。", "内容块清单", adjust(3)),
+            step("画出首屏结构", "用文字写出从上到下的布局。", "首屏布局草稿", adjust(4)),
+            step("生成第一版文案", "为每个内容块写最小可用文案。", "页面文案初稿", adjust(5)),
+            step("确定下一处修改", "只挑一个最影响观感的地方作为下一轮。", "一个改进点", adjust(2)),
         ]
 
     return [
-        step("写下当前状态", f"围绕「{task}」写出现在已经有什么、卡在哪里。", "一段当前状态描述", 3),
-        step("列出三个目标", "列出这件事完成后必须出现的 3 个可见结果。", "3 个结果指标", 5),
-        step("选择优先目标", "从 3 个结果里选一个最小、最先做的。", "一个优先目标", 3),
-        step("拆解第一步行动", "把优先目标拆成 1 个今天能做完的动作。", "一个可执行动作", 4),
+        step("写下当前状态", f"围绕「{task}」写出现在已经有什么、卡在哪里。", "一段当前状态描述", adjust(3)),
+        step("列出三个目标", "列出这件事完成后必须出现的 3 个可见结果。", "3 个结果指标", adjust(5)),
+        step("选择优先目标", "从 3 个结果里选一个最小、最先做的。", "一个优先目标", adjust(3)),
+        step("拆解第一步行动", "把优先目标拆成 1 个今天能做完的动作。", "一个可执行动作", adjust(4)),
     ]
 
 
@@ -368,7 +389,10 @@ def contract_response(payload):
 
 def roadmap_response(payload):
     task = extract_task(payload)
-    steps = try_ai_plan(task, payload.get("attachments")) or infer_steps(task)
+    time_preference = normalize_text(payload.get("time_preference")) or "standard"
+    if time_preference not in {"compact", "standard", "loose"}:
+        time_preference = "standard"
+    steps = try_ai_plan(task, payload.get("attachments"), time_preference) or infer_steps(task, time_preference)
     return {
         "reply": f"[Protocol] 已按你的任务拆成 {len(steps)} 个可见步骤。只启动第 1 步，其余先别管。",
         "screen": "roadmap",

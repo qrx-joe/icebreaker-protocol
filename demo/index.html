@@ -1670,8 +1670,12 @@
         <div class="segmented"><button class="active">标准</button><button>温和</button><button>严厉</button></div>
       </section>
       <section>
-        <h4>单步时间</h4>
-        <div class="segmented"><button>3 分钟</button><button class="active">5 分钟</button><button>10 分钟</button></div>
+        <h4>时间偏好</h4>
+        <div class="segmented" id="timePreferenceSeg">
+          <button onclick="setTimePreference('compact')">紧凑</button>
+          <button class="active" onclick="setTimePreference('standard')">标准</button>
+          <button onclick="setTimePreference('loose')">宽松</button>
+        </div>
       </section>
       <section>
         <h4>产出模式</h4>
@@ -1706,6 +1710,9 @@ let stepStartTime = 0;
 // 帮助面板
 let helpHistory = [];
 
+// 时间偏好：compact=紧凑, standard=标准, loose=宽松
+let timePreference = 'standard';
+
 // 会话附件：文本类附件会被读取并带入 AI 上下文。
 let attachments = [];
 
@@ -1736,6 +1743,7 @@ function saveSnapshot() {
     attachments: attachments.map(a => ({ name: a.name, size: a.size, type: a.type, data: a.data })),
     sessionLog,
     improvementRound,
+    timePreference,
     stepTextareaValue: document.getElementById('stepTextarea')?.value || ''
   };
   try {
@@ -3108,7 +3116,26 @@ function openHistoryPanel() {
 }
 
 function openSettingsPanel() {
+  updateTimePreferenceUI();
   document.getElementById('settingsPanel').classList.add('active');
+}
+
+function setTimePreference(value) {
+  timePreference = value;
+  updateTimePreferenceUI();
+  saveSnapshot();
+}
+
+function updateTimePreferenceUI() {
+  const seg = document.getElementById('timePreferenceSeg');
+  if (!seg) return;
+  seg.querySelectorAll('button').forEach((btn) => {
+    btn.classList.toggle('active', btn.textContent === {
+      compact: '紧凑',
+      standard: '标准',
+      loose: '宽松'
+    }[timePreference]);
+  });
 }
 
 function closeProtocolPanel(id) {
@@ -3741,7 +3768,8 @@ async function sendToAI(message) {
         steps,
         current_step: currentStepIdx,
         outputs: stepOutputs,
-        attachments: apiAttachments()
+        attachments: apiAttachments(),
+        time_preference: timePreference
       }),
       signal: controller.signal
     });
@@ -3829,7 +3857,9 @@ function restoreFromSnapshot(s) {
   attachments = (s.attachments || []).map(a => ({ name: a.name, size: a.size, type: a.type, data: a.data }));
   sessionLog = s.sessionLog || [];
   improvementRound = s.improvementRound || 0;
+  timePreference = s.timePreference || 'standard';
   renderAttachments();
+  updateTimePreferenceUI();
 
   if (currentPhase === 'step') {
     goToStep(currentStepIdx);
