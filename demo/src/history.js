@@ -32,7 +32,7 @@ function renderHistoryPanel() {
           <div style="font-weight:600;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(h.task || '未命名任务')}</div>
           <div style="font-size:12px;color:#94a3b8;margin-top:2px;">${dateStr} · ${h.totalSteps || 0}步 · ${timeStr} · ${h.completedSteps || 0}项产出</div>
         </div>
-        <button type="button" class="btn-export" onclick="copyHistoryMarkdown('${h.id}')" style="white-space:nowrap;">复制 Markdown</button>
+        <button type="button" class="btn-export" onclick="copyHistoryMarkdown('${escapeHtml(h.id)}')" style="white-space:nowrap;">复制 Markdown</button>
       </div>
     </div>`;
   });

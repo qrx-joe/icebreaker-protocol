@@ -1,0 +1,1583 @@
+:root {
+  --ip-bg: #07080d;
+  --ip-panel: rgba(13, 18, 29, 0.72);
+  --ip-panel-strong: rgba(10, 17, 28, 0.86);
+  --ip-line: rgba(125, 211, 252, 0.18);
+  --ip-line-strong: rgba(56, 189, 248, 0.36);
+  --ip-text: rgba(242, 247, 255, 0.9);
+  --ip-muted: rgba(199, 210, 224, 0.62);
+  --ip-faint: rgba(199, 210, 224, 0.38);
+  --ip-cyan: #38bdf8;
+  --ip-blue: #5b6df5;
+  --ip-green: #34d399;
+  --ip-red: #fb7185;
+  --ip-radius: 8px;
+  --ip-shadow: 0 28px 90px rgba(0, 0, 0, 0.42);
+}
+
+html,
+body {
+  min-height: 100%;
+  background: var(--ip-bg);
+}
+
+html {
+  overflow: hidden;
+}
+
+body {
+  display: flow-root;
+  color: var(--ip-text);
+  background:
+    radial-gradient(ellipse at 12% 78%, rgba(20, 184, 166, 0.055), transparent 36%),
+    radial-gradient(ellipse at 82% 28%, rgba(99, 102, 241, 0.075), transparent 38%),
+    #07080d;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 22% 60%, rgba(20, 184, 166, 0.055), transparent 48%),
+    radial-gradient(ellipse at 74% 28%, rgba(99, 102, 241, 0.06), transparent 42%),
+    linear-gradient(180deg, rgba(255,255,255,0.018), transparent 35%);
+}
+
+.ice-bg {
+  opacity: 0.72;
+  background:
+    radial-gradient(ellipse at 22% 60%, rgba(56,189,248,0.075) 0%, transparent 48%),
+    radial-gradient(ellipse at 78% 22%, rgba(99,102,241,0.052) 0%, transparent 44%);
+}
+
+* {
+  scrollbar-color: rgba(56, 189, 248, 0.42) rgba(255, 255, 255, 0.045);
+  scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.035);
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(56,189,248,0.55), rgba(91,109,245,0.48));
+  border: 2px solid rgba(7, 8, 13, 0.94);
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(56,189,248,0.78), rgba(91,109,245,0.68));
+}
+
+.page {
+  min-height: 100dvh;
+}
+
+.protocol-shell {
+  position: fixed;
+  top: 1.35rem;
+  left: 1.7rem;
+  right: 1.7rem;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.protocol-brand,
+.brand-mark {
+  width: 1.85rem;
+  height: 1.85rem;
+  border-radius: 7px;
+  background:
+    linear-gradient(135deg, rgba(110, 231, 183, 0.96), rgba(56, 189, 248, 0.95)),
+    linear-gradient(45deg, transparent 42%, rgba(7,8,13,0.36) 43%, rgba(7,8,13,0.36) 57%, transparent 58%);
+  box-shadow: 0 0 24px rgba(52, 211, 153, 0.22);
+  transform: skewY(-10deg);
+}
+
+.brand-name {
+  font-weight: 800;
+  font-size: 1.14rem;
+  color: rgba(247, 250, 255, 0.94);
+}
+
+.brand-pill {
+  padding: 0.18rem 0.46rem;
+  border: 1px solid var(--ip-line);
+  border-radius: 6px;
+  color: var(--ip-cyan);
+  background: rgba(56, 189, 248, 0.07);
+  font-size: 0.72rem;
+}
+
+.protocol-footer {
+  position: fixed;
+  left: 50%;
+  bottom: 1.45rem;
+  z-index: 40;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  color: rgba(199, 210, 224, 0.44);
+  font-size: 0.76rem;
+  pointer-events: none;
+}
+
+.protocol-footer span + span::before {
+  content: "/";
+  margin-right: 0.75rem;
+  color: rgba(199, 210, 224, 0.25);
+}
+
+.tag,
+.landing-hint kbd,
+.step-count {
+  border-radius: var(--ip-radius) !important;
+}
+
+.tag {
+  border-color: var(--ip-line-strong);
+  background: rgba(56, 189, 248, 0.09);
+}
+
+.btn {
+  border-radius: var(--ip-radius) !important;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #38bdf8 0%, #5b6df5 100%) !important;
+  box-shadow: 0 16px 34px rgba(56, 189, 248, 0.12);
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 42px rgba(56, 189, 248, 0.18);
+}
+
+.btn-secondary,
+.btn-export {
+  background: rgba(255, 255, 255, 0.035) !important;
+  border-color: rgba(255, 255, 255, 0.11) !important;
+  color: var(--ip-muted) !important;
+}
+
+.btn-secondary:hover:not(:disabled),
+.btn-export:hover:not(:disabled) {
+  border-color: rgba(56, 189, 248, 0.28) !important;
+  color: var(--ip-text) !important;
+}
+
+#pageLanding {
+  justify-content: flex-start !important;
+  padding-top: clamp(9.3rem, 18vh, 12rem) !important;
+  transform: none !important;
+}
+
+#pageLanding.active,
+#pageContract.active,
+#pageRoadmap.active,
+#pageDone.active {
+  width: min(640px, calc(100vw - 3.4rem));
+  min-height: auto;
+  margin: 5.8rem auto 4.6rem;
+  padding: 3rem 2rem 2rem !important;
+  border: 1px solid rgba(125, 211, 252, 0.14);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(15, 25, 38, 0.78), rgba(8, 13, 22, 0.78));
+  box-shadow: var(--ip-shadow);
+  overflow: visible !important;
+}
+
+#pageLanding.active::before,
+#pageContract.active::before,
+#pageRoadmap.active::before,
+#pageDone.active::before {
+  align-self: stretch;
+  margin-bottom: 2rem;
+  color: var(--ip-cyan);
+  font-weight: 800;
+  font-size: 0.92rem;
+  letter-spacing: 0.02em;
+}
+
+#pageLanding.active::before {
+  content: "01  启动协议";
+}
+
+#pageContract.active::before {
+  content: "01  锁定契约";
+}
+
+#pageRoadmap.active::before {
+  content: "02  协议执行中";
+}
+
+#pageDone.active::before {
+  content: "03  完成";
+}
+
+.landing-title {
+  font-size: clamp(3rem, 5.2vw, 4.8rem) !important;
+  margin-bottom: 1rem !important;
+  letter-spacing: 0 !important;
+}
+
+.landing-sub {
+  max-width: 620px !important;
+  margin-bottom: 3.2rem !important;
+  color: var(--ip-muted) !important;
+}
+
+.landing-input-wrap {
+  max-width: none !important;
+  padding: 0.45rem;
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.025);
+}
+
+.landing-input-wrap input {
+  min-height: 72px !important;
+  padding: 1.25rem 5.2rem 1.25rem 1.15rem !important;
+  border-radius: var(--ip-radius) !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none;
+}
+
+.landing-mic {
+  right: 0.8rem !important;
+  width: 3.1rem !important;
+  height: 3.1rem !important;
+  border-radius: var(--ip-radius) !important;
+}
+
+#pageContract,
+#pageRoadmap {
+  align-items: center;
+  justify-content: flex-start !important;
+  padding-top: clamp(6.2rem, 10vh, 8rem) !important;
+  padding-bottom: 4rem !important;
+  overflow-y: auto !important;
+}
+
+.contract-ai-msg,
+.roadmap-ai-msg {
+  max-width: 720px !important;
+  border-radius: var(--ip-radius) !important;
+  background: rgba(255, 255, 255, 0.035) !important;
+  border-color: rgba(255, 255, 255, 0.11) !important;
+  color: var(--ip-muted) !important;
+}
+
+.contract-box,
+.roadmap-card,
+.battle-report {
+  border-radius: var(--ip-radius) !important;
+  background:
+    linear-gradient(180deg, rgba(12, 23, 36, 0.82), rgba(8, 13, 22, 0.82)) !important;
+  border: 1px solid var(--ip-line) !important;
+  box-shadow: var(--ip-shadow);
+}
+
+.contract-box {
+  width: 100% !important;
+  padding: 0 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.contract-box h3,
+.roadmap-card h3 {
+  color: var(--ip-cyan) !important;
+  letter-spacing: 0 !important;
+}
+
+.contract-box li {
+  color: var(--ip-text) !important;
+}
+
+.contract-box li::before {
+  color: var(--ip-cyan) !important;
+}
+
+.contract-box .c-forbidden {
+  margin-top: 1.75rem !important;
+  padding-top: 1.45rem !important;
+  color: var(--ip-red) !important;
+}
+
+.contract-actions {
+  gap: 1rem !important;
+  margin-top: 1.7rem !important;
+}
+
+.roadmap-card {
+  width: 100% !important;
+  padding: 0 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.roadmap-task {
+  color: var(--ip-muted) !important;
+}
+
+.roadmap-step {
+  border-radius: var(--ip-radius) !important;
+  padding: 1rem 1.05rem !important;
+}
+
+.roadmap-step.highlight {
+  background: linear-gradient(90deg, rgba(56,189,248,0.1), rgba(91,109,245,0.065)) !important;
+  border-color: rgba(56,189,248,0.38) !important;
+}
+
+.roadmap-step-num {
+  border-color: rgba(255,255,255,0.14) !important;
+  background: rgba(255,255,255,0.035) !important;
+}
+
+.roadmap-step.highlight .roadmap-step-num {
+  border-color: rgba(56,189,248,0.6) !important;
+  color: var(--ip-cyan) !important;
+}
+
+.roadmap-step-title {
+  color: var(--ip-text) !important;
+}
+
+.roadmap-step-output,
+.roadmap-step-time {
+  color: var(--ip-faint) !important;
+}
+
+.roadmap-actions {
+  margin-top: 1.6rem !important;
+}
+
+#pageStep {
+  background: transparent !important;
+  padding-top: 5.35rem !important;
+}
+
+#pageStep .step-header {
+  width: min(720px, calc(100vw - 3.4rem));
+  margin: 0 auto;
+  padding: 0 0 1.05rem !important;
+}
+
+.step-count {
+  border-color: rgba(91,109,245,0.46) !important;
+  background: rgba(91,109,245,0.14) !important;
+}
+
+.step-title {
+  letter-spacing: 0 !important;
+}
+
+.timer {
+  color: #4ade80 !important;
+}
+
+.step-instruction {
+  width: min(720px, calc(100vw - 3.4rem)) !important;
+  margin: 0 auto 1.25rem !important;
+  border-radius: var(--ip-radius) !important;
+  border-color: rgba(91,109,245,0.24) !important;
+  background:
+    linear-gradient(180deg, rgba(19, 22, 40, 0.74), rgba(12, 16, 28, 0.72)) !important;
+}
+
+.step-workspace {
+  width: min(720px, calc(100vw - 3.4rem)) !important;
+  margin: 0 auto !important;
+  border-radius: var(--ip-radius) !important;
+  border-color: rgba(255,255,255,0.11) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.046), rgba(255,255,255,0.024)) !important;
+  min-height: min(21rem, calc(100dvh - 27rem)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+.step-workspace textarea {
+  min-height: min(21rem, calc(100dvh - 27rem)) !important;
+  padding: 1.35rem 1.35rem 6.4rem !important;
+  border-radius: var(--ip-radius) !important;
+}
+
+.attachment-list {
+  left: 1.15rem !important;
+  right: 1.15rem !important;
+  bottom: 4.45rem !important;
+  justify-content: flex-start !important;
+  gap: 0.55rem !important;
+}
+
+.attachment-chip {
+  border-radius: 999px !important;
+  background: rgba(56,189,248,0.105) !important;
+  border-color: rgba(56,189,248,0.28) !important;
+  color: rgba(219, 242, 255, 0.82) !important;
+}
+
+.attachment-btn,
+.pill-mic,
+.pill-help {
+  bottom: 1.35rem !important;
+  height: 2.25rem !important;
+  border-radius: 999px !important;
+  background: rgba(255,255,255,0.045) !important;
+  border-color: rgba(255,255,255,0.12) !important;
+  color: var(--ip-muted) !important;
+}
+
+.attachment-btn {
+  left: 1.15rem !important;
+  right: auto !important;
+}
+
+.pill-help {
+  right: 1.15rem !important;
+}
+
+.pill-mic {
+  right: 10.65rem !important;
+}
+
+.attachment-btn:hover,
+.pill-mic:hover,
+.pill-help:hover {
+  color: var(--ip-text) !important;
+  border-color: rgba(56,189,248,0.32) !important;
+}
+
+.step-warning {
+  width: min(720px, calc(100vw - 3.4rem)) !important;
+  margin: 1rem auto 0 !important;
+}
+
+.step-footer {
+  width: min(720px, calc(100vw - 3.4rem));
+  margin: 0 auto;
+  padding: 1rem 0 1.55rem !important;
+  border-top-color: rgba(255,255,255,0.06) !important;
+  background: transparent !important;
+}
+
+#pageDone {
+  justify-content: flex-start !important;
+  padding-top: 2.7rem !important;
+  gap: 1.25rem !important;
+  overflow-y: auto !important;
+}
+
+#pageDone > *:first-child,
+#pageDone > *:last-child {
+  margin: 0 !important;
+}
+
+#pageDone h2 {
+  color: var(--ip-green) !important;
+  letter-spacing: 0 !important;
+}
+
+.done-status {
+  width: 100% !important;
+  border-radius: var(--ip-radius) !important;
+  background: rgba(255,255,255,0.045) !important;
+  border-color: rgba(255,255,255,0.12) !important;
+  color: var(--ip-muted) !important;
+}
+
+.battle-report {
+  width: 100% !important;
+  padding: 1.75rem 1.8rem !important;
+}
+
+.battle-report-title {
+  color: var(--ip-cyan) !important;
+}
+
+.done-actions {
+  margin-top: 0.7rem !important;
+  margin-bottom: 1.55rem !important;
+  gap: 1rem !important;
+}
+
+.done-actions .btn {
+  min-width: 12.5rem !important;
+  padding: 1rem 1.6rem !important;
+}
+
+.done-export {
+  display: flex !important;
+  gap: 1.25rem !important;
+  margin-top: 1.05rem !important;
+}
+
+#pageDone .btn-export {
+  min-width: 10.5rem !important;
+  padding: 0.78rem 1.25rem !important;
+  font-size: 0.93rem !important;
+  opacity: 0.78 !important;
+}
+
+@media (max-width: 720px) {
+  .protocol-shell {
+    left: 1rem;
+    right: 1rem;
+  }
+
+  .protocol-footer {
+    display: none;
+  }
+
+  #pageLanding,
+  #pageContract,
+  #pageRoadmap,
+  #pageDone {
+    padding-inline: 1rem !important;
+  }
+
+  #pageLanding {
+    padding-top: 2.3rem !important;
+  }
+
+  #pageLanding.active,
+  #pageContract.active,
+  #pageRoadmap.active,
+  #pageDone.active {
+    width: calc(100vw - 2rem);
+    margin: 4.6rem auto 1rem;
+    padding: 1.25rem !important;
+  }
+
+  .landing-title {
+    font-size: 2.7rem !important;
+  }
+
+  .contract-box,
+  .roadmap-card,
+  .battle-report,
+  .done-status {
+    width: 100% !important;
+    padding-inline: 1.15rem !important;
+  }
+
+  #pageStep .step-header {
+    padding-inline: 1rem !important;
+    width: calc(100vw - 2rem);
+  }
+
+  .step-instruction,
+  .step-workspace,
+  .step-warning {
+    width: calc(100vw - 2rem) !important;
+  }
+
+  .step-footer {
+    width: calc(100vw - 2rem);
+  }
+
+  .pill-mic {
+    right: 8.9rem !important;
+  }
+
+  .pill-help {
+    max-width: 7.3rem;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .done-actions,
+  .done-export {
+    width: calc(100vw - 2rem);
+    flex-direction: column !important;
+  }
+
+  .done-actions .btn,
+  #pageDone .btn-export {
+    width: 100%;
+  }
+}
+
+@media (max-height: 820px) {
+  #pageContract,
+  #pageRoadmap {
+    padding-top: 0 !important;
+    padding-bottom: 2.5rem !important;
+  }
+
+  #pageLanding.active,
+  #pageContract.active,
+  #pageRoadmap.active,
+  #pageDone.active {
+    margin-top: 5.3rem;
+    margin-bottom: 3.5rem;
+  }
+
+  .contract-ai-msg,
+  .roadmap-ai-msg {
+    margin-bottom: 0.85rem !important;
+    padding-block: 0.75rem !important;
+  }
+
+  .contract-box,
+  .roadmap-card {
+    padding-top: 1.7rem !important;
+    padding-bottom: 1.55rem !important;
+  }
+
+  .roadmap-card h3 {
+    margin-bottom: 0.5rem !important;
+  }
+
+  .roadmap-task {
+    margin-bottom: 1rem !important;
+  }
+
+  .roadmap-step {
+    padding: 0.72rem 0.9rem !important;
+  }
+
+  .roadmap-step-output {
+    margin-top: 0.18rem !important;
+  }
+
+  .roadmap-actions {
+    margin-top: 1.05rem !important;
+  }
+}
+
+/* Skill console polish: closer to the reference without turning the skill demo into SaaS. */
+button {
+  cursor: pointer;
+}
+
+.protocol-shell {
+  top: 1.15rem !important;
+  left: 1.55rem !important;
+  right: 1.55rem !important;
+}
+
+.protocol-brand {
+  width: auto !important;
+  height: auto !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.58rem !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.protocol-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  pointer-events: auto;
+}
+
+.protocol-actions button {
+  height: 2.25rem;
+  padding: 0 0.9rem;
+  border: 1px solid rgba(148,163,184,0.16);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.045);
+  color: rgba(226,232,240,0.72);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.protocol-actions button:hover {
+  color: var(--ip-text);
+  border-color: rgba(56,189,248,0.3);
+  background: rgba(56,189,248,0.07);
+}
+
+.brand-mark {
+  width: 1.65rem !important;
+  height: 1.65rem !important;
+  border-radius: 6px !important;
+}
+
+.brand-name {
+  font-size: 1.02rem !important;
+}
+
+.brand-pill {
+  padding: 0.16rem 0.48rem !important;
+}
+
+#pageLanding.active,
+#pageContract.active,
+#pageRoadmap.active,
+#pageDone.active {
+  width: min(760px, calc(100vw - 3.4rem)) !important;
+  height: auto !important;
+  min-height: auto !important;
+  padding: 2.25rem 2.35rem 2.15rem !important;
+  border-color: rgba(148, 163, 184, 0.16) !important;
+  background:
+    linear-gradient(180deg, rgba(18, 29, 42, 0.84), rgba(8, 14, 23, 0.88)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.045),
+    0 28px 88px rgba(0,0,0,0.48) !important;
+}
+
+#pageLanding.active::before,
+#pageContract.active::before,
+#pageRoadmap.active::before,
+#pageDone.active::before {
+  margin-bottom: 1.85rem !important;
+  font-size: 1rem !important;
+}
+
+#pageLanding.active {
+  width: min(700px, calc(100vw - 3.4rem)) !important;
+  margin-top: clamp(5.1rem, 10vh, 7rem) !important;
+  margin-bottom: 5rem !important;
+  padding: 1.9rem 2rem 2rem !important;
+  align-items: stretch !important;
+  text-align: left !important;
+}
+
+#pageLanding.active::before {
+  margin-bottom: 1rem !important;
+  text-align: left !important;
+}
+
+#pageLanding .tag {
+  align-self: center !important;
+  margin: 0 auto 1.5rem !important;
+  opacity: 0.68 !important;
+  transform: scale(0.92) !important;
+}
+
+.landing-title {
+  font-size: clamp(3rem, 5.6vw, 4.7rem) !important;
+  margin-top: 0 !important;
+  margin-bottom: 0.9rem !important;
+  line-height: 1.02 !important;
+  text-align: center !important;
+}
+
+.landing-sub {
+  margin: 0 auto 2.2rem !important;
+  text-align: center !important;
+  max-width: 560px !important;
+}
+
+.landing-input-wrap {
+  min-height: 150px !important;
+  padding: 0 !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.042), rgba(255,255,255,0.022)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.045) !important;
+}
+
+.landing-input-wrap input {
+  min-height: 96px !important;
+  padding: 1.25rem 1.35rem 3.45rem !important;
+  font-size: 1rem !important;
+}
+
+.landing-mic {
+  left: 1rem !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: 0.72rem !important;
+  transform: none !important;
+  width: 2.35rem !important;
+  height: 2.35rem !important;
+  background: rgba(255,255,255,0.045) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+}
+
+.landing-start {
+  position: absolute;
+  right: 0.72rem;
+  bottom: 0.72rem;
+  min-width: 9.8rem;
+  height: 2.35rem;
+  border: 0;
+  border-radius: 8px;
+  color: white;
+  font: inherit;
+  font-weight: 800;
+  background: linear-gradient(135deg, #38bdf8 0%, #5b6df5 100%);
+  box-shadow: 0 15px 34px rgba(56,189,248,0.16);
+}
+
+.landing-hint {
+  margin-top: 1.15rem !important;
+  text-align: center !important;
+}
+
+.protocol-footer {
+  bottom: 1.15rem !important;
+}
+
+.landing-start:hover {
+  transform: translateY(-1px);
+}
+
+.contract-actions {
+  margin-top: 1.9rem !important;
+}
+
+.roadmap-step.highlight {
+  background: linear-gradient(90deg, rgba(56,189,248,0.13), rgba(91,109,245,0.075)) !important;
+}
+
+#pageStep {
+  padding-top: 5rem !important;
+}
+
+#pageStep .step-header,
+.step-instruction,
+.step-workspace,
+.step-warning,
+.step-footer {
+  width: min(820px, calc(100vw - 3.4rem)) !important;
+}
+
+.step-workspace,
+.step-workspace textarea {
+  min-height: min(21rem, calc(100dvh - 26rem)) !important;
+}
+
+.battle-report {
+  padding: 1.85rem 1.95rem !important;
+}
+
+/* Landing exact console layout */
+#pageLanding.active {
+  width: min(632px, calc(100vw - 3.4rem)) !important;
+  margin-top: clamp(6.2rem, 11vh, 8.2rem) !important;
+  margin-bottom: 5rem !important;
+  padding: 0 1.9rem 2rem !important;
+  align-items: stretch !important;
+  text-align: left !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+#pageLanding.active::before {
+  display: none !important;
+  content: none !important;
+}
+
+#pageLanding .tag {
+  display: none !important;
+}
+
+.landing-title {
+  font-size: clamp(3.65rem, 6.1vw, 4.9rem) !important;
+  margin-top: 3.2rem !important;
+  margin-bottom: 1.25rem !important;
+  line-height: 1.02 !important;
+  text-align: center !important;
+}
+
+.landing-sub {
+  max-width: 560px !important;
+  margin: 0 auto 3.35rem !important;
+  text-align: center !important;
+  line-height: 1.85 !important;
+}
+
+.landing-console {
+  width: 100%;
+}
+
+.landing-input-wrap {
+  position: relative !important;
+  min-height: 178px !important;
+  padding: 0 !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  border-radius: 10px !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.042), rgba(255,255,255,0.022)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.045) !important;
+}
+
+.landing-input-wrap textarea {
+  width: 100% !important;
+  min-height: 178px !important;
+  resize: none !important;
+  outline: none !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: var(--ip-text) !important;
+  padding: 1.15rem 1.25rem 2.15rem !important;
+  font-size: 1rem !important;
+  line-height: 1.7 !important;
+  font-family: inherit !important;
+}
+
+.landing-input-wrap textarea::placeholder {
+  color: rgba(199,210,224,0.28) !important;
+}
+
+.landing-count {
+  position: absolute;
+  right: 1.1rem;
+  bottom: 0.75rem;
+  color: rgba(199,210,224,0.5);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.landing-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 3.65rem;
+  margin-top: 1.05rem;
+  padding: 0.38rem 0.45rem;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.045);
+}
+
+.landing-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.landing-tool {
+  min-width: 5.5rem;
+  height: 2.55rem;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(226,232,240,0.7);
+  font: inherit;
+  font-weight: 700;
+}
+
+.landing-tool:hover {
+  color: var(--ip-text);
+  background: rgba(255,255,255,0.045);
+}
+
+.tool-divider {
+  width: 1px;
+  height: 1.7rem;
+  background: rgba(255,255,255,0.1);
+  margin: 0 0.35rem;
+}
+
+.landing-start {
+  position: static !important;
+  min-width: 10.25rem !important;
+  height: 3rem !important;
+  border: 0;
+  border-radius: 8px;
+  color: white;
+  font: inherit;
+  font-weight: 800;
+  background: linear-gradient(135deg, #38bdf8 0%, #5b6df5 100%);
+  box-shadow: 0 15px 34px rgba(56,189,248,0.16);
+}
+
+.landing-mic {
+  position: static !important;
+  width: auto !important;
+  height: 2.55rem !important;
+  transform: none !important;
+}
+
+.landing-hint {
+  margin-top: 1.65rem !important;
+  text-align: center !important;
+}
+
+/* Contract page: a short agreement, not a floating modal. */
+#pageContract.active {
+  width: min(720px, calc(100vw - 3.4rem)) !important;
+  margin-top: clamp(5.4rem, 9vh, 6.8rem) !important;
+  padding: 0 2rem 2rem !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  align-items: stretch !important;
+}
+
+#pageContract.active::before {
+  display: none !important;
+  content: none !important;
+}
+
+#pageContract .contract-ai-msg {
+  order: 2;
+  max-width: none !important;
+  margin: 0.9rem 0 1.55rem !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  text-align: center !important;
+  color: var(--ip-muted) !important;
+}
+
+#pageContract .contract-box {
+  order: 1;
+  padding: 0 !important;
+  text-align: left;
+}
+
+#pageContract .contract-box h3 {
+  text-align: center !important;
+  font-size: 1.75rem !important;
+  margin: 0 0 0.45rem !important;
+}
+
+#pageContract .contract-box h3::after {
+  content: "先同意一个约束：这次只要求产出可修改的雏形。";
+  display: block;
+  margin-top: 0.45rem;
+  color: var(--ip-muted);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+#pageContract .contract-box ul {
+  margin-top: 1.45rem !important;
+  padding: 1.1rem 1.3rem !important;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.022));
+}
+
+#pageContract .contract-box li {
+  font-size: 1rem !important;
+  line-height: 1.6 !important;
+}
+
+#pageContract .contract-box .c-forbidden {
+  margin-top: 0.85rem !important;
+  padding-top: 0.85rem !important;
+}
+
+#pageContract .contract-actions {
+  margin-top: 1.05rem !important;
+  gap: 1rem !important;
+}
+
+#pageContract .contract-actions .btn-primary {
+  flex: 1.35 !important;
+}
+
+#pageContract .contract-actions .btn-secondary {
+  flex: 0.9 !important;
+}
+
+.protocol-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 6.5rem;
+  background: rgba(3, 6, 12, 0.58);
+  backdrop-filter: blur(8px);
+}
+
+.protocol-modal.active {
+  display: flex;
+}
+
+.protocol-modal-card {
+  width: min(520px, calc(100vw - 2rem));
+  border: 1px solid rgba(148,163,184,0.18);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(18,29,42,0.96), rgba(8,14,23,0.96));
+  box-shadow: 0 30px 90px rgba(0,0,0,0.55);
+  padding: 1.25rem;
+}
+
+.settings-card {
+  width: min(640px, calc(100vw - 2rem));
+}
+
+.protocol-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.15rem;
+}
+
+.protocol-modal-head h3 {
+  margin: 0.15rem 0 0;
+  font-size: 1.25rem;
+}
+
+.modal-kicker {
+  color: var(--ip-cyan);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.modal-close {
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.04);
+  color: var(--ip-muted);
+  font-size: 1.25rem;
+}
+
+.history-empty {
+  padding: 1rem;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  color: var(--ip-muted);
+  line-height: 1.7;
+  background: rgba(255,255,255,0.028);
+}
+
+.history-sample {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.85rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(56,189,248,0.18);
+  border-radius: 8px;
+  background: rgba(56,189,248,0.055);
+}
+
+.history-sample strong,
+.history-sample span {
+  display: block;
+}
+
+.history-sample span {
+  margin-top: 0.25rem;
+  color: var(--ip-muted);
+  font-size: 0.86rem;
+}
+
+.history-sample button {
+  height: 2.2rem;
+  padding: 0 0.8rem;
+  border: 1px solid rgba(56,189,248,0.24);
+  border-radius: 8px;
+  background: rgba(56,189,248,0.08);
+  color: var(--ip-cyan);
+  font: inherit;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.settings-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.settings-grid section {
+  padding: 0.95rem;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.028);
+}
+
+.settings-grid h4 {
+  margin: 0 0 0.7rem;
+  font-size: 0.95rem;
+}
+
+.segmented {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.segmented button {
+  height: 2.15rem;
+  padding: 0 0.75rem;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 7px;
+  background: rgba(255,255,255,0.035);
+  color: var(--ip-muted);
+  font: inherit;
+  font-weight: 700;
+}
+
+.segmented button.active {
+  color: white;
+  border-color: rgba(56,189,248,0.45);
+  background: rgba(56,189,248,0.14);
+}
+
+.setting-toggle {
+  display: block;
+  color: var(--ip-muted);
+  line-height: 1.9;
+}
+
+.setting-toggle input {
+  margin-right: 0.45rem;
+  accent-color: var(--ip-cyan);
+}
+
+/* Roadmap page: keep the route itself, remove the floating shell. */
+#pageRoadmap.active {
+  width: min(720px, calc(100vw - 3.4rem)) !important;
+  margin-top: clamp(5.8rem, 10vh, 7.6rem) !important;
+  margin-bottom: 4.5rem !important;
+  padding: 0 2rem 2rem !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  align-items: stretch !important;
+}
+
+#pageRoadmap.active::before {
+  display: none !important;
+  content: none !important;
+}
+
+#pageRoadmap .roadmap-ai-msg,
+#pageRoadmap .roadmap-improve-msg,
+#pageRoadmap .roadmap-round-warning {
+  display: none !important;
+}
+
+#pageRoadmap .roadmap-card {
+  width: 100% !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+#pageRoadmap .roadmap-card h3 {
+  margin: 0 0 0.7rem !important;
+  text-align: center !important;
+  font-size: 1.85rem !important;
+}
+
+#pageRoadmap .roadmap-task {
+  margin-bottom: 1.55rem !important;
+  text-align: center !important;
+}
+
+#pageRoadmap .roadmap-steps {
+  padding: 0 !important;
+}
+
+#pageRoadmap .roadmap-step {
+  padding: 0.95rem 1.05rem !important;
+  border-bottom-color: rgba(255,255,255,0.06) !important;
+}
+
+#pageRoadmap .roadmap-step.highlight {
+  border: 1px solid rgba(56,189,248,0.42) !important;
+  background:
+    linear-gradient(90deg, rgba(56,189,248,0.13), rgba(91,109,245,0.075)) !important;
+}
+
+#pageRoadmap .roadmap-actions {
+  margin-top: 1.65rem !important;
+}
+
+#pageRoadmap .roadmap-actions .btn-primary {
+  width: 100%;
+}
+
+body:has(#pageRoadmap.active) .protocol-footer {
+  display: none !important;
+}
+
+/* Step execution page: focused workbench. */
+body:has(#pageStep.active) .protocol-footer {
+  display: none !important;
+}
+
+html:has(#pageDone.active),
+body:has(#pageDone.active) {
+  overflow-y: auto !important;
+}
+
+body:has(#pageDone.active) .protocol-footer {
+  display: none !important;
+}
+
+/* Done page: result sheet, not a trapped modal. */
+#pageDone.active {
+  width: min(720px, calc(100vw - 3.4rem)) !important;
+  min-height: auto !important;
+  height: auto !important;
+  margin-top: clamp(5.4rem, 9vh, 7rem) !important;
+  margin-bottom: 4rem !important;
+  padding: 0 2rem 2.4rem !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  align-items: center !important;
+  overflow: visible !important;
+}
+
+#pageDone.active::before {
+  display: none !important;
+  content: none !important;
+}
+
+#pageDone .done-icon {
+  margin: 0 0 1rem !important;
+  font-size: 2.05rem !important;
+  opacity: 0.55 !important;
+}
+
+#pageDone .done-title {
+  margin-bottom: 1.15rem !important;
+  font-size: 2.2rem !important;
+  color: var(--ip-green) !important;
+}
+
+#pageDone .done-ai-msg {
+  width: 100% !important;
+  max-width: none !important;
+  margin-bottom: 1.4rem !important;
+  border-radius: 10px !important;
+}
+
+#pageDone .done-summary {
+  width: 100% !important;
+}
+
+#pageDone .battle-report {
+  width: 100% !important;
+  max-height: none !important;
+  border-radius: 10px !important;
+}
+
+#pageDone .done-actions {
+  width: 100% !important;
+  margin-top: 1.4rem !important;
+  margin-bottom: 0 !important;
+}
+
+#pageDone .done-export {
+  width: 100% !important;
+  justify-content: center !important;
+  margin-top: 1rem !important;
+}
+
+@media (max-height: 820px) {
+  #pageDone.active {
+    margin-top: 4.6rem !important;
+    padding-bottom: 2rem !important;
+  }
+}
+
+#pageStep {
+  padding-top: 4.7rem !important;
+  overflow-y: auto !important;
+}
+
+#pageStep .step-header {
+  width: min(880px, calc(100vw - 3rem)) !important;
+  padding-bottom: 0.8rem !important;
+  align-items: center !important;
+}
+
+.step-header-left {
+  gap: 0.85rem !important;
+}
+
+.step-title-display {
+  font-size: 1.35rem !important;
+}
+
+.step-timer {
+  font-size: 1.65rem !important;
+}
+
+.step-body {
+  padding: 0 !important;
+}
+
+.step-instruction {
+  width: min(880px, calc(100vw - 3rem)) !important;
+  margin: 0 auto 1rem !important;
+  padding: 1.35rem 1.45rem !important;
+  border-radius: 10px !important;
+}
+
+.step-instruction-row {
+  align-items: start !important;
+}
+
+.step-workspace {
+  width: min(880px, calc(100vw - 3rem)) !important;
+  min-height: clamp(320px, 42vh, 460px) !important;
+  border-radius: 10px !important;
+  overflow: hidden !important;
+}
+
+.step-workspace textarea {
+  min-height: clamp(320px, 42vh, 460px) !important;
+  padding: 1.35rem 1.35rem 5.35rem !important;
+}
+
+.attachment-list {
+  bottom: 4rem !important;
+}
+
+.attachment-btn,
+.pill-mic,
+.pill-help {
+  bottom: 1rem !important;
+}
+
+.attachment-btn {
+  left: 1rem !important;
+}
+
+.pill-help {
+  right: 1rem !important;
+}
+
+.pill-mic {
+  right: 10.35rem !important;
+}
+
+.step-warning {
+  width: min(880px, calc(100vw - 3rem)) !important;
+  margin: 0.75rem auto 0 !important;
+}
+
+.step-footer {
+  width: min(880px, calc(100vw - 3rem)) !important;
+  padding: 0.9rem 0 1.15rem !important;
+}
+
+.step-footer .btn {
+  min-height: 3rem !important;
+}
+
+@media (max-height: 820px) {
+  #pageStep {
+    padding-top: 4.25rem !important;
+  }
+
+  #pageStep .step-header {
+    padding-bottom: 0.55rem !important;
+  }
+
+  .step-instruction {
+    margin-bottom: 0.75rem !important;
+    padding: 1rem 1.2rem !important;
+  }
+
+  .step-workspace,
+  .step-workspace textarea {
+    min-height: clamp(280px, 39vh, 390px) !important;
+  }
+
+  .step-footer {
+    padding-top: 0.7rem !important;
+  }
+}
+
+@media (max-height: 820px) {
+  #pageRoadmap.active {
+    margin-top: 5rem !important;
+    margin-bottom: 2rem !important;
+    padding-bottom: 1rem !important;
+  }
+
+  #pageRoadmap .roadmap-task {
+    margin-bottom: 1.1rem !important;
+  }
+
+  #pageRoadmap .roadmap-actions {
+    margin-top: 1.2rem !important;
+  }
+}
+
+@media (max-height: 820px) {
+  #pageLanding.active {
+    margin-top: 5.2rem !important;
+    margin-bottom: 2rem !important;
+    padding: 0 1.65rem 1.45rem !important;
+  }
+
+  #pageLanding.active::before {
+    display: none !important;
+    content: none !important;
+  }
+
+  .landing-title {
+    margin-top: 2.1rem !important;
+    margin-bottom: 0.8rem !important;
+    font-size: clamp(3.15rem, 5.2vw, 4.25rem) !important;
+  }
+
+  .landing-sub {
+    margin-bottom: 1.8rem !important;
+    line-height: 1.65 !important;
+  }
+
+  .landing-input-wrap,
+  .landing-input-wrap textarea {
+    min-height: 160px !important;
+  }
+
+  .landing-toolbar {
+    min-height: 3.5rem !important;
+    margin-top: 0.95rem !important;
+  }
+
+  .landing-start {
+    height: 2.65rem !important;
+  }
+
+  .landing-tool,
+  .landing-mic {
+    height: 2.35rem !important;
+  }
+
+  .landing-hint {
+    margin-top: 1.3rem !important;
+  }
+
+  #pageContract.active {
+    margin-top: 4.6rem !important;
+  }
+
+  #pageContract .contract-box ul {
+    margin-top: 1.1rem !important;
+    padding: 0.95rem 1.1rem !important;
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "icebreaker-protocol-demo",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/concat-js.js && vite",
+    "build": "node scripts/concat-js.js && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0"
+  },
+  "dependencies": {
+    "dompurify": "^3.2.0",
+    "marked": "^15.0.0"
+  }
+}

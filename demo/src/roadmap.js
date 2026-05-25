@@ -16,8 +16,9 @@ function showRoadmap(taskName, stepList, highlightIdx) {
 
   const taskEl = document.getElementById('roadmapTask');
   if (taskEl) {
-    taskEl.innerHTML = taskName
-      ? `任务：<strong>${taskName}</strong><br>当前只执行：第 ${activeIdx + 1} 步 · ${activeMinutes} 分钟`
+    const safeTask = escapeHtml(taskName || '');
+    taskEl.innerHTML = safeTask
+      ? `任务：<strong>${safeTask}</strong><br>当前只执行：第 ${activeIdx + 1} 步 · ${activeMinutes} 分钟`
       : `当前只执行：第 ${activeIdx + 1} 步 · ${activeMinutes} 分钟`;
   }
 
