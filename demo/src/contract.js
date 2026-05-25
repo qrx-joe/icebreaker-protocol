@@ -1,0 +1,77 @@
+// ==================== Contract ====================
+function setContractButtonsDisabled(disabled) {
+  const btns = document.querySelectorAll('.contract-actions .btn');
+  btns.forEach(b => {
+    b.disabled = disabled;
+    b.style.opacity = disabled ? '0.5' : '';
+    b.style.pointerEvents = disabled ? 'none' : '';
+  });
+}
+
+function showContractLoading() {
+  const el = document.getElementById('contractAiMsg');
+  el.textContent = '正在思考...';
+  el.style.opacity = '0.6';
+}
+
+function clearContractLoading() {
+  const el = document.getElementById('contractAiMsg');
+  el.style.opacity = '';
+}
+
+// Contract v2 copy override: keep the lock screen terse.
+function applyContractCopy() {
+  const msg = document.getElementById('contractAiMsg');
+  if (msg && !contractBusy) {
+    msg.textContent = '[Protocol] 第一版只要求存在。';
+  }
+
+  const title = document.querySelector('.contract-box h3');
+  if (title) title.textContent = '破冰契约';
+
+  const list = document.querySelector('.contract-box ul');
+  if (list) {
+    list.replaceChildren();
+    [
+      '只做可修改的雏形',
+      '每一步必须留下可见产出',
+      '单步限时，不无限准备',
+      '不满意也提交',
+    ].forEach(text => {
+      const item = document.createElement('li');
+      item.textContent = text;
+      list.appendChild(item);
+    });
+
+    const forbidden = document.createElement('li');
+    forbidden.className = 'c-forbidden';
+    forbidden.textContent = '禁止：空白提交';
+    list.appendChild(forbidden);
+  }
+
+  const primary = document.querySelector('.contract-actions .btn-primary');
+  if (primary) primary.textContent = '启动第 1 步';
+
+  const secondary = document.querySelector('.contract-actions .btn-secondary');
+  if (secondary) secondary.textContent = '说出阻力';
+}
+
+function acceptContract() {
+  if (contractBusy) return;
+  contractBusy = true;
+  setContractButtonsDisabled(true);
+  showContractLoading();
+  sendToAI('我同意契约，请帮我拆解任务')
+    .catch(() => {})
+    .finally(() => { contractBusy = false; setContractButtonsDisabled(false); clearContractLoading(); });
+}
+
+function questionContract() {
+  if (contractBusy) return;
+  contractBusy = true;
+  setContractButtonsDisabled(true);
+  showContractLoading();
+  sendToAI('我怕做不好，不想做一份随便应付的东西')
+    .catch(() => {})
+    .finally(() => { contractBusy = false; setContractButtonsDisabled(false); clearContractLoading(); });
+}
