@@ -116,9 +116,9 @@ async function sendToAI(message) {
     chatHistory.pop();
     saveSnapshot();
     if (err.name === 'AbortError') {
-      alert('请求超时，请检查网络后重试。');
+      showToast('请求超时，请检查网络后重试。', 'error', 5000);
     } else {
-      alert('出错了：' + err.message);
+      showToast('出错了：' + err.message, 'error', 5000);
     }
   } finally {
     clearTimeout(timer);

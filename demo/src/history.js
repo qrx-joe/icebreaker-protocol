@@ -78,14 +78,21 @@ function copyHistoryMarkdown(id) {
   }
 
   navigator.clipboard.writeText(lines.join('\n')).then(() => {
-    alert('已复制到剪贴板');
+    showToast('已复制到剪贴板', 'success', 3000);
   });
 }
 
-function clearHistory() {
-  if (!confirm('确定要清空所有本地历史记录吗？此操作不可恢复。')) return;
+async function clearHistory() {
+  const ok = await showModal({
+    title: '清空历史',
+    body: '确定要清空所有本地历史记录吗？此操作不可恢复。',
+    confirmText: '清空',
+    cancelText: '取消'
+  });
+  if (!ok) return;
   localStorage.removeItem(LS_KEY_HISTORY);
   renderHistoryPanel();
+  showToast('历史记录已清空', 'info', 3000);
 }
 
 document.addEventListener('click', (event) => {

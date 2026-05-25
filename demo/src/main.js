@@ -8,3 +8,8 @@ window.DOMPurify = DOMPurify
 
 // Setup API wrapper with loading/retry
 setupApiWrapper()
+
+// Setup global error handler (defined in bundle.js notify.js)
+if (typeof setupGlobalErrorHandler === 'function') {
+  setupGlobalErrorHandler()
+}

@@ -36,7 +36,7 @@ function restoreFromSnapshot(s) {
   }
 }
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
   ensureLandingConsoleV2();
   applyLandingCopy();
   updateLandingCountV2();
@@ -53,7 +53,12 @@ window.addEventListener('DOMContentLoaded', () => {
   // 检查是否有未完成的会话快照
   const snap = loadSnapshot();
   if (snap && snap.currentPhase !== 'landing' && snap.currentPhase !== 'done') {
-    const resume = confirm(`检测到未完成的协议「${snap.currentTask || '未命名任务'}」（步骤 ${snap.currentStepIdx + 1} / ${snap.steps.length}）。\n\n是否恢复上次进度？`);
+    const resume = await showModal({
+      title: '恢复进度',
+      body: `检测到未完成的协议「${snap.currentTask || '未命名任务'}」（步骤 ${snap.currentStepIdx + 1} / ${snap.steps.length}）。\n\n是否恢复上次进度？`,
+      confirmText: '恢复',
+      cancelText: '放弃'
+    });
     if (resume) {
       restoreFromSnapshot(snap);
     } else {

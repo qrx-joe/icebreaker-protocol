@@ -136,7 +136,7 @@ function startLandingRecording() {
   if (!landingRecognition) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      alert('当前浏览器不支持语音输入，请使用 Chrome 或 Edge。');
+      showToast('当前浏览器不支持语音输入，请使用 Chrome 或 Edge。', 'warning', 5000);
       return;
     }
     landingRecognition = new SpeechRecognition();
@@ -162,7 +162,7 @@ function startLandingRecording() {
 
     landingRecognition.onerror = (event) => {
       if (event.error === 'not-allowed') {
-        alert('麦克风权限被拒绝。请在浏览器设置中允许。');
+        showToast('麦克风权限被拒绝。请在浏览器设置中允许。', 'warning', 5000);
       }
       stopLandingRecording();
     };
