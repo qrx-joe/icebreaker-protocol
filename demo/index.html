@@ -1647,13 +1647,10 @@
       </div>
       <button type="button" class="modal-close" onclick="closeProtocolPanel('historyPanel')">&times;</button>
     </div>
-    <div class="history-empty">本地只保留最近的协议运行记录。完成一次协议后，会显示任务、耗时、产出数量和导出状态。</div>
-    <div class="history-sample">
-      <div>
-        <strong>示例：写一篇小红书笔记</strong>
-        <span>5 步 · 12分34秒 · 5 项产出</span>
-      </div>
-      <button type="button">复制 Markdown</button>
+    <div id="historyList" style="max-height: 60vh; overflow-y: auto;"></div>
+    <div id="historyEmpty" class="history-empty">本地只保留最近的协议运行记录。完成一次协议后，会显示任务、耗时、产出数量和导出状态。</div>
+    <div class="history-actions" style="display:flex;gap:8px;margin-top:12px;">
+      <button type="button" class="btn-export" onclick="clearHistory()" style="flex:1;">清空历史</button>
     </div>
   </div>
 </div>
@@ -1714,6 +1711,89 @@ let attachments = [];
 
 // 破冰日志
 let sessionLog = [];
+
+// ==================== localStorage 持久化 ====================
+const LS_KEY_SNAPSHOT = 'ib_session_snapshot';
+const LS_KEY_HISTORY  = 'ib_session_history';
+const LS_HISTORY_MAX  = 50;
+const LS_HISTORY_DAYS = 30;
+
+function saveSnapshot() {
+  if (currentPhase === 'landing' || currentPhase === 'done') {
+    localStorage.removeItem(LS_KEY_SNAPSHOT);
+    return;
+  }
+  const snapshot = {
+    v: 1,
+    ts: Date.now(),
+    chatHistory,
+    currentTask,
+    currentPhase,
+    steps,
+    stepOutputs,
+    currentStepIdx,
+    helpHistory,
+    attachments: attachments.map(a => ({ name: a.name, size: a.size, type: a.type, data: a.data })),
+    sessionLog,
+    improvementRound,
+    stepTextareaValue: document.getElementById('stepTextarea')?.value || ''
+  };
+  try {
+    localStorage.setItem(LS_KEY_SNAPSHOT, JSON.stringify(snapshot));
+  } catch (e) {
+    // 存储溢出（附件过大）时静默失败，不影响用户体验
+  }
+}
+
+function loadSnapshot() {
+  try {
+    const raw = localStorage.getItem(LS_KEY_SNAPSHOT);
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    if (!s || s.v !== 1) return null;
+    // 超过 7 天的快照视为过期
+    if (Date.now() - s.ts > 7 * 24 * 60 * 60 * 1000) {
+      localStorage.removeItem(LS_KEY_SNAPSHOT);
+      return null;
+    }
+    return s;
+  } catch (e) {
+    return null;
+  }
+}
+
+function clearSnapshot() {
+  localStorage.removeItem(LS_KEY_SNAPSHOT);
+}
+
+function appendHistory(entry) {
+  try {
+    let list = JSON.parse(localStorage.getItem(LS_KEY_HISTORY) || '[]');
+    if (!Array.isArray(list)) list = [];
+    list.unshift(entry);
+    // 按数量限制
+    if (list.length > LS_HISTORY_MAX) list = list.slice(0, LS_HISTORY_MAX);
+    // 按时间限制
+    const cutoff = Date.now() - LS_HISTORY_DAYS * 24 * 60 * 60 * 1000;
+    list = list.filter(h => h.ts > cutoff);
+    localStorage.setItem(LS_KEY_HISTORY, JSON.stringify(list));
+  } catch (e) {
+    // 静默失败
+  }
+}
+
+function loadHistory() {
+  try {
+    const list = JSON.parse(localStorage.getItem(LS_KEY_HISTORY) || '[]');
+    return Array.isArray(list) ? list : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function clearHistory() {
+  localStorage.removeItem(LS_KEY_HISTORY);
+}
 
 // 无活动监控（方案 C）
 let inactivityTimer = null;
@@ -1793,6 +1873,7 @@ function renderAttachments() {
     chip.append(label, remove);
     list.appendChild(chip);
   });
+  saveSnapshot();
 }
 
 function attachmentContextText() {
@@ -2097,6 +2178,7 @@ function showRoadmap(taskName, stepList, highlightIdx) {
   }
 
   showPage('pageRoadmap');
+  saveSnapshot();
 }
 
 // ==================== Step ====================
@@ -2149,6 +2231,8 @@ function goToStep(idx) {
   if (idx > 0) {
     fetchProactiveSuggestion(idx);
   }
+
+  saveSnapshot();
 }
 
 function buildStepPlaceholder(step) {
@@ -2462,6 +2546,7 @@ async function finishStep() {
 
     // 等待归档完成再跳转，确保 sessionLog 写入是事务性的
     await archiveStep(step, currentStepIdx, output, timeSpent);
+    saveSnapshot();
 
     if (currentStepIdx < steps.length - 1) {
       goToStep(currentStepIdx + 1);
@@ -2597,6 +2682,22 @@ function showDone() {
     `你完成了 ${sessionLog.length || steps.length || 0} 个可见块。现在先导出，或只改一处。`;
   renderBattleReport();
 
+  // 保存到历史记录
+  const totalTime = sessionLog.reduce((s, r) => s + r.time_spent_seconds, 0);
+  appendHistory({
+    id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2),
+    ts: Date.now(),
+    task: currentTask,
+    totalSteps: steps.length,
+    completedSteps: sessionLog.length,
+    totalTimeSeconds: totalTime,
+    sessionLog: sessionLog.map(r => ({ step_title: r.step_title, step_index: r.step_index, summary: r.summary, time_spent_seconds: r.time_spent_seconds })),
+    steps: steps.map(s => ({ title: s.title, instruction: s.instruction, output: s.output, minutes: s.minutes })),
+    stepOutputs: stepOutputs.slice(),
+    doneAiMsg: document.getElementById('doneAiMsg')?.textContent || ''
+  });
+
+  clearSnapshot();
   showPage('pageDone');
 }
 
@@ -3002,6 +3103,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 function openHistoryPanel() {
+  renderHistoryPanel();
   document.getElementById('historyPanel').classList.add('active');
 }
 
@@ -3011,6 +3113,97 @@ function openSettingsPanel() {
 
 function closeProtocolPanel(id) {
   document.getElementById(id).classList.remove('active');
+}
+
+// ==================== 历史面板渲染 ====================
+function renderHistoryPanel() {
+  const listEl = document.getElementById('historyList');
+  const emptyEl = document.getElementById('historyEmpty');
+  const actionsEl = document.querySelector('.history-actions');
+  const history = loadHistory();
+
+  if (!history.length) {
+    listEl.innerHTML = '';
+    emptyEl.style.display = '';
+    if (actionsEl) actionsEl.style.display = 'none';
+    return;
+  }
+
+  emptyEl.style.display = 'none';
+  if (actionsEl) actionsEl.style.display = '';
+  let html = '';
+  history.forEach((h) => {
+    const date = new Date(h.ts);
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+    const m = Math.floor((h.totalTimeSeconds || 0) / 60);
+    const s = (h.totalTimeSeconds || 0) % 60;
+    const timeStr = m > 0 ? `${m}分${s}秒` : `${s}秒`;
+    html += `<div class="history-item" style="border-bottom:1px solid rgba(255,255,255,0.06);padding:12px 0;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(h.task || '未命名任务')}</div>
+          <div style="font-size:12px;color:#94a3b8;margin-top:2px;">${dateStr} · ${h.totalSteps || 0}步 · ${timeStr} · ${h.completedSteps || 0}项产出</div>
+        </div>
+        <button type="button" class="btn-export" onclick="copyHistoryMarkdown('${h.id}')" style="white-space:nowrap;">复制 Markdown</button>
+      </div>
+    </div>`;
+  });
+  listEl.innerHTML = html;
+}
+
+function escapeHtml(value) {
+  return String(value || '').replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[char]));
+}
+
+function copyHistoryMarkdown(id) {
+  const history = loadHistory();
+  const h = history.find(x => x.id === id);
+  if (!h) return;
+
+  const lines = [];
+  const now = new Date(h.ts);
+  const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  lines.push(`# ${h.task || '破冰协议产出'}`);
+  lines.push('');
+  lines.push(`> 完成时间：${dateStr}`);
+  lines.push('');
+
+  (h.steps || []).forEach((s, i) => {
+    const output = (h.stepOutputs?.[i] || '').trim();
+    lines.push(`## ${i + 1}. ${s.title || '步骤 ' + (i + 1)}`);
+    lines.push('');
+    if (s.instruction) {
+      lines.push(`> ${s.instruction}`);
+      lines.push('');
+    }
+    if (output) {
+      lines.push(output);
+    } else {
+      lines.push('*（未产出）*');
+    }
+    lines.push('');
+  });
+
+  if (h.doneAiMsg) {
+    lines.push('---');
+    lines.push('');
+    lines.push('## AI 改进建议');
+    lines.push('');
+    lines.push(h.doneAiMsg);
+    lines.push('');
+  }
+
+  navigator.clipboard.writeText(lines.join('\n')).then(() => {
+    alert('已复制到剪贴板');
+  });
+}
+
+function clearHistory() {
+  if (!confirm('确定要清空所有本地历史记录吗？此操作不可恢复。')) return;
+  localStorage.removeItem(LS_KEY_HISTORY);
+  renderHistoryPanel();
 }
 
 document.addEventListener('click', (event) => {
@@ -3438,6 +3631,7 @@ async function sendHelp() {
       wrapper.appendChild(actions);
 
       helpHistory.push({ role: 'assistant', content: fullText });
+      saveSnapshot();
     }
   } catch (err) {
     bubble.style.cssText = '';
@@ -3488,6 +3682,7 @@ function applyAIResponse(data) {
     currentPhase = 'contract';
     document.getElementById('contractAiMsg').textContent = '[Protocol] 先锁定约束，然后开始第 1 步。';
     showPage('pageContract');
+    saveSnapshot();
     return;
   }
 
@@ -3495,6 +3690,7 @@ function applyAIResponse(data) {
     currentPhase = 'roadmap';
     document.getElementById('roadmapAiMsg').textContent = reply;
     showRoadmap(currentTask, steps);
+    saveSnapshot();
     return;
   }
 
@@ -3511,6 +3707,7 @@ function applyAIResponse(data) {
     if (data.thinking_budget_seconds) {
       startStepTimer(data.thinking_budget_seconds);
     }
+    saveSnapshot();
     return;
   }
 
@@ -3522,6 +3719,7 @@ function applyAIResponse(data) {
   }
 
   showInlineMessage(reply);
+  saveSnapshot();
 }
 
 async function sendToAI(message) {
@@ -3552,10 +3750,12 @@ async function sendToAI(message) {
     const data = await response.json();
 
     chatHistory.push({ role: 'assistant', content: data.reply || '' });
+    saveSnapshot();
     applyAIResponse(data);
 
   } catch (err) {
     chatHistory.pop();
+    saveSnapshot();
     if (err.name === 'AbortError') {
       alert('请求超时，请检查网络后重试。');
     } else {
@@ -3590,6 +3790,7 @@ function resetAll() {
   improvementRound = 0;
   if (stepTimerInterval) clearInterval(stepTimerInterval);
   stopInactivityMonitor();
+  clearSnapshot();
 
   document.getElementById('landingInput').value = '';
   document.getElementById('landingInput').style.borderColor = 'rgba(56,189,248,0.25)';
@@ -3604,7 +3805,51 @@ function resetAll() {
 window.addEventListener('DOMContentLoaded', () => {
   applyLandingCopy();
   document.getElementById('landingInput').focus();
+
+  // 检查是否有未完成的会话快照
+  const snap = loadSnapshot();
+  if (snap && snap.currentPhase !== 'landing' && snap.currentPhase !== 'done') {
+    const resume = confirm(`检测到未完成的协议「${snap.currentTask || '未命名任务'}」（步骤 ${snap.currentStepIdx + 1} / ${snap.steps.length}）。\n\n是否恢复上次进度？`);
+    if (resume) {
+      restoreFromSnapshot(snap);
+    } else {
+      clearSnapshot();
+    }
+  }
 });
+
+function restoreFromSnapshot(s) {
+  chatHistory = s.chatHistory || [];
+  currentTask = s.currentTask || '';
+  currentPhase = s.currentPhase || 'step';
+  steps = s.steps || [];
+  stepOutputs = s.stepOutputs || [];
+  currentStepIdx = s.currentStepIdx || 0;
+  helpHistory = s.helpHistory || [];
+  attachments = (s.attachments || []).map(a => ({ name: a.name, size: a.size, type: a.type, data: a.data }));
+  sessionLog = s.sessionLog || [];
+  improvementRound = s.improvementRound || 0;
+  renderAttachments();
+
+  if (currentPhase === 'step') {
+    goToStep(currentStepIdx);
+    // 恢复 textarea 内容（goToStep 会从 stepOutputs 恢复，但如果用户最后修改了没保存，用快照值覆盖）
+    const ta = document.getElementById('stepTextarea');
+    if (ta && s.stepTextareaValue) ta.value = s.stepTextareaValue;
+  } else if (currentPhase === 'roadmap') {
+    showRoadmap(currentTask, steps, currentStepIdx);
+  } else if (currentPhase === 'done') {
+    // 恢复 done 页面时不重复保存历史
+    document.getElementById('stepProgressFill').style.width = '100%';
+    document.querySelector('.done-title').textContent = '雏形已生成';
+    if (!document.getElementById('doneAiMsg').textContent) {
+      document.getElementById('doneAiMsg').textContent =
+        `你完成了 ${sessionLog.length || steps.length || 0} 个可见块。现在先导出，或只改一处。`;
+    }
+    renderBattleReport();
+    showPage('pageDone');
+  }
+}
 
 function ensureLandingConsoleV2() {
   if (document.querySelector('.landing-console')) return;
@@ -3641,6 +3886,16 @@ window.addEventListener('DOMContentLoaded', () => {
   applyLandingCopy();
   updateLandingCountV2();
   document.getElementById('landingInput').focus();
+
+  // stepTextarea 输入防抖保存快照
+  const stepTa = document.getElementById('stepTextarea');
+  if (stepTa) {
+    let snapshotDebounce;
+    stepTa.addEventListener('input', () => {
+      clearTimeout(snapshotDebounce);
+      snapshotDebounce = setTimeout(saveSnapshot, 500);
+    });
+  }
 });
 </script>
 </body>
