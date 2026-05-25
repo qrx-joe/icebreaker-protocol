@@ -31,6 +31,9 @@
 | [ZenitApp](https://github.com/SejDevStuff/ZenitApp) | 2 | Mac 反拖延工具，检测分心并强制拉回 | 监控+**惩罚**系统；破冰协议是**引导**系统，不惩罚 |
 | [MyndMap](https://github.com/JJMugenyi/myndmap) | 46 | ADHD 生产力平台，任务管理+AI推荐 | **重型**全方位方案；破冰协议是**轻量**单用途工具 |
 | [ChurnFlow MCP](https://github.com/jgsteeler/churnflow-mcp) | 7 | ADHD 友好的 GTD 系统，零摩擦捕获想法 | 解决**捕获和处理**；破冰协议解决**执行的第一秒** |
+| [Thawly.ai](https://github.com/ruanyf/weekly/issues/9864) | - | AI Task Initiation Engine，认知心理学研究者开发。Action Mode（微行动+2分钟计时）+ Coach Mode（引导提问）+ Continuous Execution（全程陪伴）+ Blind-Box（随机选任务） | 解决**动起来**；破冰协议解决**动起来+有产出+不怕改**。Thawly 是拐杖，破冰是契约 |
+| [Dawdle AI](https://news.ucsb.edu/2025/022229/two-minute-fix-procrastination) | - | UCSB 研究项目，已上架 App Store。子任务生成 + 奖励配对，2分钟反思降低情绪阻力 | 学术验证"任务拆分+即时奖励"比单纯拆分更有效；破冰协议的**三阶段计时器**已有类似设计，可借鉴"奖励配对" |
+| [nova-motivation](https://github.com/NOVA-Openclaw/nova-motivation) | - | 主动任务管理和自主工作启动 for AI agents | 技术方向启发：AI agent 能否不仅引导人，还能**替人启动**某些数字任务？ |
 
 ### 定位空白
 
