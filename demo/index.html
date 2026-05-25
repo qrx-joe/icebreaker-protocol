@@ -1731,8 +1731,34 @@ let sessionLog = [];
 // ==================== localStorage 持久化 ====================
 const LS_KEY_SNAPSHOT = 'ib_session_snapshot';
 const LS_KEY_HISTORY  = 'ib_session_history';
+const LS_KEY_SETTINGS = 'ib_protocol_settings';
 const LS_HISTORY_MAX  = 50;
 const LS_HISTORY_DAYS = 30;
+
+function saveSettings() {
+  try {
+    localStorage.setItem(LS_KEY_SETTINGS, JSON.stringify({
+      timePreference,
+      outputMode,
+      protocolStrength
+    }));
+  } catch (e) { /* 静默失败 */ }
+}
+
+function loadSettings() {
+  try {
+    const raw = localStorage.getItem(LS_KEY_SETTINGS);
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    return {
+      timePreference: s.timePreference || 'standard',
+      outputMode: s.outputMode || 'deliverable',
+      protocolStrength: s.protocolStrength || 'standard'
+    };
+  } catch (e) {
+    return null;
+  }
+}
 
 function saveSnapshot() {
   if (currentPhase === 'landing' || currentPhase === 'done') {
@@ -3136,6 +3162,7 @@ function openSettingsPanel() {
 function setTimePreference(value) {
   timePreference = value;
   updateTimePreferenceUI();
+  saveSettings();
   saveSnapshot();
 }
 
@@ -3154,6 +3181,7 @@ function updateTimePreferenceUI() {
 function setOutputMode(value) {
   outputMode = value;
   updateOutputModeUI();
+  saveSettings();
   saveSnapshot();
 }
 
@@ -3172,6 +3200,7 @@ function updateOutputModeUI() {
 function setProtocolStrength(value) {
   protocolStrength = value;
   updateProtocolStrengthUI();
+  saveSettings();
   saveSnapshot();
 }
 
@@ -3884,6 +3913,14 @@ function resetAll() {
 window.addEventListener('DOMContentLoaded', () => {
   applyLandingCopy();
   document.getElementById('landingInput').focus();
+
+  // 加载全局设置偏好
+  const settings = loadSettings();
+  if (settings) {
+    timePreference = settings.timePreference;
+    outputMode = settings.outputMode;
+    protocolStrength = settings.protocolStrength;
+  }
 
   // 检查是否有未完成的会话快照
   const snap = loadSnapshot();
