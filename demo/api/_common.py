@@ -186,10 +186,31 @@ def try_ai_plan(task, attachments=None, time_preference='standard', output_mode=
     return steps if min_steps <= len(steps) <= max_steps else []
 
 
+def strength_tone_instructions(strength):
+    if strength == "gentle":
+        return (
+            "- 语气温和，多鼓励用户，允许试探和犯错。\n"
+            "- 给出具体建议时，先肯定用户的努力，再温和地指出改进方向。\n"
+            "- 如果用户卡住，提供方向而不是压力。"
+        )
+    if strength == "strict":
+        return (
+            "- 语气直接，零安慰，不要铺垫，不要解释。\n"
+            "- 只给 actionable 内容，不要废话。\n"
+            "- 如果用户找借口或犹豫，直接打断，逼他产出。"
+        )
+    return (
+        "- 不要安慰、不要讲道理、不要评价用户。\n"
+        "- 直接产出内容：如果用户要标题就给标题，要代码就给代码，要消息就给消息。\n"
+        "- 给出可以直接使用的具体内容，不要空泛建议。"
+    )
+
+
 def try_ai_reply(payload):
     steps, current, active = current_step(payload)
     task = clean_task(payload)
     outputs = payload.get("outputs") or []
+    protocol_strength = normalize_text(payload.get("protocol_strength")) or "standard"
     context = {
         "task": task,
         "current_step_index": current + 1,
@@ -199,10 +220,8 @@ def try_ai_reply(payload):
     system_prompt = (
         "你是 [Protocol]，破冰协议的 AI 助手。用户正在一个分步工作流中完成任务。\n"
         "规则：\n"
-        "- 不要安慰、不要讲道理、不要评价用户。\n"
-        "- 直接产出内容：如果用户要标题就给标题，要代码就给代码，要消息就给消息。\n"
-        "- 给出可以直接使用的具体内容，不要空泛建议。\n"
-        "- 只服务当前步骤，不要扩大范围。\n"
+        + strength_tone_instructions(protocol_strength) +
+        "\n- 只服务当前步骤，不要扩大范围。\n"
         "- 中文回复，简洁，但要有实质内容。"
     )
     user_prompt = (
@@ -342,9 +361,53 @@ def clean_task(payload):
     return task[:60] or "这件事"
 
 
-def draft_for_step(task, active):
+def draft_for_step(task, active, strength="standard"):
     title = normalize_text(active.get("title"))
     output = normalize_text(active.get("output"))
+
+    if strength == "gentle":
+        if any(token in title + output for token in ["目标", "结果指标"]):
+            return (
+                f"先写一版试试，不用完美：\n\n"
+                f"1. 完成「{task}」的最小可见版本，能被别人看见或使用。\n"
+                f"2. 简单列 2-3 个判断标准，不用太细。\n"
+                f"3. 留一点下一轮可以改进的空间。\n\n"
+                f"写完就可以继续，不用纠结。"
+            )
+        if any(token in title + output for token in ["标题", "封面"]):
+            return (
+                f"先写 3 个候选，不用完美：\n\n"
+                f"1. 关于「{task}」的一个尝试\n"
+                f"2. 把想到的先写下来\n"
+                f"3. 一个起步版本\n\n"
+                f"先让它存在，后面可以慢慢改。"
+            )
+        return (
+            f"先写一版，不用追求完美：\n\n"
+            f"围绕「{task}」，写出第一个想到的版本。粗糙没关系，后面可以改。"
+        )
+
+    if strength == "strict":
+        if any(token in title + output for token in ["目标", "结果指标"]):
+            return (
+                f"现在就写，不要想：\n\n"
+                f"1. 完成「{task}」的最小可见版本。\n"
+                f"2. 3 个判断标准，别人看到什么算完成。\n"
+                f"3. 下一轮改什么。\n\n"
+                f"60 秒，写。"
+            )
+        if any(token in title + output for token in ["标题", "封面"]):
+            return (
+                f"3 个标题，现在写：\n\n"
+                f"1. {task}：第一步\n"
+                f"2. 先做出来，再改\n"
+                f"3. 不准备，直接写\n\n"
+                f"选一个，不改了。"
+            )
+        return (
+            f"现在就写：\n\n"
+            f"围绕「{task}」，产出一个最小版本。不要解释，直接输出。"
+        )
 
     if any(token in title + output for token in ["目标", "结果指标"]):
         return (
@@ -386,9 +449,26 @@ def draft_for_step(task, active):
     )
 
 
-def directions_for_step(task, active):
+def directions_for_step(task, active, strength="standard"):
     title = normalize_text(active.get("title") or "当前步骤")
     output = normalize_text(active.get("output") or "可见产出")
+
+    if strength == "gentle":
+        return (
+            f"给你 3 个方向，选一个你觉得舒服的：\n\n"
+            f"1. 实用方向：把「{title}」写成清单，最后交付「{output}」。\n"
+            f"2. 叙事方向：先写为什么要做「{task}」，再写一个最小结果。\n"
+            f"3. 验收方向：直接写完成后能看见什么、谁能判断它完成。\n\n"
+            f"选一个开始就行，不用全对。"
+        )
+
+    if strength == "strict":
+        return (
+            f"只有一个方向是对的：\n\n"
+            f"验收方向。写完成后能看见什么、谁能判断它完成、下一步改哪里。\n\n"
+            f"不要写原因，不要写背景。只写结果。"
+        )
+
     return (
         f"给你 3 个方向，选一个就写，别全都要：\n\n"
         f"1. 实用方向：把「{title}」写成清单，最后交付「{output}」。\n"
@@ -398,11 +478,33 @@ def directions_for_step(task, active):
     )
 
 
-def advice_for_output(task, active, previous):
+def advice_for_output(task, active, previous, strength="standard"):
     title = normalize_text(active.get("title") or "当前步骤")
     if not previous:
-        return draft_for_step(task, active)
+        return draft_for_step(task, active, strength)
     excerpt = previous[:120]
+
+    if strength == "gentle":
+        return (
+            f"已经有不错的底子了，再补一点就更好了：\n\n"
+            f"核心内容：{excerpt}\n\n"
+            f"可以试着加：\n"
+            f"1. 一个具体对象：这次到底产出什么。\n"
+            f"2. 一个数量或边界：几个、多少字。\n"
+            f"3. 一个判断标准：别人看到什么算完成。\n\n"
+            f"不用一次全加，加 1-2 个就行。"
+        )
+
+    if strength == "strict":
+        return (
+            f"改掉这些：\n\n"
+            f"当前：{excerpt}\n\n"
+            f"1. 去掉描述，只留结果。\n"
+            f"2. 加数量或边界。\n"
+            f"3. 加判断标准。\n\n"
+            f"不要扩展，只改这 3 处。"
+        )
+
     return (
         f"基于你左侧已有内容，我的建议是只改一处：把它从“描述任务”改成“验收结果”。\n\n"
         f"你现在的核心内容：{excerpt}\n\n"
@@ -419,20 +521,34 @@ def assistant_reply(payload):
     task = clean_task(payload)
     _, _, active = current_step(payload)
     previous = last_visible_output(payload)
+    strength = normalize_text(payload.get("protocol_strength")) or "standard"
 
     if any(token in message for token in ["起草", "帮我写", "草一下", "直接写", "生成"]):
-        return draft_for_step(task, active)
+        return draft_for_step(task, active, strength)
     if any(token in message for token in ["方向", "思路", "参考", "选项"]):
-        return directions_for_step(task, active)
+        return directions_for_step(task, active, strength)
     if any(token in message for token in ["结合", "建议", "优化", "上一", "产出"]):
-        return advice_for_output(task, active, previous)
+        return advice_for_output(task, active, previous, strength)
     if is_stuck(message):
+        if strength == "gentle":
+            return (
+                f"没关系，先写一点就行：\n\n"
+                f"围绕「{task}」，写出当前想到的第一句话或第一个点。\n"
+                f"不用完整，有东西就好。"
+            )
+        if strength == "strict":
+            return (
+                f"不要找借口。\n\n"
+                f"现在写：{normalize_text(active.get('instruction')) or '写出一个最小版本'}\n"
+                f"交付：{normalize_text(active.get('output')) or '一个可见产出'}\n\n"
+                f"60 秒。"
+            )
         return (
             f"你现在不是缺信息，是缺一个可提交版本。直接填这句：\n\n"
             f"我先围绕「{task}」完成当前步骤：{normalize_text(active.get('instruction')) or '写出一个最小版本'}。\n"
             f"本轮只交付：{normalize_text(active.get('output')) or '一个可见产出'}。"
         )
-    return advice_for_output(task, active, previous)
+    return advice_for_output(task, active, previous, strength)
 
 
 def contract_response(payload):

@@ -1666,6 +1666,14 @@
     </div>
     <div class="settings-grid">
       <section>
+        <h4>协议强度</h4>
+        <div class="segmented" id="protocolStrengthSeg">
+          <button onclick="setProtocolStrength('gentle')">温和</button>
+          <button class="active" onclick="setProtocolStrength('standard')">标准</button>
+          <button onclick="setProtocolStrength('strict')">严厉</button>
+        </div>
+      </section>
+      <section>
         <h4>时间偏好</h4>
         <div class="segmented" id="timePreferenceSeg">
           <button onclick="setTimePreference('compact')">紧凑</button>
@@ -1711,6 +1719,9 @@ let timePreference = 'standard';
 // 产出模式：draft=草稿, deliverable=可交付, portfolio=作品集
 let outputMode = 'deliverable';
 
+// 协议强度：gentle=温和, standard=标准, strict=严厉
+let protocolStrength = 'standard';
+
 // 会话附件：文本类附件会被读取并带入 AI 上下文。
 let attachments = [];
 
@@ -1743,6 +1754,7 @@ function saveSnapshot() {
     improvementRound,
     timePreference,
     outputMode,
+    protocolStrength,
     stepTextareaValue: document.getElementById('stepTextarea')?.value || ''
   };
   try {
@@ -3115,6 +3127,7 @@ function openHistoryPanel() {
 }
 
 function openSettingsPanel() {
+  updateProtocolStrengthUI();
   updateTimePreferenceUI();
   updateOutputModeUI();
   document.getElementById('settingsPanel').classList.add('active');
@@ -3153,6 +3166,24 @@ function updateOutputModeUI() {
       deliverable: '可交付',
       portfolio: '作品集'
     }[outputMode]);
+  });
+}
+
+function setProtocolStrength(value) {
+  protocolStrength = value;
+  updateProtocolStrengthUI();
+  saveSnapshot();
+}
+
+function updateProtocolStrengthUI() {
+  const seg = document.getElementById('protocolStrengthSeg');
+  if (!seg) return;
+  seg.querySelectorAll('button').forEach((btn) => {
+    btn.classList.toggle('active', btn.textContent === {
+      gentle: '温和',
+      standard: '标准',
+      strict: '严厉'
+    }[protocolStrength]);
   });
 }
 
@@ -3788,7 +3819,8 @@ async function sendToAI(message) {
         outputs: stepOutputs,
         attachments: apiAttachments(),
         time_preference: timePreference,
-        output_mode: outputMode
+        output_mode: outputMode,
+        protocol_strength: protocolStrength
       }),
       signal: controller.signal
     });
@@ -3878,6 +3910,7 @@ function restoreFromSnapshot(s) {
   improvementRound = s.improvementRound || 0;
   timePreference = s.timePreference || 'standard';
   outputMode = s.outputMode || 'deliverable';
+  protocolStrength = s.protocolStrength || 'standard';
   renderAttachments();
   updateTimePreferenceUI();
 
