@@ -2,3 +2,9 @@
 node_modules/
 bundle.js
 dist/
+
+# 大体积演示素材（未被应用引用）
+demo.mp4
+demo.MP3
+demo-封面.jpg
+demo.txt
