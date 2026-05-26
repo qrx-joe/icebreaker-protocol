@@ -1,5 +1,6 @@
-import '../protocol-ui.css'
-import './style.css'
+// CSS is already loaded via <link> in index.html
+// import '../protocol-ui.css'
+// import './style.css'
 import DOMPurify from 'dompurify'
 import { setupApiWrapper } from './api-client.js'
 
