@@ -1,0 +1,17 @@
+{
+  "name": "破冰协议 Icebreaker Protocol",
+  "short_name": "破冰协议",
+  "description": "把启动成本降到零的任务分解协议",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0a0a0f",
+  "theme_color": "#0a0a0f",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
