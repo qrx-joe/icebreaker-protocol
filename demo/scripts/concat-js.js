@@ -8,6 +8,7 @@ const root = path.join(__dirname, '..')
 const files = [
   'src/state.js',
   'src/ui.js',
+  'src/utils.js',
   'src/notify.js',
   'src/attachments.js',
   'src/timer.js',

@@ -21,11 +21,8 @@ function renderHistoryPanel() {
   if (actionsEl) actionsEl.style.display = '';
   let html = '';
   history.forEach((h) => {
-    const date = new Date(h.ts);
-    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-    const m = Math.floor((h.totalTimeSeconds || 0) / 60);
-    const s = (h.totalTimeSeconds || 0) % 60;
-    const timeStr = m > 0 ? `${m}分${s}秒` : `${s}秒`;
+    const dateStr = formatDateTime(h.ts);
+    const timeStr = formatDuration(h.totalTimeSeconds || 0);
     html += `<div class="history-item" style="border-bottom:1px solid rgba(255,255,255,0.06);padding:12px 0;">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
         <div style="flex:1;min-width:0;">
@@ -44,40 +41,14 @@ function copyHistoryMarkdown(id) {
   const h = history.find(x => x.id === id);
   if (!h) return;
 
-  const lines = [];
-  const now = new Date(h.ts);
-  const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-  lines.push(`# ${h.task || '破冰协议产出'}`);
-  lines.push('');
-  lines.push(`> 完成时间：${dateStr}`);
-  lines.push('');
-
-  (h.steps || []).forEach((s, i) => {
-    const output = (h.stepOutputs?.[i] || '').trim();
-    lines.push(`## ${i + 1}. ${s.title || '步骤 ' + (i + 1)}`);
-    lines.push('');
-    if (s.instruction) {
-      lines.push(`> ${s.instruction}`);
-      lines.push('');
-    }
-    if (output) {
-      lines.push(output);
-    } else {
-      lines.push('*（未产出）*');
-    }
-    lines.push('');
+  const md = buildMarkdownContent({
+    task: h.task,
+    steps: h.steps,
+    stepOutputs: h.stepOutputs,
+    doneAiMsg: h.doneAiMsg || ''
   });
 
-  if (h.doneAiMsg) {
-    lines.push('---');
-    lines.push('');
-    lines.push('## AI 改进建议');
-    lines.push('');
-    lines.push(h.doneAiMsg);
-    lines.push('');
-  }
-
-  navigator.clipboard.writeText(lines.join('\n')).then(() => {
+  navigator.clipboard.writeText(md).then(() => {
     showToast('已复制到剪贴板', 'success', 3000);
   });
 }

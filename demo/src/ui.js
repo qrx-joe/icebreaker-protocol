@@ -5,12 +5,6 @@ function showPage(id) {
   if (id === 'pageContract') applyContractCopy();
 }
 
-function escapeHtml(value) {
-  return String(value || '').replace(/[&<>"']/g, (char) => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-  }[char]));
-}
-
 function applyLandingCopy() {
   document.querySelector('#pageLanding .tag').textContent = 'Protocol Mode';
   document.querySelector('.landing-title').innerHTML = '<span class="ice">破冰</span>协议';
@@ -58,16 +52,12 @@ function renderBattleReport() {
   }
 
   const totalTime = sessionLog.reduce((sum, record) => sum + record.time_spent_seconds, 0);
-  const mins = Math.floor(totalTime / 60);
-  const secs = totalTime % 60;
-  const totalText = `${mins ? mins + '分' : ''}${secs}秒`;
+  const totalText = formatDuration(totalTime);
 
   let html = '<div class="battle-report">';
   html += '<div class="report-header">━━━━ 破冰日志 ━━━━</div>';
   sessionLog.forEach((record) => {
-    const rm = Math.floor(record.time_spent_seconds / 60);
-    const rs = record.time_spent_seconds % 60;
-    const timeText = `${rm ? rm + '分' : ''}${rs}秒`;
+    const timeText = formatDuration(record.time_spent_seconds);
     html += '<div class="report-step">';
     html += '<span class="report-check">✓</span> ';
     html += `<span class="report-title">步骤 ${record.step_index + 1} · ${escapeHtml(record.step_title)}</span> `;

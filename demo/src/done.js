@@ -139,54 +139,13 @@ function resetRoadmapMode() {
 
 // ==================== 导出 Markdown ====================
 function buildMarkdown() {
-  const lines = [];
-  const now = new Date();
-  const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-
-  lines.push(`# ${currentTask || '破冰协议产出'}`);
-  lines.push('');
-  lines.push(`> 完成时间：${dateStr}`);
-  lines.push('');
-
-  steps.forEach((s, i) => {
-    const output = (stepOutputs[i] || '').trim();
-    lines.push(`## ${i + 1}. ${s.title || '步骤 ' + (i + 1)}`);
-    lines.push('');
-    if (s.instruction) {
-      lines.push(`> ${s.instruction}`);
-      lines.push('');
-    }
-    if (output) {
-      lines.push(output);
-    } else {
-      lines.push('*（未产出）*');
-    }
-    lines.push('');
+  return buildMarkdownContent({
+    task: currentTask,
+    steps,
+    stepOutputs,
+    doneAiMsg: document.getElementById('doneAiMsg')?.textContent?.trim() || '',
+    attachments
   });
-
-  // AI 改进建议
-  const doneMsg = document.getElementById('doneAiMsg')?.textContent?.trim();
-  if (doneMsg) {
-    lines.push('---');
-    lines.push('');
-    lines.push('## AI 改进建议');
-    lines.push('');
-    lines.push(doneMsg);
-    lines.push('');
-  }
-
-  if (attachments.length) {
-    lines.push('---');
-    lines.push('');
-    lines.push('## 附件');
-    lines.push('');
-    attachments.forEach((item, index) => {
-      lines.push(`${index + 1}. ${item.name} (${formatAttachmentSize(item.size)})`);
-    });
-    lines.push('');
-  }
-
-  return lines.join('\n');
 }
 
 function copyMarkdown() {

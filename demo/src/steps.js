@@ -11,13 +11,6 @@ function buildStepPlaceholder(step) {
 }
 
 function renderStepInstruction(step) {
-  const escapeHtml = (value) => String(value || '').replace(/[&<>"']/g, (char) => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#39;'
-  }[char]));
   const instruction = escapeHtml(step.instruction || '');
   const output = escapeHtml(step.output || '一个可见产出');
   return `
