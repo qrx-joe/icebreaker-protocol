@@ -27,7 +27,10 @@ function showRoadmap(taskName, stepList, highlightIdx) {
 
   stepList.forEach((s, i) => {
     const item = document.createElement('div');
-    item.className = 'roadmap-step' + (i === activeIdx ? ' highlight' : '');
+    let statusClass = '';
+    if (i < activeIdx) statusClass = ' completed';
+    else if (i > activeIdx) statusClass = ' pending';
+    item.className = 'roadmap-step' + (i === activeIdx ? ' highlight' : '') + statusClass;
 
     const num = document.createElement('div');
     num.className = 'roadmap-step-num';

@@ -215,10 +215,34 @@
   }
   .step-timer.draft { color: #4ade80; }
   .step-timer.refine { color: #38bdf8; }
-  .step-timer.panic { color: #f87171; animation: timerPanic 0.6s ease-in-out infinite; }
-  @keyframes timerPanic {
+  .step-timer.panic {
+    color: #f87171;
+    animation: heartbeat 1.2s ease-in-out infinite;
+    text-shadow: 0 0 20px rgba(248,113,113,0.4);
+  }
+  @keyframes heartbeat {
     0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.6; transform: scale(1.08); }
+    15% { opacity: 0.7; transform: scale(1.12); }
+    30% { opacity: 1; transform: scale(1); }
+    45% { opacity: 0.8; transform: scale(1.08); }
+    60% { opacity: 1; transform: scale(1); }
+  }
+  .step-timer.panic::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 8px;
+    background: radial-gradient(circle, rgba(248,113,113,0.15) 0%, transparent 70%);
+    animation: panicGlow 1.2s ease-in-out infinite;
+    pointer-events: none;
+    z-index: -1;
+  }
+  @keyframes panicGlow {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    15% { opacity: 0.8; transform: scale(1.3); }
+    30% { opacity: 0.3; transform: scale(1); }
+    45% { opacity: 0.6; transform: scale(1.15); }
+    60% { opacity: 0.3; transform: scale(1); }
   }
 
   .step-body {
@@ -356,6 +380,37 @@
   .step-footer-right {
     display: flex;
     gap: 0.6rem;
+  }
+
+  /* ==================== 碎纸机模式（乱写期） ==================== */
+  .shredder-mode .step-workspace textarea {
+    background: rgba(10,12,20,0.95);
+    border-color: rgba(74,222,128,0.15);
+    background-image:
+      radial-gradient(circle at 20% 50%, rgba(74,222,128,0.03) 0%, transparent 50%),
+      radial-gradient(circle at 80% 50%, rgba(74,222,128,0.02) 0%, transparent 50%);
+  }
+  .shredder-mode .step-workspace textarea:focus {
+    border-color: rgba(74,222,128,0.4);
+    box-shadow: 0 0 30px rgba(74,222,128,0.08);
+  }
+  .shredder-mode .step-instruction {
+    border-color: rgba(74,222,128,0.2);
+    background: rgba(74,222,128,0.04);
+  }
+  .shredder-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.6rem;
+    background: rgba(74,222,128,0.1);
+    border: 1px solid rgba(74,222,128,0.25);
+    border-radius: 6px;
+    font-size: 0.72rem;
+    color: #4ade80;
+    font-weight: 600;
+    margin-left: 0.6rem;
+    letter-spacing: 0.03em;
   }
 
   /* ==================== 按钮 ==================== */
@@ -506,8 +561,44 @@
     color: #888;
     line-height: 1.5;
     align-items: flex-start;
+    transition: all 0.3s ease;
   }
   .roadmap-step:last-child { border-bottom: none; }
+  /* 已完成步骤：缩小 + 灰色 + 勾选 */
+  .roadmap-step.completed {
+    opacity: 0.5;
+    transform: scale(0.92);
+    padding-left: 0.5rem;
+  }
+  .roadmap-step.completed .roadmap-step-num {
+    background: rgba(52,211,153,0.1);
+    border-color: rgba(52,211,153,0.3);
+    color: #34d399;
+  }
+  .roadmap-step.completed .roadmap-step-num::after {
+    content: '✓';
+    font-size: 0.7rem;
+    margin-left: 2px;
+  }
+  .roadmap-step.completed .roadmap-step-title {
+    color: #666;
+    text-decoration: line-through;
+    text-decoration-color: rgba(52,211,153,0.3);
+  }
+  /* 未开始步骤：几乎透明 */
+  .roadmap-step.pending {
+    opacity: 0.25;
+    transform: scale(0.92);
+    padding-left: 0.5rem;
+  }
+  .roadmap-step.pending .roadmap-step-num {
+    background: rgba(255,255,255,0.03);
+    border-color: rgba(255,255,255,0.06);
+    color: #444;
+  }
+  .roadmap-step.pending .roadmap-step-title {
+    color: #555;
+  }
   .roadmap-step-num {
     flex-shrink: 0;
     width: 1.8rem;

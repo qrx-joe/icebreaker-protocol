@@ -54,16 +54,28 @@ function showPhaseMessage(phase) {
 
   if (phase === 'draft') {
     el.style.color = '#4ade80';
-    el.textContent = '[Protocol]: 乱写模式启动。不准查资料，不准删除，哪怕全是垃圾话也先把框填满。开始！';
+    el.textContent = '[Protocol]: 碎纸机模式。这些内容不会被评判，写完即焚——不对，写完归档。';
+    document.getElementById('pageStep')?.classList.add('shredder-mode');
+    const badge = document.querySelector('.shredder-badge');
+    if (badge) badge.style.display = 'inline-flex';
   } else if (phase === 'refine') {
     el.style.color = '#38bdf8';
     el.textContent = `[Protocol]: 雏形已现。你有 ${mins} 分 ${secs > 0 ? secs + ' 秒' : ''}将其修整到"可以被阅读"的程度。`;
+    document.getElementById('pageStep')?.classList.remove('shredder-mode');
+    const badge = document.querySelector('.shredder-badge');
+    if (badge) badge.style.display = 'none';
   } else if (phase === 'panic') {
     el.style.color = '#f87171';
-    el.textContent = '[Warning]: 时间即将耗尽。立即交付，白纸是协议唯一的禁忌！';
+    el.textContent = '[DELIVER NOW]: 时间即将耗尽。立即交付，白纸是协议唯一的禁忌！';
+    document.getElementById('pageStep')?.classList.remove('shredder-mode');
+    const badge = document.querySelector('.shredder-badge');
+    if (badge) badge.style.display = 'none';
   } else if (phase === 'overtime') {
     el.style.color = '#f87171';
     el.textContent = '[Protocol]: 超时。你写下的东西就是你的产出，不要重来。';
+    document.getElementById('pageStep')?.classList.remove('shredder-mode');
+    const badge = document.querySelector('.shredder-badge');
+    if (badge) badge.style.display = 'none';
   }
 }
 

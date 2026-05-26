@@ -1,13 +1,35 @@
 // ==================== Step ====================
 function buildStepPlaceholder(step) {
   const output = step?.output || '';
-  if (output.includes('标题') || output.includes('选题') || output.includes('主题')) {
-    return '核心主题：\n\n备选标题 1：\n备选标题 2：\n备选标题 3：';
+  const title = step?.title || '';
+
+  // 标题/选题类步骤
+  if (output.includes('标题') || output.includes('选题') || output.includes('主题') || title.includes('标题')) {
+    return '先写一句垃圾话当标题，比如：\n"这个话题我觉得..."\n\n备选标题 2：\n备选标题 3：';
   }
-  if (output.includes('提纲') || output.includes('框架')) {
-    return '开头：\n\n要点 1：\n要点 2：\n要点 3：\n\n结尾：';
+
+  // 提纲/框架类步骤
+  if (output.includes('提纲') || output.includes('框架') || title.includes('大纲')) {
+    return '不用想结构，先把脑子里闪过的三个词写下来：\n\n词 1：\n词 2：\n词 3：\n\n然后再串起来。';
   }
-  return '先写一个粗糙版本：\n\n';
+
+  // 开头/Hook类
+  if (output.includes('开头') || output.includes('hook') || title.includes('开头') || title.includes('引言')) {
+    return '先写一句废话当开头，比如：\n"今天想聊聊..."\n\n写完再改，现在只负责把字打出来。';
+  }
+
+  // 代码/开发类
+  if (output.includes('代码') || output.includes('demo') || output.includes('骨架') || title.includes('代码') || title.includes('实现')) {
+    return '先写一行能跑通的代码，哪怕只打印 hello：\n\nconsole.log("hello");\n\n能跑就行，优雅留给第二轮。';
+  }
+
+  // 邮件/消息类
+  if (output.includes('邮件') || output.includes('消息') || output.includes('联系') || title.includes('邮件') || title.includes('消息')) {
+    return '先写一句不尴尬的开场白，比如：\n"hi，想跟你说件事..."\n\n语气自然就行，不用正式。';
+  }
+
+  // 默认引导
+  return '先写一个粗糙版本，多烂都行：\n\n"关于这个，我觉得..."\n\n写完第一句，后面自然就来了。';
 }
 
 function renderStepInstruction(step) {
@@ -67,7 +89,23 @@ function goToStep(idx) {
 
   const warning = document.getElementById('stepWarning');
   warning.style.color = '#4ade80';
-  warning.textContent = '[Protocol]: 乱写模式启动。不准查资料，不准删除，先把框填满。';
+  warning.textContent = '[Protocol]: 碎纸机模式启动。这些内容不会被评判，只管填满。';
+
+  // 碎纸机模式：乱写期视觉提示
+  const stepPage = document.getElementById('pageStep');
+  if (stepPage) stepPage.classList.add('shredder-mode');
+
+  // 添加碎纸机徽章到步骤标题旁
+  let shredderBadge = document.querySelector('.shredder-badge');
+  if (!shredderBadge) {
+    shredderBadge = document.createElement('span');
+    shredderBadge.className = 'shredder-badge';
+    shredderBadge.textContent = '🗑️ 碎纸机';
+    const titleDisplay = document.querySelector('.step-title-display');
+    if (titleDisplay) titleDisplay.parentNode.appendChild(shredderBadge);
+  } else {
+    shredderBadge.style.display = 'inline-flex';
+  }
 
   const pct = (idx / steps.length) * 100;
   document.getElementById('stepProgressFill').style.width = pct + '%';
