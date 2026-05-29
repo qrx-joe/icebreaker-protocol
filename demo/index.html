@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -16,8 +16,6 @@
     });
   }
 </script>
-  <link rel="stylesheet" href="/protocol-ui.css">
-  <link rel="stylesheet" href="/src/style.css">
 </head>
 <body>
 
@@ -28,8 +26,8 @@
     <span class="brand-name">破冰协议</span>
   </div>
   <div class="protocol-actions">
-    <button type="button" onclick="openHistoryPanel()">历史记录</button>
-    <button type="button" onclick="openSettingsPanel()">协议设置</button>
+    <button type="button">历史记录</button>
+    <button type="button">协议设置</button>
   </div>
 </header>
 
@@ -42,10 +40,9 @@
     说一句你想做的事，AI 会帮你拆解并带你做出雏形。
   </p>
   <div class="landing-input-wrap">
-    <input type="text" id="landingInput" placeholder="比如：我想写一篇博客但不知道怎么开头..."
-      onkeydown="if(event.key==='Enter') startProtocol()" autofocus>
-    <button class="landing-mic" id="landingMic" onclick="toggleLandingVoice()">🎙️</button>
-    <button class="landing-start" onclick="startProtocol()">启动协议</button>
+    <input type="text" id="landingInput" placeholder="比如：我想写一篇博客但不知道怎么开头..." autofocus>
+    <button class="landing-mic" id="landingMic">🎙️</button>
+    <button class="landing-start">启动协议</button>
   </div>
   <p class="landing-hint">按 <kbd>Enter</kbd> 开始</p>
 </div>
@@ -63,8 +60,8 @@
       <li class="c-forbidden">唯一不允许：什么都不产出。白纸什么都改不了。</li>
     </ul>
     <div class="contract-actions">
-      <button class="btn btn-primary" onclick="acceptContract()">同意，开始</button>
-      <button class="btn btn-secondary" onclick="questionContract()">我有顾虑</button>
+      <button class="btn btn-primary">同意，开始</button>
+      <button class="btn btn-secondary">我有顾虑</button>
     </div>
   </div>
 </div>
@@ -79,11 +76,11 @@
     <div class="roadmap-task" id="roadmapTask"></div>
     <div class="roadmap-steps" id="roadmapStepsList"></div>
     <div class="roadmap-actions" id="roadmapActions">
-      <button class="btn btn-primary" onclick="goToStep(0)">开始第 1 步</button>
+      <button class="btn btn-primary">开始第 1 步</button>
     </div>
     <div class="roadmap-actions" id="roadmapImproveActions" style="display:none">
-      <button class="btn btn-primary" id="btnConfirmImprove" onclick="confirmImprovement()">确认改进</button>
-      <button class="btn btn-secondary" onclick="skipImprovement()">跳过，回到完成页</button>
+      <button class="btn btn-primary" id="btnConfirmImprove">确认改进</button>
+      <button class="btn btn-secondary">跳过，回到完成页</button>
     </div>
   </div>
 </div>
@@ -106,20 +103,20 @@
     <div class="step-instruction" id="stepInstruction"></div>
     <div class="step-workspace">
       <textarea id="stepTextarea" placeholder="在这里写下你的产出..."></textarea>
-      <input type="file" id="attachmentInput" multiple hidden onchange="handleAttachmentUpload(this.files); this.value = '';">
-      <button class="attachment-btn" id="attachmentBtn" onclick="document.getElementById('attachmentInput').click()">📎 附件</button>
-      <button class="pill-mic" id="pillMic" onclick="toggleMainVoice()">🎙️ 语音</button>
-      <button class="pill-help" id="pillHelp" onclick="openHelp()">⚡ 启动破冰引导</button>
+      <input type="file" id="attachmentInput" multiple hidden>
+      <button class="attachment-btn" id="attachmentBtn">📎 附件</button>
+      <button class="pill-mic" id="pillMic">🎙️ 语音</button>
+      <button class="pill-help" id="pillHelp">⚡ 启动破冰引导</button>
       <div class="step-warning" id="stepWarning"></div>
       <div class="attachment-list" id="attachmentList"></div>
     </div>
   </div>
   <div class="step-footer">
     <div class="step-footer-left">
-      <button class="btn btn-secondary" id="btnPrev" onclick="prevStep()" disabled>上一步</button>
+      <button class="btn btn-secondary" id="btnPrev" disabled>上一步</button>
     </div>
     <div class="step-footer-right">
-      <button class="btn btn-primary" onclick="finishStep()">做完了，下一步</button>
+      <button class="btn btn-primary">做完了，下一步</button>
     </div>
   </div>
 </div>
@@ -132,12 +129,12 @@
   <div class="done-sub" id="doneSub">你把一个大任务拆开，一块一块做出了完整的东西。现在你有了一个可以改的初版。</div>
   <div class="done-summary" id="doneSummary"></div>
   <div class="done-actions">
-    <button class="btn btn-primary" id="btnExportMain" onclick="downloadMarkdown()">导出雏形</button>
-    <button class="btn btn-secondary" id="btnImprove" onclick="startImprovement()">只改一处</button>
+    <button class="btn btn-primary" id="btnExportMain">导出雏形</button>
+    <button class="btn btn-secondary" id="btnImprove">只改一处</button>
   </div>
   <div class="done-export">
-    <button class="btn-export" onclick="copyMarkdown()">复制 Markdown</button>
-    <button class="btn-export" onclick="resetAll()">再来一次</button>
+    <button class="btn-export">复制 Markdown</button>
+    <button class="btn-export">再来一次</button>
   </div>
 </div>
 
@@ -146,17 +143,15 @@
   <div class="help-panel">
     <div class="help-header">
       <h3>[Protocol]</h3>
-      <button class="help-close" onclick="closeHelp()">&times;</button>
+      <button class="help-close">&times;</button>
     </div>
     <div class="help-messages" id="helpMessages"></div>
     <div class="prompt-chips" id="promptChips"></div>
     <div class="help-input">
       <div class="help-input-row" id="helpInputRow">
-        <button class="btn-mic" id="btnMic" onclick="toggleVoice()" title="语音输入">🎙️</button>
-        <input type="text" id="helpInput" placeholder="输入指令..."
-          onkeydown="if(event.key==='Enter') sendHelp()"
-          oninput="updateRunBtn()">
-        <button class="btn-run idle" id="btnRun" onclick="sendHelp()">
+        <button class="btn-mic" id="btnMic" title="语音输入">🎙️</button>
+        <input type="text" id="helpInput" placeholder="输入指令...">
+        <button class="btn-run idle" id="btnRun">
           <span class="label">IDLE</span>
           <span class="arrow">⚡</span>
         </button>
@@ -179,12 +174,12 @@
         <div class="modal-kicker">Local Runs</div>
         <h3>历史记录</h3>
       </div>
-      <button type="button" class="modal-close" onclick="closeProtocolPanel('historyPanel')">&times;</button>
+      <button type="button" class="modal-close">&times;</button>
     </div>
     <div id="historyList" style="max-height: 60vh; overflow-y: auto;"></div>
     <div id="historyEmpty" class="history-empty">本地只保留最近的协议运行记录。完成一次协议后，会显示任务、耗时、产出数量和导出状态。</div>
     <div class="history-actions" style="display:flex;gap:8px;margin-top:12px;">
-      <button type="button" class="btn-export" onclick="clearHistory()" style="flex:1;">清空历史</button>
+      <button type="button" class="btn-export" style="flex:1;">清空历史</button>
     </div>
   </div>
 </div>
@@ -196,31 +191,31 @@
         <div class="modal-kicker">Protocol Settings</div>
         <h3>协议设置</h3>
       </div>
-      <button type="button" class="modal-close" onclick="closeProtocolPanel('settingsPanel')">&times;</button>
+      <button type="button" class="modal-close">&times;</button>
     </div>
     <div class="settings-grid">
       <section>
         <h4>协议强度</h4>
         <div class="segmented" id="protocolStrengthSeg">
-          <button onclick="setProtocolStrength('gentle')">温和</button>
-          <button class="active" onclick="setProtocolStrength('standard')">标准</button>
-          <button onclick="setProtocolStrength('strict')">严厉</button>
+          <button data-strength="gentle">温和</button>
+          <button data-strength="standard" class="active">标准</button>
+          <button data-strength="strict">严厉</button>
         </div>
       </section>
       <section>
         <h4>时间偏好</h4>
         <div class="segmented" id="timePreferenceSeg">
-          <button onclick="setTimePreference('compact')">紧凑</button>
-          <button class="active" onclick="setTimePreference('standard')">标准</button>
-          <button onclick="setTimePreference('loose')">宽松</button>
+          <button data-time="compact">紧凑</button>
+          <button data-time="standard" class="active">标准</button>
+          <button data-time="loose">宽松</button>
         </div>
       </section>
       <section>
         <h4>产出模式</h4>
         <div class="segmented" id="outputModeSeg">
-          <button onclick="setOutputMode('draft')">草稿</button>
-          <button class="active" onclick="setOutputMode('deliverable')">可交付</button>
-          <button onclick="setOutputMode('portfolio')">作品集</button>
+          <button data-output="draft">草稿</button>
+          <button data-output="deliverable" class="active">可交付</button>
+          <button data-output="portfolio">作品集</button>
         </div>
       </section>
     </div>

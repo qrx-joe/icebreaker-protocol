@@ -21,6 +21,7 @@ const CORE_FILES = [
   'settings.js',
   'history.js',
   'init.js',
+  'event-bindings.js',
 ]
 
 function mergeCorePlugin() {
@@ -54,7 +55,7 @@ function mergeCorePlugin() {
       }
 
       // Auto-init side-effect modules after all code is loaded
-      merged += `\n/* === auto-init === */\ninitHelp()\ninitHistory()\ninitApp()\n`
+      merged += `\n/* === auto-init === */\ninitHelp()\ninitHistory()\ninitApp()\nbindEvents()\n`
 
       return merged
     },
