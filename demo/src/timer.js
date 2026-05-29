@@ -1,17 +1,16 @@
 import { stepTimerInterval, stepTimeRemaining, stepTotalSeconds, stepTimerPhase } from './state.js'
 import { finishStep } from './steps.js'
 
-// ==================== 计时器 ====================
+// ==================== 计时�?====================
 export function startStepTimer(seconds) {
   if (stepTimerInterval) clearInterval(stepTimerInterval);
   stepTimeRemaining = seconds;
   stepTotalSeconds = seconds;
-  stepTimerPhase = 'draft'; // draft → refine → panic
+  stepTimerPhase = 'draft'; // draft �?refine �?panic
   updateTimerDisplay();
   applyTimerPhase('draft');
 
-  // 显示乱写期指令
-  showPhaseMessage('draft');
+  // 显示乱写期指�?  showPhaseMessage('draft');
 
   stepTimerInterval = setInterval(() => {
     stepTimeRemaining--;
@@ -21,15 +20,13 @@ export function startStepTimer(seconds) {
     const draftEnd = Math.floor(stepTotalSeconds * 0.3);
     const panicStart = 60;
 
-    // 阶段切换：乱写期 → 修整期
-    if (stepTimerPhase === 'draft' && elapsed >= draftEnd) {
+    // 阶段切换：乱写期 �?修整�?    if (stepTimerPhase === 'draft' && elapsed >= draftEnd) {
       stepTimerPhase = 'refine';
       applyTimerPhase('refine');
       showPhaseMessage('refine');
     }
 
-    // 阶段切换：修整期 → 紧急状态
-    if (stepTimerPhase === 'refine' && stepTimeRemaining <= panicStart) {
+    // 阶段切换：修整期 �?紧急状�?    if (stepTimerPhase === 'refine' && stepTimeRemaining <= panicStart) {
       stepTimerPhase = 'panic';
       applyTimerPhase('panic');
       showPhaseMessage('panic');
@@ -57,13 +54,13 @@ export function showPhaseMessage(phase) {
 
   if (phase === 'draft') {
     el.style.color = '#4ade80';
-    el.textContent = '[Protocol]: 碎纸机模式。这些内容不会被评判，写完即焚——不对，写完归档。';
+    el.textContent = '[Protocol]: 碎纸机模式。这些内容不会被评判，写完即焚——不对，写完归档�?;
     document.getElementById('pageStep')?.classList.add('shredder-mode');
     const badge = document.querySelector('.shredder-badge');
     if (badge) badge.style.display = 'inline-flex';
   } else if (phase === 'refine') {
     el.style.color = '#38bdf8';
-    el.textContent = `[Protocol]: 雏形已现。你有 ${mins} 分 ${secs > 0 ? secs + ' 秒' : ''}将其修整到"可以被阅读"的程度。`;
+    el.textContent = `[Protocol]: 雏形已现。你�?${mins} �?${secs > 0 ? secs + ' �? : ''}将其修整�?可以被阅�?的程度。`;
     document.getElementById('pageStep')?.classList.remove('shredder-mode');
     const badge = document.querySelector('.shredder-badge');
     if (badge) badge.style.display = 'none';
@@ -75,7 +72,7 @@ export function showPhaseMessage(phase) {
     if (badge) badge.style.display = 'none';
   } else if (phase === 'overtime') {
     el.style.color = '#f87171';
-    el.textContent = '[Protocol]: 超时。你写下的东西就是你的产出，不要重来。';
+    el.textContent = '[Protocol]: 超时。你写下的东西就是你的产出，不要重来�?;
     document.getElementById('pageStep')?.classList.remove('shredder-mode');
     const badge = document.querySelector('.shredder-badge');
     if (badge) badge.style.display = 'none';
@@ -89,15 +86,14 @@ export function updateTimerDisplay() {
   document.getElementById('stepTimer').textContent = display;
 }
 
-// ==================== 超时内联确认（替代 confirm 弹窗） ====================
+// ==================== 超时内联确认（替�?confirm 弹窗�?====================
 export function showOvertimeActions() {
   const warning = document.getElementById('stepWarning');
   warning.style.color = '#f87171';
   warning.innerHTML = `
-    [Protocol]: 时间到了。你写下的东西就是你的产出，不要重来。
-    <div style="margin-top:0.5rem;display:flex;gap:0.6rem;flex-wrap:wrap;">
-      <button onclick="finishStepFromOvertime()" style="padding:0.45rem 1rem;border:none;border-radius:8px;background:linear-gradient(135deg,#38bdf8,#6366f1);color:#fff;font-family:inherit;font-size:0.85rem;font-weight:600;cursor:pointer;">进入下一步 →</button>
-      <button onclick="extendTimerFromOvertime()" style="padding:0.45rem 1rem;border:1px solid rgba(255,255,255,0.1);border-radius:8px;background:rgba(255,255,255,0.04);color:#888;font-family:inherit;font-size:0.85rem;font-weight:600;cursor:pointer;">续 2 分钟</button>
+    [Protocol]: 时间到了。你写下的东西就是你的产出，不要重来�?    <div style="margin-top:0.5rem;display:flex;gap:0.6rem;flex-wrap:wrap;">
+      <button onclick="finishStepFromOvertime()" style="padding:0.45rem 1rem;border:none;border-radius:8px;background:linear-gradient(135deg,#38bdf8,#6366f1);color:#fff;font-family:inherit;font-size:0.85rem;font-weight:600;cursor:pointer;">进入下一�?�?/button>
+      <button onclick="extendTimerFromOvertime()" style="padding:0.45rem 1rem;border:1px solid rgba(255,255,255,0.1);border-radius:8px;background:rgba(255,255,255,0.04);color:#888;font-family:inherit;font-size:0.85rem;font-weight:600;cursor:pointer;">�?2 分钟</button>
     </div>
   `;
 }
@@ -112,11 +108,3 @@ export function extendTimerFromOvertime() {
   startStepTimer(120);
 }
 
-// Legacy bridge
-window.startStepTimer = startStepTimer;
-window.applyTimerPhase = applyTimerPhase;
-window.showPhaseMessage = showPhaseMessage;
-window.updateTimerDisplay = updateTimerDisplay;
-window.showOvertimeActions = showOvertimeActions;
-window.finishStepFromOvertime = finishStepFromOvertime;
-window.extendTimerFromOvertime = extendTimerFromOvertime;

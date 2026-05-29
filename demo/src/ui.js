@@ -12,7 +12,7 @@ export function showPage(id) {
 export function applyLandingCopy() {
   document.querySelector('#pageLanding .tag').textContent = 'Protocol Mode';
   document.querySelector('.landing-title').innerHTML = '<span class="ice">破冰</span>协议';
-  document.querySelector('.landing-sub').innerHTML = '别解释。写下你要启动的事。<br>协议会把它拆成下一步，并逼它变成可修改的雏形。';
+  document.querySelector('.landing-sub').innerHTML = '别解释。写下你要启动的事�?br>协议会把它拆成下一步，并逼它变成可修改的雏形�?;
   document.getElementById('landingInput').setAttribute('placeholder', '输入一个你迟迟没开始的任务');
   document.querySelector('.landing-hint').innerHTML = '<kbd>Enter</kbd> = 启动协议';
 }
@@ -34,9 +34,9 @@ export function ensureLandingConsoleV2() {
       <div class="landing-tools">
         <button class="landing-tool" type="button">📎 附件</button>
         <span class="tool-divider"></span>
-        <button class="landing-tool" id="landingMic" type="button" onclick="toggleLandingVoice()">🎙️ 语音</button>
+        <button class="landing-tool" id="landingMic" type="button" onclick="toggleLandingVoice()">🎙�?语音</button>
       </div>
-      <button class="landing-start" onclick="startProtocol()">⚡ 启动协议</button>
+      <button class="landing-start" onclick="startProtocol()">�?启动协议</button>
     </div>`;
   oldWrap.replaceWith(consoleWrap);
 }
@@ -63,22 +63,16 @@ export function renderBattleReport() {
   sessionLog.forEach((record) => {
     const timeText = formatDuration(record.time_spent_seconds);
     html += '<div class="report-step">';
-    html += '<span class="report-check">✓</span> ';
+    html += '<span class="report-check">�?/span> ';
     html += `<span class="report-title">步骤 ${record.step_index + 1} · ${escapeHtml(record.step_title)}</span> `;
     html += `<span class="report-time">· ${timeText}</span>`;
     html += '</div>';
     html += `<div class="report-summary">${escapeHtml(record.summary)}</div>`;
   });
   html += '<div class="report-divider"></div>';
-  html += `<div class="report-total">总耗时：${totalText} | 产出：${sessionLog.length}项</div>`;
+  html += `<div class="report-total">总耗时�?{totalText} | 产出�?{sessionLog.length}�?/div>`;
   html += '</div>';
 
   container.innerHTML = html;
 }
 
-// Legacy bridge
-window.showPage = showPage;
-window.applyLandingCopy = applyLandingCopy;
-window.ensureLandingConsoleV2 = ensureLandingConsoleV2;
-window.updateLandingCountV2 = updateLandingCountV2;
-window.renderBattleReport = renderBattleReport;

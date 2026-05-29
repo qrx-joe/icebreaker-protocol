@@ -17,14 +17,14 @@ export function showRoadmap(taskName, stepList, highlightIdx) {
   }
 
   const titleEl = document.getElementById('roadmapTitle');
-  if (titleEl) titleEl.textContent = '拆解路线图';
+  if (titleEl) titleEl.textContent = '拆解路线�?;
 
   const taskEl = document.getElementById('roadmapTask');
   if (taskEl) {
     const safeTask = escapeHtml(taskName || '');
     taskEl.innerHTML = safeTask
-      ? `任务：<strong>${safeTask}</strong><br>当前只执行：第 ${activeIdx + 1} 步 · ${activeMinutes} 分钟`
-      : `当前只执行：第 ${activeIdx + 1} 步 · ${activeMinutes} 分钟`;
+      ? `任务�?strong>${safeTask}</strong><br>当前只执行：�?${activeIdx + 1} �?· ${activeMinutes} 分钟`
+      : `当前只执行：�?${activeIdx + 1} �?· ${activeMinutes} 分钟`;
   }
 
   const listEl = document.getElementById('roadmapStepsList');
@@ -46,11 +46,11 @@ export function showRoadmap(taskName, stepList, highlightIdx) {
 
     const title = document.createElement('div');
     title.className = 'roadmap-step-title';
-    title.textContent = s.title || s.instruction || `第 ${i + 1} 步`;
+    title.textContent = s.title || s.instruction || `�?${i + 1} 步`;
 
     const output = document.createElement('div');
     output.className = 'roadmap-step-output';
-    output.textContent = `产出：${s.output || '一个可见产出'}`;
+    output.textContent = `产出�?{s.output || '一个可见产�?}`;
 
     text.append(title, output);
 
@@ -64,7 +64,7 @@ export function showRoadmap(taskName, stepList, highlightIdx) {
 
   const startBtn = document.querySelector('#roadmapActions .btn-primary');
   if (startBtn) {
-    startBtn.textContent = `启动第 ${activeIdx + 1} 步 · ${activeMinutes} 分钟`;
+    startBtn.textContent = `启动�?${activeIdx + 1} �?· ${activeMinutes} 分钟`;
     startBtn.onclick = () => goToStep(activeIdx);
   }
 
@@ -72,5 +72,3 @@ export function showRoadmap(taskName, stepList, highlightIdx) {
   saveSnapshot();
 }
 
-// Legacy bridge
-window.showRoadmap = showRoadmap;

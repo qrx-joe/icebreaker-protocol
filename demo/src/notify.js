@@ -1,7 +1,7 @@
 import { escapeHtml } from './utils.js'
 
 // ==================== Toast & Modal ====================
-// 替换原生 alert/confirm，提供统一的 UI 反馈
+// 替换原生 alert/confirm，提供统一�?UI 反馈
 
 // ---------- Toast ----------
 export function showToast(message, type = 'info', duration = 3000) {
@@ -25,9 +25,9 @@ export function showToast(message, type = 'info', duration = 3000) {
   const toast = document.createElement('div')
   const colors = {
     info:    { bg: 'rgba(56,189,248,0.15)', border: 'rgba(56,189,248,0.35)', text: '#e0f2fe', icon: 'ℹ️' },
-    success: { bg: 'rgba(52,211,153,0.15)', border: 'rgba(52,211,153,0.35)', text: '#d1fae5', icon: '✓' },
+    success: { bg: 'rgba(52,211,153,0.15)', border: 'rgba(52,211,153,0.35)', text: '#d1fae5', icon: '�? },
     warning: { bg: 'rgba(251,191,36,0.15)', border: 'rgba(251,191,36,0.35)', text: '#fef3c7', icon: '⚠️' },
-    error:   { bg: 'rgba(251,113,133,0.15)', border: 'rgba(251,113,133,0.35)', text: '#ffe4e6', icon: '✕' },
+    error:   { bg: 'rgba(251,113,133,0.15)', border: 'rgba(251,113,133,0.35)', text: '#ffe4e6', icon: '�? },
   }
   const c = colors[type] || colors.info
 
@@ -194,19 +194,18 @@ function btnStyle(variant) {
 export function setupGlobalErrorHandler() {
   window.addEventListener('error', (e) => {
     console.error('[Global Error]', e.error)
-    showToast('发生了一个意外错误，请刷新页面重试。', 'error', 5000)
+    showToast('发生了一个意外错误，请刷新页面重试�?, 'error', 5000)
   })
 
   window.addEventListener('unhandledrejection', (e) => {
     console.error('[Unhandled Rejection]', e.reason)
-    showToast('请求处理失败，请检查网络后重试。', 'error', 5000)
+    showToast('请求处理失败，请检查网络后重试�?, 'error', 5000)
   })
 
-  // 网络状态监听
-  let wasOffline = false
+  // 网络状态监�?  let wasOffline = false
   window.addEventListener('online', () => {
     if (wasOffline) {
-      showToast('网络已恢复', 'success', 3000)
+      showToast('网络已恢�?, 'success', 3000)
       wasOffline = false
     }
   })
@@ -216,8 +215,3 @@ export function setupGlobalErrorHandler() {
   })
 }
 
-// Legacy bridge
-window.showToast = showToast;
-window.showModal = showModal;
-window.closeModal = closeModal;
-window.setupGlobalErrorHandler = setupGlobalErrorHandler;

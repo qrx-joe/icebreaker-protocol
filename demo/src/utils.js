@@ -25,14 +25,14 @@ export function formatDateTime(d) {
 export function formatDuration(seconds) {
   const m = Math.floor((seconds || 0) / 60);
   const s = (seconds || 0) % 60;
-  return m > 0 ? `${m}分${s}秒` : `${s}秒`;
+  return m > 0 ? `${m}�?{s}秒` : `${s}秒`;
 }
 
 export function buildMarkdownContent({ task, steps, stepOutputs, doneAiMsg, attachments }) {
   const lines = [];
   lines.push(`# ${task || '破冰协议产出'}`);
   lines.push('');
-  lines.push(`> 完成时间：${formatDate(new Date())}`);
+  lines.push(`> 完成时间�?{formatDate(new Date())}`);
   lines.push('');
 
   (steps || []).forEach((s, i) => {
@@ -46,7 +46,7 @@ export function buildMarkdownContent({ task, steps, stepOutputs, doneAiMsg, atta
     if (output) {
       lines.push(output);
     } else {
-      lines.push('*（未产出）*');
+      lines.push('*（未产出�?');
     }
     lines.push('');
   });
@@ -74,9 +74,3 @@ export function buildMarkdownContent({ task, steps, stepOutputs, doneAiMsg, atta
   return lines.join('\n');
 }
 
-// Legacy bridge
-window.escapeHtml = escapeHtml;
-window.formatDate = formatDate;
-window.formatDateTime = formatDateTime;
-window.formatDuration = formatDuration;
-window.buildMarkdownContent = buildMarkdownContent;
