@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite'
+import { VitePWA } from 'vite-plugin-pwa'
 import fs from 'fs'
 import path from 'path'
 
@@ -71,5 +72,28 @@ export default defineConfig({
   server: {
     port: 3000,
   },
-  plugins: [mergeCorePlugin()],
+  plugins: [
+    mergeCorePlugin(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      manifest: false,
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        navigateFallback: 'index.html',
+        runtimeCaching: [
+          {
+            urlPattern: /^\/api\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 86400,
+              },
+            },
+          },
+        ],
+      },
+    }),
+  ],
 })
