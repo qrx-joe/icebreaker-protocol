@@ -1,11 +1,15 @@
+import { sessionLog } from './state.js'
+import { formatDuration, escapeHtml } from './utils.js'
+import { applyContractCopy } from './contract.js'
+
 // ==================== 页面导航 ====================
-function showPage(id) {
+export function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   if (id === 'pageContract') applyContractCopy();
 }
 
-function applyLandingCopy() {
+export function applyLandingCopy() {
   document.querySelector('#pageLanding .tag').textContent = 'Protocol Mode';
   document.querySelector('.landing-title').innerHTML = '<span class="ice">破冰</span>协议';
   document.querySelector('.landing-sub').innerHTML = '别解释。写下你要启动的事。<br>协议会把它拆成下一步，并逼它变成可修改的雏形。';
@@ -13,7 +17,7 @@ function applyLandingCopy() {
   document.querySelector('.landing-hint').innerHTML = '<kbd>Enter</kbd> = 启动协议';
 }
 
-function ensureLandingConsoleV2() {
+export function ensureLandingConsoleV2() {
   if (document.querySelector('.landing-console')) return;
   const oldWrap = document.querySelector('.landing-input-wrap');
   if (!oldWrap) return;
@@ -37,14 +41,14 @@ function ensureLandingConsoleV2() {
   oldWrap.replaceWith(consoleWrap);
 }
 
-function updateLandingCountV2() {
+export function updateLandingCountV2() {
   const input = document.getElementById('landingInput');
   const count = document.getElementById('landingCount');
   if (input && count) count.textContent = `${input.value.length} / 500`;
 }
 
 // ==================== 破冰战报 ====================
-function renderBattleReport() {
+export function renderBattleReport() {
   const container = document.getElementById('doneSummary');
   if (!sessionLog.length) {
     container.textContent = '';
@@ -71,3 +75,10 @@ function renderBattleReport() {
 
   container.innerHTML = html;
 }
+
+// Legacy bridge
+window.showPage = showPage;
+window.applyLandingCopy = applyLandingCopy;
+window.ensureLandingConsoleV2 = ensureLandingConsoleV2;
+window.updateLandingCountV2 = updateLandingCountV2;
+window.renderBattleReport = renderBattleReport;

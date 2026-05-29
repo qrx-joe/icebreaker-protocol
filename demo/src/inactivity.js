@@ -1,5 +1,8 @@
+import { inactivityTriggered, inactivityTimer } from './state.js'
+import { openHelp } from './help.js'
+
 // ==================== 无活动监控 ====================
-function startInactivityMonitor() {
+export function startInactivityMonitor() {
   stopInactivityMonitor();
   inactivityTriggered = false;
   const ta = document.getElementById('stepTextarea');
@@ -19,7 +22,7 @@ function startInactivityMonitor() {
   resetTimer();
 }
 
-function stopInactivityMonitor() {
+export function stopInactivityMonitor() {
   if (inactivityTimer) {
     clearTimeout(inactivityTimer);
     inactivityTimer = null;
@@ -57,3 +60,7 @@ function onInactivityTimeout() {
   container.appendChild(intercept);
   container.scrollTop = container.scrollHeight;
 }
+
+// Legacy bridge
+window.startInactivityMonitor = startInactivityMonitor;
+window.stopInactivityMonitor = stopInactivityMonitor;

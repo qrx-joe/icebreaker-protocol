@@ -1,16 +1,18 @@
+import { attachments, saveSnapshot } from './state.js'
+
 // ==================== 附件处理 ====================
-function isReadableAttachment(file) {
+export function isReadableAttachment(file) {
   const name = file.name.toLowerCase();
   return file.type.startsWith('text/')
     || ['.txt', '.md', '.csv', '.json', '.yaml', '.yml', '.log', '.html', '.htm'].some(ext => name.endsWith(ext));
 }
 
-function isBackendParsableAttachment(file) {
+export function isBackendParsableAttachment(file) {
   const name = file.name.toLowerCase();
   return ['.pdf', '.docx', '.xlsx', '.pptx'].some(ext => name.endsWith(ext));
 }
 
-function fileToBase64(file) {
+export function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
@@ -22,7 +24,7 @@ function fileToBase64(file) {
   });
 }
 
-async function parseAttachmentOnServer(file) {
+export async function parseAttachmentOnServer(file) {
   const dataBase64 = await fileToBase64(file);
   const response = await fetch('/api/attachments/parse', {
     method: 'POST',
@@ -37,14 +39,14 @@ async function parseAttachmentOnServer(file) {
   return response.json();
 }
 
-function formatAttachmentSize(bytes) {
+export function formatAttachmentSize(bytes) {
   if (!bytes) return '0B';
   if (bytes < 1024) return `${bytes}B`;
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)}KB`;
   return `${(bytes / 1024 / 1024).toFixed(1)}MB`;
 }
 
-function renderAttachments() {
+export function renderAttachments() {
   const list = document.getElementById('attachmentList');
   if (!list) return;
   list.replaceChildren();
@@ -68,7 +70,7 @@ function renderAttachments() {
   saveSnapshot();
 }
 
-function attachmentContextText() {
+export function attachmentContextText() {
   if (!attachments.length) return '';
   return attachments.map((item, index) => {
     const text = item.text ? `\n${item.text.slice(0, 1500)}` : '\n（未解析正文，仅可参考文件名）';
@@ -76,7 +78,7 @@ function attachmentContextText() {
   }).join('\n\n');
 }
 
-function apiAttachments() {
+export function apiAttachments() {
   return attachments.map(item => ({
     name: item.name,
     type: item.type,
@@ -85,7 +87,7 @@ function apiAttachments() {
   }));
 }
 
-async function handleAttachmentUpload(fileList) {
+export async function handleAttachmentUpload(fileList) {
   const files = Array.from(fileList || []);
   const warning = document.getElementById('stepWarning');
   if (warning && files.length) {
@@ -139,3 +141,14 @@ async function handleAttachmentUpload(fileList) {
     warning.textContent = `[Protocol]: 已挂载 ${files.length} 个附件，${parsedCount} 个可进入 AI 上下文。`;
   }
 }
+
+// Legacy bridge
+window.isReadableAttachment = isReadableAttachment;
+window.isBackendParsableAttachment = isBackendParsableAttachment;
+window.fileToBase64 = fileToBase64;
+window.parseAttachmentOnServer = parseAttachmentOnServer;
+window.formatAttachmentSize = formatAttachmentSize;
+window.renderAttachments = renderAttachments;
+window.attachmentContextText = attachmentContextText;
+window.apiAttachments = apiAttachments;
+window.handleAttachmentUpload = handleAttachmentUpload;

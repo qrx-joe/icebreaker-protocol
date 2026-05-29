@@ -1,19 +1,21 @@
+import { timePreference, outputMode, protocolStrength, saveSettings, saveSnapshot } from './state.js'
+
 // ==================== 设置面板 ====================
-function openSettingsPanel() {
+export function openSettingsPanel() {
   updateProtocolStrengthUI();
   updateTimePreferenceUI();
   updateOutputModeUI();
   document.getElementById('settingsPanel').classList.add('active');
 }
 
-function setTimePreference(value) {
+export function setTimePreference(value) {
   timePreference = value;
   updateTimePreferenceUI();
   saveSettings();
   saveSnapshot();
 }
 
-function updateTimePreferenceUI() {
+export function updateTimePreferenceUI() {
   const seg = document.getElementById('timePreferenceSeg');
   if (!seg) return;
   seg.querySelectorAll('button').forEach((btn) => {
@@ -25,14 +27,14 @@ function updateTimePreferenceUI() {
   });
 }
 
-function setOutputMode(value) {
+export function setOutputMode(value) {
   outputMode = value;
   updateOutputModeUI();
   saveSettings();
   saveSnapshot();
 }
 
-function updateOutputModeUI() {
+export function updateOutputModeUI() {
   const seg = document.getElementById('outputModeSeg');
   if (!seg) return;
   seg.querySelectorAll('button').forEach((btn) => {
@@ -44,14 +46,14 @@ function updateOutputModeUI() {
   });
 }
 
-function setProtocolStrength(value) {
+export function setProtocolStrength(value) {
   protocolStrength = value;
   updateProtocolStrengthUI();
   saveSettings();
   saveSnapshot();
 }
 
-function updateProtocolStrengthUI() {
+export function updateProtocolStrengthUI() {
   const seg = document.getElementById('protocolStrengthSeg');
   if (!seg) return;
   seg.querySelectorAll('button').forEach((btn) => {
@@ -63,6 +65,16 @@ function updateProtocolStrengthUI() {
   });
 }
 
-function closeProtocolPanel(id) {
+export function closeProtocolPanel(id) {
   document.getElementById(id).classList.remove('active');
 }
+
+// Legacy bridge
+window.openSettingsPanel = openSettingsPanel;
+window.setTimePreference = setTimePreference;
+window.updateTimePreferenceUI = updateTimePreferenceUI;
+window.setOutputMode = setOutputMode;
+window.updateOutputModeUI = updateOutputModeUI;
+window.setProtocolStrength = setProtocolStrength;
+window.updateProtocolStrengthUI = updateProtocolStrengthUI;
+window.closeProtocolPanel = closeProtocolPanel;

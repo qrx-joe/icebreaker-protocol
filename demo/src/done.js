@@ -1,5 +1,16 @@
+import {
+  currentPhase, sessionLog, steps, stepOutputs, currentTask, chatHistory, helpHistory,
+  attachments, improvementRound, currentStepIdx, stepTimerInterval, saveSnapshot, clearSnapshot, appendHistory
+} from './state.js'
+import { showPage } from './ui.js'
+import { buildMarkdownContent, formatDuration } from './utils.js'
+import { apiAttachments, renderAttachments } from './attachments.js'
+import { showRoadmap } from './roadmap.js'
+import { goToStep } from './steps.js'
+import { stopInactivityMonitor } from './inactivity.js'
+
 // ==================== Done ====================
-function showDone() {
+export function showDone() {
   currentPhase = 'done';
   // 更新进度条到 100%
   document.getElementById('stepProgressFill').style.width = '100%';
@@ -30,7 +41,7 @@ function showDone() {
 }
 
 // ==================== 改进循环 ====================
-async function startImprovement() {
+export async function startImprovement() {
   improvementRound++;
   const btn = document.getElementById('btnImprove');
   btn.disabled = true;
@@ -83,7 +94,7 @@ async function startImprovement() {
   }
 }
 
-function showImprovementRoadmap(targetIdx, instruction) {
+export function showImprovementRoadmap(targetIdx, instruction) {
   // 设置标题
   document.getElementById('roadmapTitle').textContent = `第 ${improvementRound} 轮改进`;
 
@@ -117,19 +128,19 @@ function showImprovementRoadmap(targetIdx, instruction) {
   btn.textContent = '只改一处';
 }
 
-function confirmImprovement() {
+export function confirmImprovement() {
   // 恢复 Roadmap 为常规模式
   resetRoadmapMode();
   goToStep(improvementTargetIdx);
 }
 
-function skipImprovement() {
+export function skipImprovement() {
   improvementRound--;
   resetRoadmapMode();
   showDone();
 }
 
-function resetRoadmapMode() {
+export function resetRoadmapMode() {
   document.getElementById('roadmapTitle').textContent = '拆解路线图';
   document.getElementById('roadmapImproveMsg').textContent = '';
   document.getElementById('roadmapRoundWarning').textContent = '';
@@ -138,7 +149,7 @@ function resetRoadmapMode() {
 }
 
 // ==================== 导出 Markdown ====================
-function buildMarkdown() {
+export function buildMarkdown() {
   return buildMarkdownContent({
     task: currentTask,
     steps,
@@ -148,7 +159,7 @@ function buildMarkdown() {
   });
 }
 
-function copyMarkdown() {
+export function copyMarkdown() {
   const md = buildMarkdown();
   navigator.clipboard.writeText(md).then(() => {
     const btn = document.querySelector('.done-export .btn-export:first-child');
@@ -161,7 +172,7 @@ function copyMarkdown() {
   });
 }
 
-function downloadMarkdown() {
+export function downloadMarkdown() {
   const md = buildMarkdown();
   const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
   const url = URL.createObjectURL(blob);
@@ -173,7 +184,7 @@ function downloadMarkdown() {
 }
 
 // ==================== 重置 ====================
-function resetAll() {
+export function resetAll() {
   chatHistory = [];
   currentTask = '';
   currentPhase = 'landing';
@@ -197,3 +208,15 @@ function resetAll() {
   applyLandingCopy();
   setTimeout(() => document.getElementById('landingInput').focus(), 300);
 }
+
+// Legacy bridge
+window.showDone = showDone;
+window.startImprovement = startImprovement;
+window.showImprovementRoadmap = showImprovementRoadmap;
+window.confirmImprovement = confirmImprovement;
+window.skipImprovement = skipImprovement;
+window.resetRoadmapMode = resetRoadmapMode;
+window.buildMarkdown = buildMarkdown;
+window.copyMarkdown = copyMarkdown;
+window.downloadMarkdown = downloadMarkdown;
+window.resetAll = resetAll;

@@ -1,5 +1,14 @@
+import {
+  recognition, isRecording, voiceTranscript,
+  landingRecognition, isLandingRecording, landingVoiceTranscript,
+  mainRecognition, isMainRecording, mainVoiceTranscript,
+  currentStepIdx, stepOutputs
+} from './state.js'
+import { showToast } from './notify.js'
+import { updateRunBtn } from './help.js'
+
 // ==================== 语音识别（帮助面板） ====================
-function initSpeechRecognition() {
+export function initSpeechRecognition() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) return null;
 
@@ -46,7 +55,7 @@ function initSpeechRecognition() {
   return rec;
 }
 
-function toggleVoice() {
+export function toggleVoice() {
   if (isRecording) {
     stopRecording();
   } else {
@@ -54,7 +63,7 @@ function toggleVoice() {
   }
 }
 
-function startRecording() {
+export function startRecording() {
   if (!recognition) recognition = initSpeechRecognition();
   if (!recognition) {
     showVoiceHint('当前浏览器不支持语音输入，请使用 Chrome 或 Edge。');
@@ -82,7 +91,7 @@ function startRecording() {
   }
 }
 
-function stopRecording() {
+export function stopRecording() {
   isRecording = false;
 
   const btn = document.getElementById('btnMic');
@@ -111,20 +120,20 @@ function stopRecording() {
   showVoiceHint('转录完成。点击 RUN 执行，或编辑后发送。');
 }
 
-function showVoiceHint(text) {
+export function showVoiceHint(text) {
   const hint = document.getElementById('inputHint');
   hint.innerHTML = `<span class="dot"></span> ${text}`;
   hint.style.color = '#ef4444';
 }
 
-function clearVoiceHint() {
+export function clearVoiceHint() {
   const hint = document.getElementById('inputHint');
   hint.innerHTML = 'Press Enter to Run Protocol';
   hint.style.color = '';
 }
 
 // ==================== 首页语音输入 ====================
-function toggleLandingVoice() {
+export function toggleLandingVoice() {
   if (isLandingRecording) {
     stopLandingRecording();
   } else {
@@ -132,7 +141,7 @@ function toggleLandingVoice() {
   }
 }
 
-function startLandingRecording() {
+export function startLandingRecording() {
   if (!landingRecognition) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -187,7 +196,7 @@ function startLandingRecording() {
   try { landingRecognition.start(); } catch (e) { stopLandingRecording(); }
 }
 
-function stopLandingRecording() {
+export function stopLandingRecording() {
   isLandingRecording = false;
 
   const btn = document.getElementById('landingMic');
@@ -202,7 +211,7 @@ function stopLandingRecording() {
 }
 
 // ==================== 主工作区语音输入 ====================
-function toggleMainVoice() {
+export function toggleMainVoice() {
   if (isMainRecording) {
     stopMainRecording();
   } else {
@@ -210,7 +219,7 @@ function toggleMainVoice() {
   }
 }
 
-function startMainRecording() {
+export function startMainRecording() {
   if (!mainRecognition) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -277,7 +286,7 @@ function startMainRecording() {
   try { mainRecognition.start(); } catch (e) { stopMainRecording(); }
 }
 
-function stopMainRecording() {
+export function stopMainRecording() {
   isMainRecording = false;
 
   const btn = document.getElementById('pillMic');
@@ -298,3 +307,17 @@ function stopMainRecording() {
   warning.style.color = '#4ade80';
   warning.textContent = '[Protocol]: 语音捕捉完成。你可以继续编辑，或直接提交。';
 }
+
+// Legacy bridge
+window.initSpeechRecognition = initSpeechRecognition;
+window.toggleVoice = toggleVoice;
+window.startRecording = startRecording;
+window.stopRecording = stopRecording;
+window.showVoiceHint = showVoiceHint;
+window.clearVoiceHint = clearVoiceHint;
+window.toggleLandingVoice = toggleLandingVoice;
+window.startLandingRecording = startLandingRecording;
+window.stopLandingRecording = stopLandingRecording;
+window.toggleMainVoice = toggleMainVoice;
+window.startMainRecording = startMainRecording;
+window.stopMainRecording = stopMainRecording;

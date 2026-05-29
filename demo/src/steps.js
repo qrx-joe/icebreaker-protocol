@@ -1,5 +1,16 @@
+import {
+  currentPhase, currentStepIdx, steps, stepOutputs, stepStartTime, sessionLog, isFinishing,
+  stepTimerInterval, saveSnapshot
+} from './state.js'
+import { showPage } from './ui.js'
+import { escapeHtml } from './utils.js'
+import { startStepTimer } from './timer.js'
+import { startInactivityMonitor, stopInactivityMonitor } from './inactivity.js'
+import { renderAttachments, apiAttachments } from './attachments.js'
+import { sendToAI } from './api.js'
+
 // ==================== Step ====================
-function buildStepPlaceholder(step) {
+export function buildStepPlaceholder(step) {
   const output = step?.output || '';
   const title = step?.title || '';
 
@@ -32,7 +43,7 @@ function buildStepPlaceholder(step) {
   return '先写一个粗糙版本，多烂都行：\n\n"关于这个，我觉得..."\n\n写完第一句，后面自然就来了。';
 }
 
-function renderStepInstruction(step) {
+export function renderStepInstruction(step) {
   const instruction = escapeHtml(step.instruction || '');
   const output = escapeHtml(step.output || '一个可见产出');
   return `
@@ -49,7 +60,7 @@ function renderStepInstruction(step) {
   `;
 }
 
-function updateStepSubmitState() {
+export function updateStepSubmitState() {
   const ta = document.getElementById('stepTextarea');
   const btn = document.querySelector('.step-footer-right .btn-primary');
   if (!ta || !btn) return;
@@ -59,7 +70,7 @@ function updateStepSubmitState() {
 }
 
 // Step v2: make the execution screen feel like a small output slot.
-function goToStep(idx) {
+export function goToStep(idx) {
   if (idx < 0 || idx >= steps.length) return;
   currentPhase = 'step';
 
@@ -167,11 +178,11 @@ async function fetchProactiveSuggestion(idx) {
   }
 }
 
-function prevStep() {
+export function prevStep() {
   goToStep(currentStepIdx - 1);
 }
 
-async function finishStep() {
+export async function finishStep() {
   if (isFinishing) return;
   isFinishing = true;
 
@@ -251,3 +262,11 @@ async function archiveStep(step, index, output, timeSpent) {
     sessionLog.push(record);
   }
 }
+
+// Legacy bridge
+window.buildStepPlaceholder = buildStepPlaceholder;
+window.renderStepInstruction = renderStepInstruction;
+window.updateStepSubmitState = updateStepSubmitState;
+window.goToStep = goToStep;
+window.prevStep = prevStep;
+window.finishStep = finishStep;

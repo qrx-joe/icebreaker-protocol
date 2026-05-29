@@ -1,10 +1,14 @@
+import { LS_KEY_HISTORY, loadHistory } from './state.js'
+import { formatDateTime, formatDuration, escapeHtml, buildMarkdownContent } from './utils.js'
+import { showModal, showToast } from './notify.js'
+
 // ==================== 历史面板渲染 ====================
-function openHistoryPanel() {
+export function openHistoryPanel() {
   renderHistoryPanel();
   document.getElementById('historyPanel').classList.add('active');
 }
 
-function renderHistoryPanel() {
+export function renderHistoryPanel() {
   const listEl = document.getElementById('historyList');
   const emptyEl = document.getElementById('historyEmpty');
   const actionsEl = document.querySelector('.history-actions');
@@ -36,7 +40,7 @@ function renderHistoryPanel() {
   listEl.innerHTML = html;
 }
 
-function copyHistoryMarkdown(id) {
+export function copyHistoryMarkdown(id) {
   const history = loadHistory();
   const h = history.find(x => x.id === id);
   if (!h) return;
@@ -53,7 +57,7 @@ function copyHistoryMarkdown(id) {
   });
 }
 
-async function clearHistory() {
+export async function clearHistory() {
   const ok = await showModal({
     title: '清空历史',
     body: '确定要清空所有本地历史记录吗？此操作不可恢复。',
@@ -66,7 +70,15 @@ async function clearHistory() {
   showToast('历史记录已清空', 'info', 3000);
 }
 
-document.addEventListener('click', (event) => {
-  const modal = event.target.closest('.protocol-modal');
-  if (modal && event.target === modal) modal.classList.remove('active');
-});
+export function initHistory() {
+  document.addEventListener('click', (event) => {
+    const modal = event.target.closest('.protocol-modal');
+    if (modal && event.target === modal) modal.classList.remove('active');
+  });
+}
+
+// Legacy bridge
+window.openHistoryPanel = openHistoryPanel;
+window.renderHistoryPanel = renderHistoryPanel;
+window.copyHistoryMarkdown = copyHistoryMarkdown;
+window.clearHistory = clearHistory;

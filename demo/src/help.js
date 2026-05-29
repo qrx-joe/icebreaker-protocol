@@ -1,5 +1,10 @@
+import {
+  currentTask, steps, currentStepIdx, stepOutputs, helpHistory, isChatting, saveSnapshot
+} from './state.js'
+import { attachmentContextText, apiAttachments } from './attachments.js'
+
 // ==================== Help Side Drawer ====================
-function appendBubble(container, role, text, showApply) {
+export function appendBubble(container, role, text, showApply) {
   const wrapper = document.createElement('div');
   wrapper.style.cssText = 'display:flex;flex-direction:column;';
 
@@ -63,7 +68,7 @@ function buildContextSummary() {
 }
 
 // 生成提示词起搏器
-function renderPromptChips() {
+export function renderPromptChips() {
   const container = document.getElementById('promptChips');
   container.replaceChildren();
 
@@ -121,7 +126,7 @@ function renderPromptChips() {
 }
 
 // 一键采纳到左侧编辑器
-function applyToEditor(text) {
+export function applyToEditor(text) {
   const ta = document.getElementById('stepTextarea');
   if (!ta) return;
   // 如果编辑器已有内容，追加换行；否则直接替换
@@ -141,7 +146,7 @@ function applyToEditor(text) {
   }, 1200);
 }
 
-function openHelp() {
+export function openHelp() {
   const drawer = document.getElementById('helpDrawer');
   drawer.classList.add('active');
   helpHistory = [];
@@ -194,25 +199,27 @@ function openHelp() {
   }, 300);
 }
 
-function closeHelp() {
+export function closeHelp() {
   document.getElementById('helpDrawer').classList.remove('active');
 }
 
-// 点击抽屉外部关闭
-document.addEventListener('click', (e) => {
-  const drawer = document.getElementById('helpDrawer');
-  if (!drawer.classList.contains('active')) return;
-  if (drawer.contains(e.target)) return;
-  if (e.target.closest('[onclick*="openHelp"]')) return;
-  closeHelp();
-});
+export function initHelp() {
+  // 点击抽屉外部关闭
+  document.addEventListener('click', (e) => {
+    const drawer = document.getElementById('helpDrawer');
+    if (!drawer.classList.contains('active')) return;
+    if (drawer.contains(e.target)) return;
+    if (e.target.closest('[onclick*="openHelp"]')) return;
+    closeHelp();
+  });
 
-// Escape 关闭抽屉
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') closeHelp();
-});
+  // Escape 关闭抽屉
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeHelp();
+  });
+}
 
-function updateRunBtn() {
+export function updateRunBtn() {
   const input = document.getElementById('helpInput');
   const btn = document.getElementById('btnRun');
   if (!input || !btn) return;
@@ -221,7 +228,7 @@ function updateRunBtn() {
   btn.querySelector('.label').textContent = ready ? 'RUN' : 'IDLE';
 }
 
-async function sendHelp() {
+export async function sendHelp() {
   const input = document.getElementById('helpInput');
   const message = input.value.trim();
   if (!message || isChatting) return;
@@ -329,3 +336,12 @@ async function sendHelp() {
     input.focus();
   }
 }
+
+// Legacy bridge
+window.appendBubble = appendBubble;
+window.renderPromptChips = renderPromptChips;
+window.applyToEditor = applyToEditor;
+window.openHelp = openHelp;
+window.closeHelp = closeHelp;
+window.updateRunBtn = updateRunBtn;
+window.sendHelp = sendHelp;

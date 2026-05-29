@@ -1,67 +1,67 @@
 // ==================== 全局状态 ====================
-let chatHistory = [];
-let currentTask = '';
-let currentPhase = 'landing';
-let isChatting = false;
+export let chatHistory = [];
+export let currentTask = '';
+export let currentPhase = 'landing';
+export let isChatting = false;
 
 // 步骤数据
-let steps = [];          // [{title, instruction, output, minutes}]
-let stepOutputs = [];    // 每步的用户产出
-let currentStepIdx = 0;
-let stepTimerInterval = null;
-let stepTimeRemaining = 0;
-let stepTotalSeconds = 0;
-let stepTimerPhase = 'draft';
-let stepStartTime = 0;
+export let steps = [];          // [{title, instruction, output, minutes}]
+export let stepOutputs = [];    // 每步的用户产出
+export let currentStepIdx = 0;
+export let stepTimerInterval = null;
+export let stepTimeRemaining = 0;
+export let stepTotalSeconds = 0;
+export let stepTimerPhase = 'draft';
+export let stepStartTime = 0;
 
 // 帮助面板
-let helpHistory = [];
+export let helpHistory = [];
 
 // 时间偏好：compact=紧凑, standard=标准, loose=宽松
-let timePreference = 'standard';
+export let timePreference = 'standard';
 
 // 产出模式：draft=草稿, deliverable=可交付, portfolio=作品集
-let outputMode = 'deliverable';
+export let outputMode = 'deliverable';
 
 // 协议强度：gentle=温和, standard=标准, strict=严厉
-let protocolStrength = 'standard';
+export let protocolStrength = 'standard';
 
 // 会话附件：文本类附件会被读取并带入 AI 上下文。
-let attachments = [];
+export let attachments = [];
 
 // 破冰日志
-let sessionLog = [];
+export let sessionLog = [];
 
 // 无活动监控（方案 C）
-let inactivityTimer = null;
-let inactivityTriggered = false; // 每步只触发一次
-let isFinishing = false; // finishStep 防重入锁
+export let inactivityTimer = null;
+export let inactivityTriggered = false; // 每步只触发一次
+export let isFinishing = false; // finishStep 防重入锁
 
 // 改进循环
-let improvementRound = 0;
-let improvementTargetIdx = 0;
+export let improvementRound = 0;
+export let improvementTargetIdx = 0;
 
 // 语音识别
-let recognition = null;
-let isRecording = false;
-let voiceTranscript = '';
+export let recognition = null;
+export let isRecording = false;
+export let voiceTranscript = '';
 
 // 首页语音输入
-let landingRecognition = null;
-let isLandingRecording = false;
-let landingVoiceTranscript = '';
+export let landingRecognition = null;
+export let isLandingRecording = false;
+export let landingVoiceTranscript = '';
 
 // 主工作区语音输入
-let mainRecognition = null;
-let isMainRecording = false;
-let mainVoiceTranscript = '';
+export let mainRecognition = null;
+export let isMainRecording = false;
+export let mainVoiceTranscript = '';
 
 // 合约页面独立的加载锁
-let contractBusy = false;
+export let contractBusy = false;
 
 // ==================== localStorage 持久化 ====================
 const LS_KEY_SNAPSHOT = 'ib_session_snapshot';
-const LS_KEY_HISTORY  = 'ib_session_history';
+export const LS_KEY_HISTORY  = 'ib_session_history';
 const LS_KEY_SETTINGS = 'ib_protocol_settings';
 const LS_HISTORY_MAX  = 50;
 const LS_HISTORY_DAYS = 30;
@@ -74,7 +74,7 @@ const DATA_VERSION = {
 };
 
 // ---------- Settings ----------
-function saveSettings() {
+export function saveSettings() {
   try {
     localStorage.setItem(LS_KEY_SETTINGS, JSON.stringify({
       v: DATA_VERSION.settings,
@@ -85,7 +85,7 @@ function saveSettings() {
   } catch (e) { /* 静默失败 */ }
 }
 
-function loadSettings() {
+export function loadSettings() {
   try {
     const raw = localStorage.getItem(LS_KEY_SETTINGS);
     if (!raw) return null;
@@ -118,7 +118,7 @@ function loadSettings() {
   }
 }
 
-function saveSnapshot() {
+export function saveSnapshot() {
   if (currentPhase === 'landing' || currentPhase === 'done') {
     localStorage.removeItem(LS_KEY_SNAPSHOT);
     return;
@@ -148,7 +148,7 @@ function saveSnapshot() {
   }
 }
 
-function loadSnapshot() {
+export function loadSnapshot() {
   try {
     const raw = localStorage.getItem(LS_KEY_SNAPSHOT);
     if (!raw) return null;
@@ -175,11 +175,11 @@ function loadSnapshot() {
   }
 }
 
-function clearSnapshot() {
+export function clearSnapshot() {
   localStorage.removeItem(LS_KEY_SNAPSHOT);
 }
 
-function appendHistory(entry) {
+export function appendHistory(entry) {
   try {
     const raw = localStorage.getItem(LS_KEY_HISTORY);
     let data = raw ? JSON.parse(raw) : { v: DATA_VERSION.history, list: [] };
@@ -200,7 +200,7 @@ function appendHistory(entry) {
   }
 }
 
-function loadHistory() {
+export function loadHistory() {
   try {
     const raw = localStorage.getItem(LS_KEY_HISTORY);
     if (!raw) return [];
@@ -214,6 +214,49 @@ function loadHistory() {
   }
 }
 
-function clearHistory() {
+export function clearHistoryData() {
   localStorage.removeItem(LS_KEY_HISTORY);
 }
+
+// Legacy bridge: expose to window for HTML inline onclick and inter-module compatibility
+window.chatHistory = chatHistory;
+window.currentTask = currentTask;
+window.currentPhase = currentPhase;
+window.isChatting = isChatting;
+window.steps = steps;
+window.stepOutputs = stepOutputs;
+window.currentStepIdx = currentStepIdx;
+window.stepTimerInterval = stepTimerInterval;
+window.stepTimeRemaining = stepTimeRemaining;
+window.stepTotalSeconds = stepTotalSeconds;
+window.stepTimerPhase = stepTimerPhase;
+window.stepStartTime = stepStartTime;
+window.helpHistory = helpHistory;
+window.timePreference = timePreference;
+window.outputMode = outputMode;
+window.protocolStrength = protocolStrength;
+window.attachments = attachments;
+window.sessionLog = sessionLog;
+window.inactivityTimer = inactivityTimer;
+window.inactivityTriggered = inactivityTriggered;
+window.isFinishing = isFinishing;
+window.improvementRound = improvementRound;
+window.improvementTargetIdx = improvementTargetIdx;
+window.recognition = recognition;
+window.isRecording = isRecording;
+window.voiceTranscript = voiceTranscript;
+window.landingRecognition = landingRecognition;
+window.isLandingRecording = isLandingRecording;
+window.landingVoiceTranscript = landingVoiceTranscript;
+window.mainRecognition = mainRecognition;
+window.isMainRecording = isMainRecording;
+window.mainVoiceTranscript = mainVoiceTranscript;
+window.contractBusy = contractBusy;
+window.saveSettings = saveSettings;
+window.loadSettings = loadSettings;
+window.saveSnapshot = saveSnapshot;
+window.loadSnapshot = loadSnapshot;
+window.clearSnapshot = clearSnapshot;
+window.appendHistory = appendHistory;
+window.loadHistory = loadHistory;
+window.clearHistoryData = clearHistoryData;

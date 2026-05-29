@@ -1,3 +1,17 @@
+import {
+  chatHistory, currentTask, currentPhase, steps, stepOutputs, currentStepIdx,
+  helpHistory, attachments, sessionLog, improvementRound,
+  timePreference, outputMode, protocolStrength,
+  loadSettings, loadSnapshot, clearSnapshot, saveSnapshot
+} from './state.js'
+import { ensureLandingConsoleV2, applyLandingCopy, updateLandingCountV2, renderBattleReport } from './ui.js'
+import { renderAttachments } from './attachments.js'
+import { updateTimePreferenceUI } from './settings.js'
+import { showModal } from './notify.js'
+import { goToStep } from './steps.js'
+import { showRoadmap } from './roadmap.js'
+import { showPage } from './ui.js'
+
 // ==================== 初始化 ====================
 function restoreFromSnapshot(s) {
   chatHistory = s.chatHistory || [];
@@ -36,43 +50,48 @@ function restoreFromSnapshot(s) {
   }
 }
 
-window.addEventListener('DOMContentLoaded', async () => {
-  ensureLandingConsoleV2();
-  applyLandingCopy();
-  updateLandingCountV2();
-  document.getElementById('landingInput').focus();
+export function initApp() {
+  window.addEventListener('DOMContentLoaded', async () => {
+    ensureLandingConsoleV2();
+    applyLandingCopy();
+    updateLandingCountV2();
+    document.getElementById('landingInput').focus();
 
-  // 加载全局设置偏好
-  const settings = loadSettings();
-  if (settings) {
-    timePreference = settings.timePreference;
-    outputMode = settings.outputMode;
-    protocolStrength = settings.protocolStrength;
-  }
-
-  // 检查是否有未完成的会话快照
-  const snap = loadSnapshot();
-  if (snap && snap.currentPhase !== 'landing' && snap.currentPhase !== 'done') {
-    const resume = await showModal({
-      title: '恢复进度',
-      body: `检测到未完成的协议「${snap.currentTask || '未命名任务'}」（步骤 ${snap.currentStepIdx + 1} / ${snap.steps.length}）。\n\n是否恢复上次进度？`,
-      confirmText: '恢复',
-      cancelText: '放弃'
-    });
-    if (resume) {
-      restoreFromSnapshot(snap);
-    } else {
-      clearSnapshot();
+    // 加载全局设置偏好
+    const settings = loadSettings();
+    if (settings) {
+      timePreference = settings.timePreference;
+      outputMode = settings.outputMode;
+      protocolStrength = settings.protocolStrength;
     }
-  }
 
-  // stepTextarea 输入防抖保存快照
-  const stepTa = document.getElementById('stepTextarea');
-  if (stepTa) {
-    let snapshotDebounce;
-    stepTa.addEventListener('input', () => {
-      clearTimeout(snapshotDebounce);
-      snapshotDebounce = setTimeout(saveSnapshot, 500);
-    });
-  }
-});
+    // 检查是否有未完成的会话快照
+    const snap = loadSnapshot();
+    if (snap && snap.currentPhase !== 'landing' && snap.currentPhase !== 'done') {
+      const resume = await showModal({
+        title: '恢复进度',
+        body: `检测到未完成的协议「${snap.currentTask || '未命名任务'}」（步骤 ${snap.currentStepIdx + 1} / ${snap.steps.length}）。\n\n是否恢复上次进度？`,
+        confirmText: '恢复',
+        cancelText: '放弃'
+      });
+      if (resume) {
+        restoreFromSnapshot(snap);
+      } else {
+        clearSnapshot();
+      }
+    }
+
+    // stepTextarea 输入防抖保存快照
+    const stepTa = document.getElementById('stepTextarea');
+    if (stepTa) {
+      let snapshotDebounce;
+      stepTa.addEventListener('input', () => {
+        clearTimeout(snapshotDebounce);
+        snapshotDebounce = setTimeout(saveSnapshot, 500);
+      });
+    }
+  });
+}
+
+// Legacy bridge
+window.initApp = initApp;

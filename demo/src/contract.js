@@ -1,5 +1,8 @@
+import { contractBusy } from './state.js'
+import { sendToAI } from './api.js'
+
 // ==================== Contract ====================
-function setContractButtonsDisabled(disabled) {
+export function setContractButtonsDisabled(disabled) {
   const btns = document.querySelectorAll('.contract-actions .btn');
   btns.forEach(b => {
     b.disabled = disabled;
@@ -8,19 +11,19 @@ function setContractButtonsDisabled(disabled) {
   });
 }
 
-function showContractLoading() {
+export function showContractLoading() {
   const el = document.getElementById('contractAiMsg');
   el.textContent = '正在思考...';
   el.style.opacity = '0.6';
 }
 
-function clearContractLoading() {
+export function clearContractLoading() {
   const el = document.getElementById('contractAiMsg');
   el.style.opacity = '';
 }
 
 // Contract v2 copy override: keep the lock screen terse.
-function applyContractCopy() {
+export function applyContractCopy() {
   const msg = document.getElementById('contractAiMsg');
   if (msg && !contractBusy) {
     msg.textContent = '[Protocol] 第一版只要求存在。';
@@ -56,7 +59,7 @@ function applyContractCopy() {
   if (secondary) secondary.textContent = '说出阻力';
 }
 
-function acceptContract() {
+export function acceptContract() {
   if (contractBusy) return;
   contractBusy = true;
   setContractButtonsDisabled(true);
@@ -66,7 +69,7 @@ function acceptContract() {
     .finally(() => { contractBusy = false; setContractButtonsDisabled(false); clearContractLoading(); });
 }
 
-function questionContract() {
+export function questionContract() {
   if (contractBusy) return;
   contractBusy = true;
   setContractButtonsDisabled(true);
@@ -75,3 +78,11 @@ function questionContract() {
     .catch(() => {})
     .finally(() => { contractBusy = false; setContractButtonsDisabled(false); clearContractLoading(); });
 }
+
+// Legacy bridge
+window.setContractButtonsDisabled = setContractButtonsDisabled;
+window.showContractLoading = showContractLoading;
+window.clearContractLoading = clearContractLoading;
+window.applyContractCopy = applyContractCopy;
+window.acceptContract = acceptContract;
+window.questionContract = questionContract;

@@ -1,5 +1,10 @@
+import { currentPhase, contractBusy } from './state.js'
+import { showPage } from './ui.js'
+import { showContractLoading, setContractButtonsDisabled, clearContractLoading } from './contract.js'
+import { sendToAI } from './api.js'
+
 // ==================== Landing ====================
-function startProtocol() {
+export function startProtocol() {
   const input = document.getElementById('landingInput');
   const message = input.value.trim();
   if (!message) {
@@ -18,3 +23,6 @@ function startProtocol() {
     .catch(() => {})
     .finally(() => { contractBusy = false; setContractButtonsDisabled(false); clearContractLoading(); });
 }
+
+// Legacy bridge
+window.startProtocol = startProtocol;

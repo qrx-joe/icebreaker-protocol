@@ -1,16 +1,6 @@
-// CSS is already loaded via <link> in index.html
-// import '../protocol-ui.css'
-// import './style.css'
 import DOMPurify from 'dompurify'
 import { setupApiWrapper } from './api-client.js'
+import 'virtual:app-core'
 
-// Make DOMPurify available to legacy global scripts
 window.DOMPurify = DOMPurify
-
-// Setup API wrapper with loading/retry
 setupApiWrapper()
-
-// Setup global error handler (defined in bundle.js notify.js)
-if (typeof setupGlobalErrorHandler === 'function') {
-  setupGlobalErrorHandler()
-}

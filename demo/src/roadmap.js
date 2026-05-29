@@ -1,6 +1,11 @@
+import { currentPhase, currentTask, steps, saveSnapshot } from './state.js'
+import { showPage } from './ui.js'
+import { escapeHtml } from './utils.js'
+import { goToStep } from './steps.js'
+
 // ==================== Roadmap ====================
 // Roadmap v2: override the legacy renderer with a next-step-first layout.
-function showRoadmap(taskName, stepList, highlightIdx) {
+export function showRoadmap(taskName, stepList, highlightIdx) {
   currentPhase = 'roadmap';
   const activeIdx = Number.isInteger(highlightIdx) ? highlightIdx : 0;
   const activeStep = stepList[activeIdx] || stepList[0] || {};
@@ -66,3 +71,6 @@ function showRoadmap(taskName, stepList, highlightIdx) {
   showPage('pageRoadmap');
   saveSnapshot();
 }
+
+// Legacy bridge
+window.showRoadmap = showRoadmap;

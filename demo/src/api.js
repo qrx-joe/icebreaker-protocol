@@ -1,5 +1,15 @@
+import {
+  chatHistory, currentTask, currentPhase, steps, stepOutputs, currentStepIdx,
+  timePreference, outputMode, protocolStrength, isChatting, saveSnapshot
+} from './state.js'
+import { showPage } from './ui.js'
+import { startStepTimer } from './timer.js'
+import { goToStep } from './steps.js'
+import { apiAttachments } from './attachments.js'
+import { showToast } from './notify.js'
+
 // ==================== AI 对话核心 ====================
-function normalizeStep(raw) {
+export function normalizeStep(raw) {
   return {
     title: raw.title || '未命名步骤',
     instruction: raw.instruction || raw.text || '',
@@ -8,7 +18,7 @@ function normalizeStep(raw) {
   };
 }
 
-function showInlineMessage(reply) {
+export function showInlineMessage(reply) {
   if (!reply) return;
   if (currentPhase === 'contract') {
     document.getElementById('contractAiMsg').textContent = reply;
@@ -21,7 +31,7 @@ function showInlineMessage(reply) {
   }
 }
 
-function applyAIResponse(data) {
+export function applyAIResponse(data) {
   const reply = data.reply || '';
   if (data.task) currentTask = data.task;
   if (Array.isArray(data.steps) && data.steps.length) {
@@ -78,7 +88,7 @@ function applyAIResponse(data) {
   saveSnapshot();
 }
 
-async function sendToAI(message) {
+export async function sendToAI(message) {
   chatHistory.push({ role: 'user', content: message });
 
   isChatting = true;
@@ -125,3 +135,9 @@ async function sendToAI(message) {
     isChatting = false;
   }
 }
+
+// Legacy bridge
+window.normalizeStep = normalizeStep;
+window.showInlineMessage = showInlineMessage;
+window.applyAIResponse = applyAIResponse;
+window.sendToAI = sendToAI;

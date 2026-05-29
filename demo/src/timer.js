@@ -1,5 +1,8 @@
+import { stepTimerInterval, stepTimeRemaining, stepTotalSeconds, stepTimerPhase } from './state.js'
+import { finishStep } from './steps.js'
+
 // ==================== 计时器 ====================
-function startStepTimer(seconds) {
+export function startStepTimer(seconds) {
   if (stepTimerInterval) clearInterval(stepTimerInterval);
   stepTimeRemaining = seconds;
   stepTotalSeconds = seconds;
@@ -40,13 +43,13 @@ function startStepTimer(seconds) {
   }, 1000);
 }
 
-function applyTimerPhase(phase) {
+export function applyTimerPhase(phase) {
   const el = document.getElementById('stepTimer');
   el.classList.remove('draft', 'refine', 'panic');
   el.classList.add(phase);
 }
 
-function showPhaseMessage(phase) {
+export function showPhaseMessage(phase) {
   const el = document.getElementById('stepWarning');
   const remaining = stepTimeRemaining;
   const mins = Math.floor(remaining / 60);
@@ -79,7 +82,7 @@ function showPhaseMessage(phase) {
   }
 }
 
-function updateTimerDisplay() {
+export function updateTimerDisplay() {
   const m = Math.floor(stepTimeRemaining / 60);
   const s = stepTimeRemaining % 60;
   const display = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
@@ -87,7 +90,7 @@ function updateTimerDisplay() {
 }
 
 // ==================== 超时内联确认（替代 confirm 弹窗） ====================
-function showOvertimeActions() {
+export function showOvertimeActions() {
   const warning = document.getElementById('stepWarning');
   warning.style.color = '#f87171';
   warning.innerHTML = `
@@ -99,12 +102,21 @@ function showOvertimeActions() {
   `;
 }
 
-function finishStepFromOvertime() {
+export function finishStepFromOvertime() {
   document.getElementById('stepWarning').innerHTML = '';
   finishStep();
 }
 
-function extendTimerFromOvertime() {
+export function extendTimerFromOvertime() {
   document.getElementById('stepWarning').innerHTML = '';
   startStepTimer(120);
 }
+
+// Legacy bridge
+window.startStepTimer = startStepTimer;
+window.applyTimerPhase = applyTimerPhase;
+window.showPhaseMessage = showPhaseMessage;
+window.updateTimerDisplay = updateTimerDisplay;
+window.showOvertimeActions = showOvertimeActions;
+window.finishStepFromOvertime = finishStepFromOvertime;
+window.extendTimerFromOvertime = extendTimerFromOvertime;

@@ -1,8 +1,10 @@
+import { escapeHtml } from './utils.js'
+
 // ==================== Toast & Modal ====================
 // 替换原生 alert/confirm，提供统一的 UI 反馈
 
 // ---------- Toast ----------
-function showToast(message, type = 'info', duration = 3000) {
+export function showToast(message, type = 'info', duration = 3000) {
   let container = document.getElementById('toast-container')
   if (!container) {
     container = document.createElement('div')
@@ -114,7 +116,7 @@ function createModal() {
   return el
 }
 
-function showModal({ title, body, confirmText = '确认', cancelText = '取消', showCancel = true }) {
+export function showModal({ title, body, confirmText = '确认', cancelText = '取消', showCancel = true }) {
   return new Promise((resolve) => {
     modalResolve = resolve
     const el = createModal()
@@ -148,7 +150,7 @@ function showModal({ title, body, confirmText = '确认', cancelText = '取消',
   })
 }
 
-function closeModal(result) {
+export function closeModal(result) {
   const el = document.getElementById('protocol-modal')
   if (!el) return
   const box = el.querySelector('.modal-box')
@@ -189,7 +191,7 @@ function btnStyle(variant) {
 }
 
 // ---------- Global Error Handler ----------
-function setupGlobalErrorHandler() {
+export function setupGlobalErrorHandler() {
   window.addEventListener('error', (e) => {
     console.error('[Global Error]', e.error)
     showToast('发生了一个意外错误，请刷新页面重试。', 'error', 5000)
@@ -213,3 +215,9 @@ function setupGlobalErrorHandler() {
     wasOffline = true
   })
 }
+
+// Legacy bridge
+window.showToast = showToast;
+window.showModal = showModal;
+window.closeModal = closeModal;
+window.setupGlobalErrorHandler = setupGlobalErrorHandler;
