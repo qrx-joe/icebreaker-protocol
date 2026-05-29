@@ -4,20 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0a0a0f">
-<link rel="manifest" href="/static/manifest.json?v=2">
-<link rel="apple-touch-icon" href="/static/icon.svg?v=2">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon.svg">
 <title>破冰协议 Icebreaker Protocol</title>
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/static/sw.js?v=2')
+      navigator.serviceWorker.register('/sw.js')
         .then(() => console.log('[SW] 注册成功'))
         .catch((err) => console.log('[SW] 注册失败', err));
     });
   }
 </script>
-  <link rel="stylesheet" href="/static/protocol-ui.css?v=2">
-  <link rel="stylesheet" href="/static/src/style.css?v=2">
+  <link rel="stylesheet" href="/protocol-ui.css">
+  <link rel="stylesheet" href="/src/style.css">
 </head>
 <body>
 
@@ -227,7 +227,7 @@
   </div>
 </div>
 
-  <script src="/static/bundle.js?v=2"></script>
-  <script type="module" src="/static/src/main.js?v=2"></script>
+  <script src="/bundle.js"></script>
+  <script type="module" src="/src/main.js"></script>
 </body>
 </html>
