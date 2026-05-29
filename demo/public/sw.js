@@ -1,4 +1,4 @@
-const CACHE_NAME = 'icebreaker-protocol-v2'
+const CACHE_NAME = 'icebreaker-protocol-v3'
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -30,7 +30,7 @@ self.addEventListener('activate', (event) => {
   )
 })
 
-// Fetch: cache-first for static assets, network-first for API
+// Fetch: navigation network-first, static stale-while-revalidate, API network-first
 self.addEventListener('fetch', (event) => {
   const { request } = event
   const url = new URL(request.url)
@@ -38,7 +38,7 @@ self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (request.method !== 'GET') return
 
-  // API requests: network first, fallback to offline page
+  // API requests: network first, fallback to offline response
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
       fetch(request).catch(() => {
@@ -51,37 +51,44 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // Static assets: cache first, then network
-  event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) {
-        // Return cached response and update cache in background
-        fetch(request)
-          .then((response) => {
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(request, response)
-            })
-          })
-          .catch(() => {})
-        return cached
-      }
-
-      return fetch(request).then((response) => {
-        // Cache successful responses
-        if (response.ok) {
+  // Navigation requests: network first, fallback to cached index.html
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          // Update cache with fresh HTML
           const clone = response.clone()
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(request, clone)
           })
-        }
-        return response
-      }).catch(() => {
-        // Fallback for navigation requests
-        if (request.mode === 'navigate') {
-          return caches.match('./index.html')
-        }
-        return new Response('Offline', { status: 503 })
-      })
+          return response
+        })
+        .catch(() => {
+          return caches.match('./index.html').then((cached) => {
+            if (cached) return cached
+            return new Response('Offline', { status: 503 })
+          })
+        })
+    )
+    return
+  }
+
+  // Static assets: stale-while-revalidate (return cached immediately, update in background)
+  event.respondWith(
+    caches.match(request).then((cached) => {
+      const fetchPromise = fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone()
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(request, clone)
+            })
+          }
+          return response
+        })
+        .catch(() => cached)
+
+      return cached || fetchPromise
     })
   )
 })
