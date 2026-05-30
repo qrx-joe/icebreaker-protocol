@@ -40,6 +40,7 @@ export function applyAIResponse(data) {
       state.stepOutputs = new Array(state.steps.length).fill('');
     } else {
       state.steps = incomingSteps;
+      state.stepOutputs = state.steps.map((_, index) => state.stepOutputs[index] || '');
     }
   }
 

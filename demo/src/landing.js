@@ -1,4 +1,4 @@
-import { state } from './state.js'
+import { beginNewSession, state } from './state.js'
 import { showPage } from './ui.js'
 import { showContractLoading, setContractButtonsDisabled, clearContractLoading } from './contract.js'
 import { sendToAI } from './api.js'
@@ -12,6 +12,7 @@ export function startProtocol() {
     input.setAttribute('placeholder', '随便写点什么，不许空白');
     return;
   }
+  beginNewSession({ preserveAttachments: true });
   input.value = '';
   state.currentPhase = 'contract';
   showPage('pageContract');

@@ -47,7 +47,7 @@
 /* 评价表单 */
 .review-form {
   width: 100%;
-  max-width: 560px;
+  max-width: 720px;
   display: flex;
   flex-direction: column;
   gap: 1.2rem;
@@ -212,9 +212,108 @@
 /* 结果面板 */
 .review-result {
   width: 100%;
-  max-width: 560px;
+  max-width: 720px;
   margin-bottom: 1.5rem;
 }
+
+.ai-review-loading,
+.ai-review-summary,
+.ai-review-section,
+.ai-review-dimension {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.035);
+  text-align: left;
+}
+
+.ai-review-loading {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.4rem;
+  color: rgba(226, 232, 240, 0.86);
+}
+
+.ai-review-loading span {
+  display: block;
+  margin-top: 0.25rem;
+  color: rgba(199, 210, 224, 0.55);
+  font-size: 0.9rem;
+}
+
+.ai-review-summary {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.25rem 1.5rem;
+}
+
+.ai-review-section {
+  padding: 1.2rem 1.4rem;
+}
+
+.ai-review-section.priority {
+  border-color: rgba(56, 189, 248, 0.26);
+  background: rgba(56, 189, 248, 0.055);
+}
+
+.ai-review-section h3 {
+  margin: 0 0 0.65rem;
+  color: #e5e7eb;
+  font-size: 1rem;
+}
+
+.ai-review-section p,
+.ai-review-section li {
+  color: rgba(199, 210, 224, 0.76);
+  line-height: 1.7;
+}
+
+.ai-review-section ul {
+  margin: 0;
+  padding-left: 1.15rem;
+}
+
+.ai-review-dimensions {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.ai-review-dimension {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.4rem 1rem;
+  padding: 1rem 1.15rem;
+}
+
+.ai-review-dimension strong,
+.ai-review-dimension span {
+  display: block;
+}
+
+.ai-review-dimension strong {
+  color: #e5e7eb;
+}
+
+.ai-review-dimension span,
+.ai-review-dimension p {
+  color: rgba(199, 210, 224, 0.58);
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.ai-review-dimension p {
+  grid-column: 1 / -1;
+  margin: 0.25rem 0 0;
+}
+
+.ai-review-dimension b {
+  font-size: 1.05rem;
+}
+
+.score-low { color: #fb7185; }
+.score-mid { color: #fbbf24; }
+.score-high { color: #34d399; }
 
 .review-score-board {
   display: flex;

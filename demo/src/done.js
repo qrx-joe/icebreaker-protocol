@@ -1,5 +1,5 @@
-import { state, saveSnapshot, clearSnapshot, appendHistory } from './state.js'
-import { showPage } from './ui.js'
+import { beginNewSession, state, saveSnapshot, clearSnapshot, appendHistory } from './state.js'
+import { applyLandingCopy, showPage } from './ui.js'
 import { buildMarkdownContent, formatDuration } from './utils.js'
 import { apiAttachments, renderAttachments } from './attachments.js'
 import { showRoadmap } from './roadmap.js'
@@ -134,9 +134,6 @@ function markHistoryArchived(id) {
 
 // ==================== 评价入口 ====================
 export function goToReview() {
-  // 先下载 Markdown 作为备份
-  downloadMarkdown();
-  // 然后进入评价页
   showReview();
 }
 
@@ -285,18 +282,9 @@ export function downloadMarkdown() {
 
 // ==================== 重置 ====================
 export function resetAll() {
-  state.chatHistory = [];
-  state.currentTask = '';
+  beginNewSession();
   state.currentPhase = 'landing';
-  state.steps = [];
-  state.stepOutputs = [];
-  state.currentStepIdx = 0;
-  state.helpHistory = [];
-  state.attachments = [];
   renderAttachments();
-  state.sessionLog = [];
-  state.improvementRound = 0;
-  if (state.stepTimerInterval) clearInterval(state.stepTimerInterval);
   stopInactivityMonitor();
   clearSnapshot();
 

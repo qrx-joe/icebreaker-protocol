@@ -64,6 +64,31 @@ export const state = {
   contractBusy: false,
 };
 
+export function beginNewSession({ preserveAttachments = false } = {}) {
+  const attachments = preserveAttachments ? state.attachments : [];
+  state.chatHistory = [];
+  state.currentTask = '';
+  state.steps = [];
+  state.stepOutputs = [];
+  state.currentStepIdx = 0;
+  state.helpHistory = [];
+  state.attachments = attachments;
+  state.sessionLog = [];
+  state.improvementRound = 0;
+  state.improvementTargetIdx = 0;
+  state.currentHistoryId = '';
+  state.inactivityTriggered = false;
+  state.isFinishing = false;
+  if (state.stepTimerInterval) {
+    clearInterval(state.stepTimerInterval);
+    state.stepTimerInterval = null;
+  }
+  state.stepTimeRemaining = 0;
+  state.stepTotalSeconds = 0;
+  state.stepTimerPhase = 'draft';
+  state.stepStartTime = 0;
+}
+
 // ==================== localStorage 持久化 ====================
 const LS_KEY_SNAPSHOT = 'ib_session_snapshot';
 export const LS_KEY_HISTORY  = 'ib_session_history';
@@ -225,6 +250,7 @@ export function clearHistoryData() {
 
 // Legacy bridge: expose to window for HTML inline onclick and inter-module compatibility
 window.state = state;
+window.beginNewSession = beginNewSession;
 window.saveSettings = saveSettings;
 window.loadSettings = loadSettings;
 window.saveSnapshot = saveSnapshot;
