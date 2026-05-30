@@ -134,7 +134,7 @@ function saveReviewHistory(entry) {
 // ==================== 渲染 ====================
 
 export function showReview() {
-  currentPhase = 'review'
+  state.currentPhase = 'review'
   renderReviewForm()
   updateReviewResult()
   showPage('pageReview')
