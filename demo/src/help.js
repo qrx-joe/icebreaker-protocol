@@ -1,5 +1,6 @@
 import {
-  currentTask, steps, currentStepIdx, stepOutputs, helpHistory, isChatting, saveSnapshot
+  currentTask, steps, currentStepIdx, stepOutputs, helpHistory, isChatting, saveSnapshot,
+  setIsChatting, clearHelpHistory
 } from './state.js'
 import { attachmentContextText, apiAttachments } from './attachments.js'
 
@@ -149,7 +150,7 @@ export function applyToEditor(text) {
 export function openHelp() {
   const drawer = document.getElementById('helpDrawer');
   drawer.classList.add('active');
-  helpHistory = [];
+  clearHelpHistory();
   const container = document.getElementById('helpMessages');
   container.replaceChildren();
 
@@ -253,7 +254,7 @@ export async function sendHelp() {
   container.appendChild(wrapper);
   container.scrollTop = container.scrollHeight;
 
-  isChatting = true;
+  setIsChatting(true);
   try {
     const contextSummary = buildContextSummary();
     const contextualMessage = `[系统上下文]\n${contextSummary}\n\n[用户问题]\n${message}`;
@@ -332,7 +333,7 @@ export async function sendHelp() {
     bubble.style.cssText = '';
     bubble.textContent = '出错了，请重试。';
   } finally {
-    isChatting = false;
+    setIsChatting(false);
     input.focus();
   }
 }

@@ -8,6 +8,7 @@ import { apiAttachments, renderAttachments } from './attachments.js'
 import { showRoadmap } from './roadmap.js'
 import { goToStep } from './steps.js'
 import { stopInactivityMonitor } from './inactivity.js'
+import { showReview } from './review.js'
 
 // ==================== Done ====================
 export function showDone() {
@@ -18,7 +19,7 @@ export function showDone() {
   // 渲染破冰战报
   document.querySelector('.done-title').textContent = '雏形已生成';
   document.getElementById('doneAiMsg').textContent =
-    `你完成了 ${sessionLog.length || steps.length || 0} 个可见块。现在先导出，或只改一处。`;
+    `你完成了 ${sessionLog.length || steps.length || 0} 个可见块。现在先评价，或只改一处。`;
   renderBattleReport();
 
   // 保存到历史记录
@@ -38,6 +39,14 @@ export function showDone() {
 
   clearSnapshot();
   showPage('pageDone');
+}
+
+// ==================== 评价入口 ====================
+export function goToReview() {
+  // 先下载 Markdown 作为备份
+  downloadMarkdown();
+  // 然后进入评价页
+  showReview();
 }
 
 // ==================== 改进循环 ====================
@@ -211,6 +220,7 @@ export function resetAll() {
 
 // Legacy bridge
 window.showDone = showDone;
+window.goToReview = goToReview;
 window.startImprovement = startImprovement;
 window.showImprovementRoadmap = showImprovementRoadmap;
 window.confirmImprovement = confirmImprovement;

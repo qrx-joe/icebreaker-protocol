@@ -19,6 +19,7 @@ const CORE_FILES = [
   'roadmap.js',
   'steps.js',
   'done.js',
+  'review.js',
   'settings.js',
   'history.js',
   'init.js',

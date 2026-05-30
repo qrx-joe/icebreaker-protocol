@@ -218,6 +218,15 @@ export function clearHistoryData() {
   localStorage.removeItem(LS_KEY_HISTORY);
 }
 
+// Setter functions for module-bound variables (avoid illegal reassignment in Rollup)
+export function setIsChatting(value) {
+  isChatting = value;
+}
+
+export function clearHelpHistory() {
+  helpHistory.length = 0;
+}
+
 // Legacy bridge: expose to window for HTML inline onclick and inter-module compatibility
 window.chatHistory = chatHistory;
 window.currentTask = currentTask;
