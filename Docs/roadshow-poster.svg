@@ -1,0 +1,165 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">破冰协议路演宣传海报</title>
+  <desc id="desc">面向完美主义者的 AI 启动协议宣传海报</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbfbf4"/>
+      <stop offset="0.34" stop-color="#f5f1e4"/>
+      <stop offset="0.68" stop-color="#eaf8ff"/>
+      <stop offset="1" stop-color="#f7fff0"/>
+    </linearGradient>
+    <linearGradient id="timer" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#c9ff4a"/>
+      <stop offset="0.52" stop-color="#27d7ff"/>
+      <stop offset="1" stop-color="#ff5c43"/>
+    </linearGradient>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M 48 0 L 0 0 0 48" fill="none" stroke="#10131a" stroke-opacity="0.065" stroke-width="1"/>
+    </pattern>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="12" dy="12" stdDeviation="0" flood-color="#10131a" flood-opacity="0.16"/>
+    </filter>
+    <style>
+      .font { font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", Arial, sans-serif; }
+      .ink { fill: #10131a; }
+      .muted { fill: #3f4654; }
+      .heavy { font-weight: 900; }
+      .black { font-weight: 1000; }
+      .stroke { stroke: #10131a; stroke-width: 4; }
+    </style>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <circle cx="1510" cy="175" r="315" fill="#ffd166" opacity="0.48"/>
+  <circle cx="1785" cy="905" r="320" fill="#27d7ff" opacity="0.38"/>
+  <rect width="1920" height="1080" fill="url(#grid)" opacity="0.82"/>
+  <rect x="1440" y="-205" width="720" height="720" fill="none" stroke="#2448ff" stroke-opacity="0.13" stroke-width="72" transform="rotate(18 1800 155)"/>
+
+  <g class="font">
+    <g transform="translate(86 76)">
+      <g transform="rotate(-8 33 33)">
+        <rect x="10" y="10" width="66" height="66" rx="18" fill="#27d7ff"/>
+        <rect x="0" y="0" width="66" height="66" rx="18" fill="#10131a"/>
+        <rect x="18" y="10" width="11" height="46" fill="#fbfbf4" transform="rotate(28 23.5 33)"/>
+        <rect x="36" y="10" width="11" height="46" fill="#fbfbf4" transform="rotate(-28 41.5 33)"/>
+      </g>
+      <text x="92" y="34" class="ink black" font-size="34">破冰协议</text>
+      <text x="92" y="64" fill="#6d7280" font-size="17" font-weight="800">ICEBREAKER PROTOCOL</text>
+    </g>
+
+    <g transform="translate(86 198)" filter="url(#softShadow)">
+      <rect x="0" y="0" width="424" height="62" rx="31" fill="#c9ff4a" class="stroke"/>
+      <circle cx="31" cy="31" r="9" fill="#ff5c43" class="stroke"/>
+      <text x="56" y="40" class="ink black" font-size="24">面向完美主义者的 AI 启动协议</text>
+    </g>
+
+    <text x="86" y="366" class="ink black" font-size="108">
+      <tspan x="86" dy="0">别再准备了，</tspan>
+      <tspan x="86" dy="116">先交出一个</tspan>
+    </text>
+    <rect x="84" y="498" width="592" height="60" fill="#ffd166"/>
+    <text x="102" y="552" class="ink black font" font-size="108">能改的版本</text>
+
+    <text x="88" y="638" class="muted heavy" font-size="34">
+      <tspan x="88" dy="0">破冰协议不管理任务、不灌鸡汤。</tspan>
+      <tspan x="88" dy="46">它把“想太多但动不了”的状态，</tspan>
+      <tspan x="88" dy="46">推进到“手里已经有一个雏形”。</tspan>
+    </text>
+
+    <g transform="translate(86 768)" filter="url(#softShadow)">
+      <rect x="0" y="0" width="254" height="130" rx="8" fill="#ffffff" fill-opacity="0.78" class="stroke"/>
+      <text x="22" y="47" class="ink black" font-size="29">启动契约</text>
+      <text x="22" y="82" class="muted heavy" font-size="18">目标从“做好”降维成</text>
+      <text x="22" y="108" class="muted heavy" font-size="18">“先做出”。</text>
+
+      <rect x="282" y="0" width="254" height="130" rx="8" fill="#ffffff" fill-opacity="0.78" class="stroke"/>
+      <text x="304" y="47" class="ink black" font-size="29">限时拆解</text>
+      <text x="304" y="82" class="muted heavy" font-size="18">3-6 个可见产出块，</text>
+      <text x="304" y="108" class="muted heavy" font-size="18">每步 1-15 分钟。</text>
+
+      <rect x="564" y="0" width="254" height="130" rx="8" fill="#ffffff" fill-opacity="0.78" class="stroke"/>
+      <text x="586" y="47" class="ink black" font-size="29">只改一处</text>
+      <text x="586" y="82" class="muted heavy" font-size="18">AI 指定改进点，</text>
+      <text x="586" y="108" class="muted heavy" font-size="18">阻断无限优化。</text>
+    </g>
+
+    <g transform="translate(86 956)">
+      <rect x="0" y="-44" width="544" height="74" rx="8" fill="#10131a"/>
+      <rect x="10" y="-34" width="544" height="74" rx="8" fill="#ff5c43"/>
+      <rect x="0" y="-44" width="544" height="74" rx="8" fill="#10131a"/>
+      <text x="34" y="5" fill="#ffffff" class="black" font-size="31">现场 Demo：15 分钟，从空白到雏形</text>
+      <text x="590" y="-22" class="muted heavy" font-size="21">
+        <tspan x="590" dy="0">适合创作、求职、编程、项目路演，</tspan>
+        <tspan x="590" dy="30">以及任何“知道该做却迟迟没动”的任务。</tspan>
+      </text>
+    </g>
+
+    <g transform="translate(1036 142)">
+      <g transform="rotate(-6 177 210)" filter="url(#softShadow)">
+        <rect x="0" y="0" width="354" height="420" rx="10" fill="#e8fbff" class="stroke"/>
+        <path d="M0 60 L354 0 M0 140 L354 80 M0 220 L354 160 M0 300 L354 240 M0 380 L354 320" stroke="#2448ff" stroke-opacity="0.18" stroke-width="16"/>
+        <text x="32" y="83" class="ink black" font-size="50">
+          <tspan x="32" dy="0">脑子在转</tspan>
+          <tspan x="32" dy="58">手却冻住</tspan>
+        </text>
+        <text x="32" y="212" class="muted heavy" font-size="23">
+          <tspan x="32" dy="0">害怕做不好，</tspan>
+          <tspan x="32" dy="32">所以一直停在</tspan>
+          <tspan x="32" dy="32">准备阶段。</tspan>
+        </text>
+      </g>
+
+      <g transform="translate(318 232) rotate(-2)" filter="url(#softShadow)">
+        <rect x="0" y="0" width="230" height="44" fill="#ff5c43" class="stroke"/>
+        <path d="M230 -22 L282 22 L230 66 Z" fill="#ff5c43" class="stroke"/>
+      </g>
+
+      <g transform="translate(500 0) rotate(4 226 300)" filter="url(#softShadow)">
+        <rect x="0" y="0" width="452" height="600" rx="10" fill="#ffffff" class="stroke"/>
+        <circle cx="42" cy="38" r="9" fill="#ff5c43" class="stroke"/>
+        <circle cx="72" cy="38" r="9" fill="#ffd166" class="stroke"/>
+        <circle cx="102" cy="38" r="9" fill="#c9ff4a" class="stroke"/>
+        <line x1="28" y1="72" x2="424" y2="72" stroke="#dfe4ed" stroke-width="3"/>
+        <text x="28" y="130" class="ink black" font-size="34">[Protocol] 已接管当前任务</text>
+
+        <g class="heavy" font-size="22">
+          <circle cx="47" cy="182" r="19" fill="#2448ff" class="stroke"/>
+          <text x="40" y="190" fill="#fff" font-size="19">1</text>
+          <rect x="74" y="160" width="320" height="50" rx="8" fill="#f7f8fb" stroke="#dfe4ed" stroke-width="3"/>
+          <text x="92" y="193" class="ink">写下最粗糙的目标</text>
+
+          <circle cx="47" cy="250" r="19" fill="#2448ff" class="stroke"/>
+          <text x="40" y="258" fill="#fff" font-size="19">2</text>
+          <rect x="74" y="228" width="320" height="50" rx="8" fill="#f7f8fb" stroke="#dfe4ed" stroke-width="3"/>
+          <text x="92" y="261" class="ink">拆成可交付步骤</text>
+
+          <circle cx="47" cy="318" r="19" fill="#2448ff" class="stroke"/>
+          <text x="40" y="326" fill="#fff" font-size="19">3</text>
+          <rect x="74" y="296" width="320" height="50" rx="8" fill="#f7f8fb" stroke="#dfe4ed" stroke-width="3"/>
+          <text x="92" y="329" class="ink">乱写、修整、提交</text>
+
+          <circle cx="47" cy="386" r="19" fill="#2448ff" class="stroke"/>
+          <text x="40" y="394" fill="#fff" font-size="19">4</text>
+          <rect x="74" y="364" width="320" height="50" rx="8" fill="#f7f8fb" stroke="#dfe4ed" stroke-width="3"/>
+          <text x="92" y="397" class="ink">导出 Markdown 雏形</text>
+        </g>
+
+        <rect x="28" y="452" width="396" height="108" rx="8" fill="#10131a"/>
+        <text x="46" y="493" fill="#ffffff" class="black" font-size="24">三阶段倒计时</text>
+        <text x="296" y="504" fill="#c9ff4a" class="black" font-size="38">08:42</text>
+        <rect x="46" y="526" width="340" height="16" rx="8" fill="#404653"/>
+        <rect x="46" y="526" width="245" height="16" rx="8" fill="url(#timer)"/>
+      </g>
+    </g>
+
+    <g transform="translate(1240 914)" filter="url(#softShadow)">
+      <rect x="0" y="0" width="610" height="116" rx="10" fill="#ffffff" fill-opacity="0.82" class="stroke"/>
+      <circle cx="58" cy="58" r="54" fill="#2448ff" class="stroke"/>
+      <text x="31" y="54" fill="#ffffff" class="black" font-size="26">LIVE</text>
+      <text x="28" y="82" fill="#ffffff" class="black" font-size="26">DEMO</text>
+      <text x="136" y="43" class="ink black" font-size="31">不是效率工具，是交付起搏器。</text>
+      <text x="136" y="78" class="muted heavy" font-size="21">让路人一眼看懂：这个产品解决的是</text>
+      <text x="136" y="106" class="muted heavy" font-size="21">“从想法到第一版”的临门一脚。</text>
+    </g>
+  </g>
+</svg>

@@ -1,9 +1,4 @@
-import {
-  chatHistory, currentTask, currentPhase, steps, stepOutputs, currentStepIdx,
-  helpHistory, attachments, sessionLog, improvementRound,
-  timePreference, outputMode, protocolStrength,
-  loadSettings, loadSnapshot, clearSnapshot, saveSnapshot
-} from './state.js'
+import { state, loadSettings, loadSnapshot, clearSnapshot, saveSnapshot } from './state.js'
 import { ensureLandingConsoleV2, applyLandingCopy, updateLandingCountV2, renderBattleReport } from './ui.js'
 import { renderAttachments } from './attachments.js'
 import { updateTimePreferenceUI } from './settings.js'
@@ -14,36 +9,36 @@ import { showPage } from './ui.js'
 
 // ==================== 初始化 ====================
 function restoreFromSnapshot(s) {
-  chatHistory = s.chatHistory || [];
-  currentTask = s.currentTask || '';
-  currentPhase = s.currentPhase || 'step';
-  steps = s.steps || [];
-  stepOutputs = s.stepOutputs || [];
-  currentStepIdx = s.currentStepIdx || 0;
-  helpHistory = s.helpHistory || [];
-  attachments = (s.attachments || []).map(a => ({ name: a.name, size: a.size, type: a.type, data: a.data }));
-  sessionLog = s.sessionLog || [];
-  improvementRound = s.improvementRound || 0;
-  timePreference = s.timePreference || 'standard';
-  outputMode = s.outputMode || 'deliverable';
-  protocolStrength = s.protocolStrength || 'standard';
+  state.chatHistory = s.state.chatHistory || [];
+  state.currentTask = s.state.currentTask || '';
+  state.currentPhase = s.state.currentPhase || 'step';
+  state.steps = s.state.steps || [];
+  state.stepOutputs = s.state.stepOutputs || [];
+  state.currentStepIdx = s.state.currentStepIdx || 0;
+  state.helpHistory = s.state.helpHistory || [];
+  state.attachments = (s.state.attachments || []).map(a => ({ name: a.name, size: a.size, type: a.type, data: a.data }));
+  state.sessionLog = s.state.sessionLog || [];
+  state.improvementRound = s.state.improvementRound || 0;
+  state.timePreference = s.state.timePreference || 'standard';
+  state.outputMode = s.state.outputMode || 'deliverable';
+  state.protocolStrength = s.state.protocolStrength || 'standard';
   renderAttachments();
   updateTimePreferenceUI();
 
-  if (currentPhase === 'step') {
-    goToStep(currentStepIdx);
-    // 恢复 textarea 内容（goToStep 会从 stepOutputs 恢复，但如果用户最后修改了没保存，用快照值覆盖）
+  if (state.currentPhase === 'step') {
+    goToStep(state.currentStepIdx);
+    // 恢复 textarea 内容（goToStep 会从 state.stepOutputs 恢复，但如果用户最后修改了没保存，用快照值覆盖）
     const ta = document.getElementById('stepTextarea');
     if (ta && s.stepTextareaValue) ta.value = s.stepTextareaValue;
-  } else if (currentPhase === 'roadmap') {
-    showRoadmap(currentTask, steps, currentStepIdx);
-  } else if (currentPhase === 'done') {
+  } else if (state.currentPhase === 'roadmap') {
+    showRoadmap(state.currentTask, state.steps, state.currentStepIdx);
+  } else if (state.currentPhase === 'done') {
     // 恢复 done 页面时不重复保存历史
     document.getElementById('stepProgressFill').style.width = '100%';
     document.querySelector('.done-title').textContent = '雏形已生成';
     if (!document.getElementById('doneAiMsg').textContent) {
       document.getElementById('doneAiMsg').textContent =
-        `你完成了 ${sessionLog.length || steps.length || 0} 个可见块。现在先导出，或只改一处。`;
+        `你完成了 ${state.sessionLog.length || state.steps.length || 0} 个可见块。现在先导出，或只改一处。`;
     }
     renderBattleReport();
     showPage('pageDone');
@@ -60,17 +55,17 @@ export function initApp() {
     // 加载全局设置偏好
     const settings = loadSettings();
     if (settings) {
-      timePreference = settings.timePreference;
-      outputMode = settings.outputMode;
-      protocolStrength = settings.protocolStrength;
+      state.timePreference = settings.state.timePreference;
+      state.outputMode = settings.state.outputMode;
+      state.protocolStrength = settings.state.protocolStrength;
     }
 
     // 检查是否有未完成的会话快照
     const snap = loadSnapshot();
-    if (snap && snap.currentPhase !== 'landing' && snap.currentPhase !== 'done') {
+    if (snap && snap.state.currentPhase !== 'landing' && snap.state.currentPhase !== 'done') {
       const resume = await showModal({
         title: '恢复进度',
-        body: `检测到未完成的协议「${snap.currentTask || '未命名任务'}」（步骤 ${snap.currentStepIdx + 1} / ${snap.steps.length}）。\n\n是否恢复上次进度？`,
+        body: `检测到未完成的协议「${snap.state.currentTask || '未命名任务'}」（步骤 ${snap.state.currentStepIdx + 1} / ${snap.state.steps.length}）。\n\n是否恢复上次进度？`,
         confirmText: '恢复',
         cancelText: '放弃'
       });

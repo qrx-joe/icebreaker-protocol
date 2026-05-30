@@ -1,7 +1,4 @@
-import {
-  currentPhase, sessionLog, steps, stepOutputs, currentTask, chatHistory, helpHistory,
-  attachments, improvementRound, currentStepIdx, stepTimerInterval, saveSnapshot, clearSnapshot, appendHistory
-} from './state.js'
+import { state, saveSnapshot, clearSnapshot, appendHistory } from './state.js'
 import { showPage } from './ui.js'
 import { buildMarkdownContent, formatDuration } from './utils.js'
 import { apiAttachments, renderAttachments } from './attachments.js'
@@ -12,28 +9,28 @@ import { showReview } from './review.js'
 
 // ==================== Done ====================
 export function showDone() {
-  currentPhase = 'done';
+  state.currentPhase = 'done';
   // 更新进度条到 100%
   document.getElementById('stepProgressFill').style.width = '100%';
 
   // 渲染破冰战报
   document.querySelector('.done-title').textContent = '雏形已生成';
   document.getElementById('doneAiMsg').textContent =
-    `你完成了 ${sessionLog.length || steps.length || 0} 个可见块。现在先评价，或只改一处。`;
+    `你完成了 ${state.sessionLog.length || state.steps.length || 0} 个可见块。现在先评价，或只改一处。`;
   renderBattleReport();
 
   // 保存到历史记录
-  const totalTime = sessionLog.reduce((s, r) => s + r.time_spent_seconds, 0);
+  const totalTime = state.sessionLog.reduce((s, r) => s + r.time_spent_seconds, 0);
   appendHistory({
     id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2),
     ts: Date.now(),
-    task: currentTask,
-    totalSteps: steps.length,
-    completedSteps: sessionLog.length,
+    task: state.currentTask,
+    totalSteps: state.steps.length,
+    completedSteps: state.sessionLog.length,
     totalTimeSeconds: totalTime,
-    sessionLog: sessionLog.map(r => ({ step_title: r.step_title, step_index: r.step_index, summary: r.summary, time_spent_seconds: r.time_spent_seconds })),
-    steps: steps.map(s => ({ title: s.title, instruction: s.instruction, output: s.output, minutes: s.minutes })),
-    stepOutputs: stepOutputs.slice(),
+    sessionLog: state.sessionLog.map(r => ({ step_title: r.step_title, step_index: r.step_index, summary: r.summary, time_spent_seconds: r.time_spent_seconds })),
+    steps: state.steps.map(s => ({ title: s.title, instruction: s.instruction, output: s.output, minutes: s.minutes })),
+    stepOutputs: state.stepOutputs.slice(),
     doneAiMsg: document.getElementById('doneAiMsg')?.textContent || ''
   });
 
@@ -51,14 +48,14 @@ export function goToReview() {
 
 // ==================== 改进循环 ====================
 export async function startImprovement() {
-  improvementRound++;
+  state.improvementRound++;
   const btn = document.getElementById('btnImprove');
   btn.disabled = true;
   btn.textContent = '分析中...';
 
   // 构建所有步骤产出摘要
-  const outputsSummary = steps.map((s, i) => {
-    const output = stepOutputs[i] || '(无产出)';
+  const outputsSummary = state.steps.map((s, i) => {
+    const output = state.stepOutputs[i] || '(无产出)';
     return `步骤${i + 1}「${s.title}」: ${output}`;
   }).join('\n');
 
@@ -69,10 +66,10 @@ export async function startImprovement() {
       body: JSON.stringify({
         message: `基于以下所有步骤产出，找出最薄弱的一个点，给出一句具体的改进指令（不超过30字）。只返回JSON：{"step_index":0,"instruction":"具体改进指令"}\n\n${outputsSummary}`,
         phase: 'step',
-        task: currentTask,
-        steps,
+        task: state.currentTask,
+        steps: state.steps,
         current_step: 0,
-        outputs: stepOutputs,
+        outputs: state.stepOutputs,
         attachments: apiAttachments()
       })
     });
@@ -88,7 +85,7 @@ export async function startImprovement() {
       const match = reply.match(/\{.*\}/s);
       if (match) {
         const parsed = JSON.parse(match[0]);
-        targetIdx = Math.min(parsed.step_index || 0, steps.length - 1);
+        targetIdx = Math.min(parsed.step_index || 0, state.steps.length - 1);
         instruction = parsed.instruction || instruction;
       }
     } catch (e) { /* fallback */ }
@@ -99,13 +96,13 @@ export async function startImprovement() {
     document.getElementById('doneAiMsg').textContent = '分析失败，请重试。';
     btn.disabled = false;
     btn.textContent = '只改一处';
-    improvementRound--;
+    state.improvementRound--;
   }
 }
 
 export function showImprovementRoadmap(targetIdx, instruction) {
   // 设置标题
-  document.getElementById('roadmapTitle').textContent = `第 ${improvementRound} 轮改进`;
+  document.getElementById('roadmapTitle').textContent = `第 ${state.improvementRound} 轮改进`;
 
   // 清空常规 AI 消息，显示改进指令
   document.getElementById('roadmapAiMsg').textContent = '';
@@ -114,18 +111,18 @@ export function showImprovementRoadmap(targetIdx, instruction) {
 
   // 轮次警告
   const warningEl = document.getElementById('roadmapRoundWarning');
-  if (improvementRound >= 4) {
+  if (state.improvementRound >= 4) {
     warningEl.className = 'roadmap-round-warning danger';
-    warningEl.textContent = `[Protocol 警告]: 你已经进行了 ${improvementRound} 轮改进。继续修改的边际收益趋近于零。发布一个 80 分的产出，比打磨一个永远发不出去的 100 分更有价值。`;
-  } else if (improvementRound >= 3) {
+    warningEl.textContent = `[Protocol 警告]: 你已经进行了 ${state.improvementRound} 轮改进。继续修改的边际收益趋近于零。发布一个 80 分的产出，比打磨一个永远发不出去的 100 分更有价值。`;
+  } else if (state.improvementRound >= 3) {
     warningEl.className = 'roadmap-round-warning';
-    warningEl.textContent = `[Protocol]: 这是第 ${improvementRound} 轮改进。协议建议你完成这一轮后发布或提交。你的完美主义正在这里等着你——先把它发出去。`;
+    warningEl.textContent = `[Protocol]: 这是第 ${state.improvementRound} 轮改进。协议建议你完成这一轮后发布或提交。你的完美主义正在这里等着你——先把它发出去。`;
   } else {
     warningEl.textContent = '';
   }
 
   // 显示路线图，高亮目标步骤
-  showRoadmap(currentTask, steps, targetIdx);
+  showRoadmap(state.currentTask, state.steps, targetIdx);
 
   // 切换按钮：隐藏常规操作，显示改进操作
   document.getElementById('roadmapActions').style.display = 'none';
@@ -144,7 +141,7 @@ export function confirmImprovement() {
 }
 
 export function skipImprovement() {
-  improvementRound--;
+  state.improvementRound--;
   resetRoadmapMode();
   showDone();
 }
@@ -160,11 +157,11 @@ export function resetRoadmapMode() {
 // ==================== 导出 Markdown ====================
 export function buildMarkdown() {
   return buildMarkdownContent({
-    task: currentTask,
-    steps,
-    stepOutputs,
+    task: state.currentTask,
+    steps: state.steps,
+    stepOutputs: state.stepOutputs,
     doneAiMsg: document.getElementById('doneAiMsg')?.textContent?.trim() || '',
-    attachments
+    attachments: state.attachments
   });
 }
 
@@ -187,25 +184,25 @@ export function downloadMarkdown() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${(currentTask || '破冰协议产出').replace(/[/\\:*?"<>|]/g, '_')}.md`;
+  a.download = `${(state.currentTask || '破冰协议产出').replace(/[/\\:*?"<>|]/g, '_')}.md`;
   a.click();
   URL.revokeObjectURL(url);
 }
 
 // ==================== 重置 ====================
 export function resetAll() {
-  chatHistory = [];
-  currentTask = '';
-  currentPhase = 'landing';
-  steps = [];
-  stepOutputs = [];
-  currentStepIdx = 0;
-  helpHistory = [];
-  attachments = [];
+  state.chatHistory = [];
+  state.currentTask = '';
+  state.currentPhase = 'landing';
+  state.steps = [];
+  state.stepOutputs = [];
+  state.currentStepIdx = 0;
+  state.helpHistory = [];
+  state.attachments = [];
   renderAttachments();
-  sessionLog = [];
-  improvementRound = 0;
-  if (stepTimerInterval) clearInterval(stepTimerInterval);
+  state.sessionLog = [];
+  state.improvementRound = 0;
+  if (state.stepTimerInterval) clearInterval(state.stepTimerInterval);
   stopInactivityMonitor();
   clearSnapshot();
 

@@ -1,19 +1,19 @@
-import { inactivityTriggered, inactivityTimer } from './state.js'
+import { state } from './state.js'
 import { openHelp } from './help.js'
 
 // ==================== 无活动监控 ====================
 export function startInactivityMonitor() {
   stopInactivityMonitor();
-  inactivityTriggered = false;
+  state.inactivityTriggered = false;
   const ta = document.getElementById('stepTextarea');
   if (!ta) return;
 
   const resetTimer = () => {
-    if (inactivityTriggered) return;
-    if (inactivityTimer) clearTimeout(inactivityTimer);
+    if (state.inactivityTriggered) return;
+    if (state.inactivityTimer) clearTimeout(state.inactivityTimer);
     const pill = document.getElementById('pillHelp');
     if (pill) pill.classList.remove('pulse');
-    inactivityTimer = setTimeout(onInactivityTimeout, 60000);
+    state.inactivityTimer = setTimeout(onInactivityTimeout, 60000);
   };
 
   ta.addEventListener('input', resetTimer);
@@ -23,9 +23,9 @@ export function startInactivityMonitor() {
 }
 
 export function stopInactivityMonitor() {
-  if (inactivityTimer) {
-    clearTimeout(inactivityTimer);
-    inactivityTimer = null;
+  if (state.inactivityTimer) {
+    clearTimeout(state.inactivityTimer);
+    state.inactivityTimer = null;
   }
   const ta = document.getElementById('stepTextarea');
   if (ta && ta._inactivityReset) {
@@ -37,8 +37,8 @@ export function stopInactivityMonitor() {
 }
 
 function onInactivityTimeout() {
-  if (inactivityTriggered) return;
-  inactivityTriggered = true;
+  if (state.inactivityTriggered) return;
+  state.inactivityTriggered = true;
 
   // 药丸按钮变色脉冲
   const pill = document.getElementById('pillHelp');

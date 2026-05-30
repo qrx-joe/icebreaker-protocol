@@ -1,5 +1,4 @@
-import { attachments, saveSnapshot } from './state.js'
-
+import { state, saveSnapshot } from './state.js'
 // ==================== 附件处理 ====================
 export function isReadableAttachment(file) {
   const name = file.name.toLowerCase();
@@ -26,7 +25,7 @@ export function fileToBase64(file) {
 
 export async function parseAttachmentOnServer(file) {
   const dataBase64 = await fileToBase64(file);
-  const response = await fetch('/api/attachments/parse', {
+  const response = await fetch('/api/state.attachments/parse', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -50,7 +49,7 @@ export function renderAttachments() {
   const list = document.getElementById('attachmentList');
   if (!list) return;
   list.replaceChildren();
-  attachments.forEach((item, index) => {
+  state.attachments.forEach((item, index) => {
     const chip = document.createElement('div');
     chip.className = 'attachment-chip';
     chip.title = item.text ? `${item.name}\n${item.text.slice(0, 500)}` : `${item.name}\n${item.error || '未解析内容，仅记录文件名'}`;
@@ -61,7 +60,7 @@ export function renderAttachments() {
     remove.type = 'button';
     remove.textContent = '×';
     remove.onclick = () => {
-      attachments.splice(index, 1);
+      state.attachments.splice(index, 1);
       renderAttachments();
     };
     chip.append(label, remove);
@@ -71,15 +70,15 @@ export function renderAttachments() {
 }
 
 export function attachmentContextText() {
-  if (!attachments.length) return '';
-  return attachments.map((item, index) => {
+  if (!state.attachments.length) return '';
+  return state.attachments.map((item, index) => {
     const text = item.text ? `\n${item.text.slice(0, 1500)}` : '\n（未解析正文，仅可参考文件名）';
     return `附件 ${index + 1}: ${item.name} (${item.type || 'unknown'}, ${formatAttachmentSize(item.size)})${text}`;
   }).join('\n\n');
 }
 
 export function apiAttachments() {
-  return attachments.map(item => ({
+  return state.attachments.map(item => ({
     name: item.name,
     type: item.type,
     size: item.size,
@@ -107,37 +106,37 @@ export async function handleAttachmentUpload(fileList) {
     if (isBackendParsableAttachment(file)) {
       try {
         const parsed = await parseAttachmentOnServer(file);
-        attachments.push({
+        state.attachments.push({
           ...base,
           size: parsed.size || file.size,
           text: parsed.text || '',
           error: parsed.error || (parsed.parsed ? '' : '未提取到文本')
         });
       } catch (err) {
-        attachments.push({ ...base, error: '后端解析失败' });
+        state.attachments.push({ ...base, error: '后端解析失败' });
       }
       renderAttachments();
       continue;
     }
 
     if (!isReadableAttachment(file)) {
-      attachments.push(base);
+      state.attachments.push(base);
       renderAttachments();
       continue;
     }
 
     try {
       const text = await file.text();
-      attachments.push({ ...base, text: text.slice(0, 60000) });
+      state.attachments.push({ ...base, text: text.slice(0, 60000) });
     } catch (err) {
-      attachments.push({ ...base, error: '前端读取失败' });
+      state.attachments.push({ ...base, error: '前端读取失败' });
     }
     renderAttachments();
   }
 
   if (warning && files.length) {
     warning.style.color = '#38bdf8';
-    const parsedCount = attachments.filter(item => item.text).length;
+    const parsedCount = state.attachments.filter(item => item.text).length;
     warning.textContent = `[Protocol]: 已挂载 ${files.length} 个附件，${parsedCount} 个可进入 AI 上下文。`;
   }
 }

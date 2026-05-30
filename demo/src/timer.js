@@ -1,43 +1,43 @@
-import { stepTimerInterval, stepTimeRemaining, stepTotalSeconds, stepTimerPhase } from './state.js'
+import { state } from './state.js'
 import { finishStep } from './steps.js'
 
 // ==================== 计时器 ====================
 export function startStepTimer(seconds) {
-  if (stepTimerInterval) clearInterval(stepTimerInterval);
-  stepTimeRemaining = seconds;
-  stepTotalSeconds = seconds;
-  stepTimerPhase = 'draft'; // draft → refine → panic
+  if (state.stepTimerInterval) clearInterval(state.stepTimerInterval);
+  state.stepTimeRemaining = seconds;
+  state.stepTotalSeconds = seconds;
+  state.stepTimerPhase = 'draft'; // draft → refine → panic
   updateTimerDisplay();
   applyTimerPhase('draft');
 
   // 显示乱写期指令
   showPhaseMessage('draft');
 
-  stepTimerInterval = setInterval(() => {
-    stepTimeRemaining--;
+  state.stepTimerInterval = setInterval(() => {
+    state.stepTimeRemaining--;
     updateTimerDisplay();
 
-    const elapsed = stepTotalSeconds - stepTimeRemaining;
-    const draftEnd = Math.floor(stepTotalSeconds * 0.3);
+    const elapsed = state.stepTotalSeconds - state.stepTimeRemaining;
+    const draftEnd = Math.floor(state.stepTotalSeconds * 0.3);
     const panicStart = 60;
 
     // 阶段切换：乱写期 → 修整期
-    if (stepTimerPhase === 'draft' && elapsed >= draftEnd) {
-      stepTimerPhase = 'refine';
+    if (state.stepTimerPhase === 'draft' && elapsed >= draftEnd) {
+      state.stepTimerPhase = 'refine';
       applyTimerPhase('refine');
       showPhaseMessage('refine');
     }
 
     // 阶段切换：修整期 → 紧急状态
-    if (stepTimerPhase === 'refine' && stepTimeRemaining <= panicStart) {
-      stepTimerPhase = 'panic';
+    if (state.stepTimerPhase === 'refine' && state.stepTimeRemaining <= panicStart) {
+      state.stepTimerPhase = 'panic';
       applyTimerPhase('panic');
       showPhaseMessage('panic');
     }
 
-    if (stepTimeRemaining <= 0) {
-      clearInterval(stepTimerInterval);
-      stepTimerInterval = null;
+    if (state.stepTimeRemaining <= 0) {
+      clearInterval(state.stepTimerInterval);
+      state.stepTimerInterval = null;
       showOvertimeActions();
     }
   }, 1000);
@@ -51,7 +51,7 @@ export function applyTimerPhase(phase) {
 
 export function showPhaseMessage(phase) {
   const el = document.getElementById('stepWarning');
-  const remaining = stepTimeRemaining;
+  const remaining = state.stepTimeRemaining;
   const mins = Math.floor(remaining / 60);
   const secs = remaining % 60;
 
@@ -83,8 +83,8 @@ export function showPhaseMessage(phase) {
 }
 
 export function updateTimerDisplay() {
-  const m = Math.floor(stepTimeRemaining / 60);
-  const s = stepTimeRemaining % 60;
+  const m = Math.floor(state.stepTimeRemaining / 60);
+  const s = state.stepTimeRemaining % 60;
   const display = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
   document.getElementById('stepTimer').textContent = display;
 }

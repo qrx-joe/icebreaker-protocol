@@ -1,9 +1,4 @@
-import {
-  recognition, isRecording, voiceTranscript,
-  landingRecognition, isLandingRecording, landingVoiceTranscript,
-  mainRecognition, isMainRecording, mainVoiceTranscript,
-  currentStepIdx, stepOutputs
-} from './state.js'
+import { state } from './state.js'
 import { showToast } from './notify.js'
 import { updateRunBtn } from './help.js'
 
@@ -29,10 +24,10 @@ export function initSpeechRecognition() {
         interim += transcript;
       }
     }
-    if (final) voiceTranscript += final;
+    if (final) state.voiceTranscript += final;
     // 实时更新输入框预览
     const input = document.getElementById('helpInput');
-    const display = voiceTranscript + interim;
+    const display = state.voiceTranscript + interim;
     input.value = display;
     updateRunBtn();
   };
@@ -47,7 +42,7 @@ export function initSpeechRecognition() {
 
   rec.onend = () => {
     // 如果还在录音状态但识别自动结束了，重启（连续模式）
-    if (isRecording) {
+    if (state.isRecording) {
       try { rec.start(); } catch (e) { stopRecording(); }
     }
   };
@@ -56,7 +51,7 @@ export function initSpeechRecognition() {
 }
 
 export function toggleVoice() {
-  if (isRecording) {
+  if (state.isRecording) {
     stopRecording();
   } else {
     startRecording();
@@ -64,14 +59,14 @@ export function toggleVoice() {
 }
 
 export function startRecording() {
-  if (!recognition) recognition = initSpeechRecognition();
-  if (!recognition) {
+  if (!state.recognition) state.recognition = initSpeechRecognition();
+  if (!state.recognition) {
     showVoiceHint('当前浏览器不支持语音输入，请使用 Chrome 或 Edge。');
     return;
   }
 
-  isRecording = true;
-  voiceTranscript = '';
+  state.isRecording = true;
+  state.voiceTranscript = '';
 
   const btn = document.getElementById('btnMic');
   const row = document.getElementById('helpInputRow');
@@ -85,14 +80,14 @@ export function startRecording() {
   showVoiceHint('🎙️ 意识流捕捉中。说出来，不管多乱，[Protocol] 帮你提纯。');
 
   try {
-    recognition.start();
+    state.recognition.start();
   } catch (e) {
     stopRecording();
   }
 }
 
 export function stopRecording() {
-  isRecording = false;
+  state.isRecording = false;
 
   const btn = document.getElementById('btnMic');
   const row = document.getElementById('helpInputRow');
@@ -102,11 +97,11 @@ export function stopRecording() {
   row.classList.remove('voice-active');
   input.placeholder = '输入指令...';
 
-  if (recognition) {
-    try { recognition.stop(); } catch (e) {}
+  if (state.recognition) {
+    try { state.recognition.stop(); } catch (e) {}
   }
 
-  const raw = voiceTranscript.trim();
+  const raw = state.voiceTranscript.trim();
   if (!raw) {
     clearVoiceHint();
     return;
@@ -134,7 +129,7 @@ export function clearVoiceHint() {
 
 // ==================== 首页语音输入 ====================
 export function toggleLandingVoice() {
-  if (isLandingRecording) {
+  if (state.isLandingRecording) {
     stopLandingRecording();
   } else {
     startLandingRecording();
@@ -142,18 +137,18 @@ export function toggleLandingVoice() {
 }
 
 export function startLandingRecording() {
-  if (!landingRecognition) {
+  if (!state.landingRecognition) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       showToast('当前浏览器不支持语音输入，请使用 Chrome 或 Edge。', 'warning', 5000);
       return;
     }
-    landingRecognition = new SpeechRecognition();
-    landingRecognition.lang = 'zh-CN';
-    landingRecognition.continuous = true;
-    landingRecognition.interimResults = true;
+    state.landingRecognition = new SpeechRecognition();
+    state.landingRecognition.lang = 'zh-CN';
+    state.landingRecognition.continuous = true;
+    state.landingRecognition.interimResults = true;
 
-    landingRecognition.onresult = (event) => {
+    state.landingRecognition.onresult = (event) => {
       let interim = '';
       let final = '';
       for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -164,27 +159,27 @@ export function startLandingRecording() {
           interim += transcript;
         }
       }
-      if (final) landingVoiceTranscript += final;
+      if (final) state.landingVoiceTranscript += final;
       const input = document.getElementById('landingInput');
-      input.value = landingVoiceTranscript + interim;
+      input.value = state.landingVoiceTranscript + interim;
     };
 
-    landingRecognition.onerror = (event) => {
+    state.landingRecognition.onerror = (event) => {
       if (event.error === 'not-allowed') {
         showToast('麦克风权限被拒绝。请在浏览器设置中允许。', 'warning', 5000);
       }
       stopLandingRecording();
     };
 
-    landingRecognition.onend = () => {
-      if (isLandingRecording) {
-        try { landingRecognition.start(); } catch (e) { stopLandingRecording(); }
+    state.landingRecognition.onend = () => {
+      if (state.isLandingRecording) {
+        try { state.landingRecognition.start(); } catch (e) { stopLandingRecording(); }
       }
     };
   }
 
-  isLandingRecording = true;
-  landingVoiceTranscript = '';
+  state.isLandingRecording = true;
+  state.landingVoiceTranscript = '';
 
   const btn = document.getElementById('landingMic');
   const input = document.getElementById('landingInput');
@@ -193,11 +188,11 @@ export function startLandingRecording() {
   input.placeholder = '正在聆听...说出来，不要想。';
   input.value = '';
 
-  try { landingRecognition.start(); } catch (e) { stopLandingRecording(); }
+  try { state.landingRecognition.start(); } catch (e) { stopLandingRecording(); }
 }
 
 export function stopLandingRecording() {
-  isLandingRecording = false;
+  state.isLandingRecording = false;
 
   const btn = document.getElementById('landingMic');
   const input = document.getElementById('landingInput');
@@ -205,14 +200,14 @@ export function stopLandingRecording() {
   btn.textContent = '🎙️';
   input.placeholder = '比如：我想写一篇博客但不知道怎么开头...';
 
-  if (landingRecognition) {
-    try { landingRecognition.stop(); } catch (e) {}
+  if (state.landingRecognition) {
+    try { state.landingRecognition.stop(); } catch (e) {}
   }
 }
 
 // ==================== 主工作区语音输入 ====================
 export function toggleMainVoice() {
-  if (isMainRecording) {
+  if (state.isMainRecording) {
     stopMainRecording();
   } else {
     startMainRecording();
@@ -220,18 +215,18 @@ export function toggleMainVoice() {
 }
 
 export function startMainRecording() {
-  if (!mainRecognition) {
+  if (!state.mainRecognition) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       document.getElementById('stepWarning').textContent = '当前浏览器不支持语音输入，请使用 Chrome 或 Edge。';
       return;
     }
-    mainRecognition = new SpeechRecognition();
-    mainRecognition.lang = 'zh-CN';
-    mainRecognition.continuous = true;
-    mainRecognition.interimResults = true;
+    state.mainRecognition = new SpeechRecognition();
+    state.mainRecognition.lang = 'zh-CN';
+    state.mainRecognition.continuous = true;
+    state.mainRecognition.interimResults = true;
 
-    mainRecognition.onresult = (event) => {
+    state.mainRecognition.onresult = (event) => {
       let interim = '';
       let final = '';
       for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -242,36 +237,36 @@ export function startMainRecording() {
           interim += transcript;
         }
       }
-      if (final) mainVoiceTranscript += final;
+      if (final) state.mainVoiceTranscript += final;
       const ta = document.getElementById('stepTextarea');
       // 追加到已有内容后面
-      const existing = stepOutputs[currentStepIdx] || '';
-      const separator = existing && mainVoiceTranscript ? '\n' : '';
-      ta.value = existing + separator + mainVoiceTranscript + interim;
+      const existing = state.stepOutputs[state.currentStepIdx] || '';
+      const separator = existing && state.mainVoiceTranscript ? '\n' : '';
+      ta.value = existing + separator + state.mainVoiceTranscript + interim;
     };
 
-    mainRecognition.onerror = (event) => {
+    state.mainRecognition.onerror = (event) => {
       if (event.error === 'not-allowed') {
         document.getElementById('stepWarning').textContent = '麦克风权限被拒绝。请在浏览器设置中允许。';
       }
       stopMainRecording();
     };
 
-    mainRecognition.onend = () => {
-      if (isMainRecording) {
-        try { mainRecognition.start(); } catch (e) { stopMainRecording(); }
+    state.mainRecognition.onend = () => {
+      if (state.isMainRecording) {
+        try { state.mainRecognition.start(); } catch (e) { stopMainRecording(); }
       }
     };
   }
 
-  isMainRecording = true;
-  mainVoiceTranscript = '';
+  state.isMainRecording = true;
+  state.mainVoiceTranscript = '';
 
   // 保留已有内容作为基础
   const ta = document.getElementById('stepTextarea');
   const existing = ta.value.trim();
   if (existing) {
-    mainVoiceTranscript = existing + '\n';
+    state.mainVoiceTranscript = existing + '\n';
   }
 
   const btn = document.getElementById('pillMic');
@@ -283,11 +278,11 @@ export function startMainRecording() {
   warning.style.color = '#ef4444';
   warning.textContent = '[Protocol]: 说出来。不管多乱，先吐出来。';
 
-  try { mainRecognition.start(); } catch (e) { stopMainRecording(); }
+  try { state.mainRecognition.start(); } catch (e) { stopMainRecording(); }
 }
 
 export function stopMainRecording() {
-  isMainRecording = false;
+  state.isMainRecording = false;
 
   const btn = document.getElementById('pillMic');
   btn.classList.remove('recording');
@@ -296,12 +291,12 @@ export function stopMainRecording() {
   const ta = document.getElementById('stepTextarea');
   ta.placeholder = '在这里写下你的产出...';
 
-  if (mainRecognition) {
-    try { mainRecognition.stop(); } catch (e) {}
+  if (state.mainRecognition) {
+    try { state.mainRecognition.stop(); } catch (e) {}
   }
 
   // 保存最终内容
-  stepOutputs[currentStepIdx] = ta.value;
+  state.stepOutputs[state.currentStepIdx] = ta.value;
 
   const warning = document.getElementById('stepWarning');
   warning.style.color = '#4ade80';

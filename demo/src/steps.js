@@ -1,7 +1,4 @@
-import {
-  currentPhase, currentStepIdx, steps, stepOutputs, stepStartTime, sessionLog, isFinishing,
-  stepTimerInterval, saveSnapshot
-} from './state.js'
+import { state, saveSnapshot } from './state.js'
 import { showPage } from './ui.js'
 import { escapeHtml } from './utils.js'
 import { startStepTimer } from './timer.js'
@@ -71,24 +68,24 @@ export function updateStepSubmitState() {
 
 // Step v2: make the execution screen feel like a small output slot.
 export function goToStep(idx) {
-  if (idx < 0 || idx >= steps.length) return;
-  currentPhase = 'step';
+  if (idx < 0 || idx >= state.steps.length) return;
+  state.currentPhase = 'step';
 
-  if (currentStepIdx >= 0 && currentStepIdx < steps.length) {
+  if (state.currentStepIdx >= 0 && state.currentStepIdx < state.steps.length) {
     const existingTa = document.getElementById('stepTextarea');
-    if (existingTa) stepOutputs[currentStepIdx] = existingTa.value;
+    if (existingTa) state.stepOutputs[state.currentStepIdx] = existingTa.value;
   }
 
-  currentStepIdx = idx;
-  stepStartTime = Date.now();
-  const step = steps[idx];
+  state.currentStepIdx = idx;
+  state.stepStartTime = Date.now();
+  const step = state.steps[idx];
 
-  document.getElementById('stepBadge').textContent = `${idx + 1} / ${steps.length}`;
+  document.getElementById('stepBadge').textContent = `${idx + 1} / ${state.steps.length}`;
   document.getElementById('stepTitle').textContent = step.title || `第 ${idx + 1} 步`;
   document.getElementById('stepInstruction').innerHTML = renderStepInstruction(step);
 
   const ta = document.getElementById('stepTextarea');
-  ta.value = stepOutputs[idx] || '';
+  ta.value = state.stepOutputs[idx] || '';
   ta.placeholder = buildStepPlaceholder(step);
   if (ta._submitStateHandler) ta.removeEventListener('input', ta._submitStateHandler);
   ta._submitStateHandler = updateStepSubmitState;
@@ -118,7 +115,7 @@ export function goToStep(idx) {
     shredderBadge.style.display = 'inline-flex';
   }
 
-  const pct = (idx / steps.length) * 100;
+  const pct = (idx / state.steps.length) * 100;
   document.getElementById('stepProgressFill').style.width = pct + '%';
   document.getElementById('btnPrev').disabled = idx === 0;
   updateStepSubmitState();
@@ -140,12 +137,12 @@ export function goToStep(idx) {
 async function fetchProactiveSuggestion(idx) {
   const prevOutputs = [];
   for (let i = 0; i < idx; i++) {
-    const out = (stepOutputs[i] || '').trim();
-    if (out) prevOutputs.push(`步骤${i + 1}「${steps[i]?.title}」：${out}`);
+    const out = (state.stepOutputs[i] || '').trim();
+    if (out) prevOutputs.push(`步骤${i + 1}「${state.steps[i]?.title}」：${out}`);
   }
   if (prevOutputs.length === 0) return;
 
-  const step = steps[idx];
+  const step = state.steps[idx];
   const context = prevOutputs.join('\n');
   const warning = document.getElementById('stepWarning');
   warning.style.color = '#666';
@@ -159,9 +156,9 @@ async function fetchProactiveSuggestion(idx) {
         message: `基于用户前序产出，为当前步骤给出一句具体的开场建议（不超过30字）。不要复读步骤说明。\n\n前序产出：\n${context}\n\n当前步骤：${step.title}\n要求产出：${step.output}`,
         phase: 'step',
         task: currentTask,
-        steps,
+        steps: state.steps,
         current_step: idx,
-        outputs: stepOutputs,
+        outputs: state.stepOutputs,
         attachments: apiAttachments()
       })
     });
@@ -179,12 +176,12 @@ async function fetchProactiveSuggestion(idx) {
 }
 
 export function prevStep() {
-  goToStep(currentStepIdx - 1);
+  goToStep(state.currentStepIdx - 1);
 }
 
 export async function finishStep() {
-  if (isFinishing) return;
-  isFinishing = true;
+  if (state.isFinishing) return;
+  state.isFinishing = true;
 
   try {
     const ta = document.getElementById('stepTextarea');
@@ -195,33 +192,33 @@ export async function finishStep() {
       ta.focus();
       return;
     }
-    stepOutputs[currentStepIdx] = output;
+    state.stepOutputs[state.currentStepIdx] = output;
 
     // 归档到破冰日志
-    const step = steps[currentStepIdx];
-    const timeSpent = Math.round((Date.now() - stepStartTime) / 1000);
+    const step = state.steps[state.currentStepIdx];
+    const timeSpent = Math.round((Date.now() - state.stepStartTime) / 1000);
 
-    if (stepTimerInterval) {
-      clearInterval(stepTimerInterval);
-      stepTimerInterval = null;
+    if (state.stepTimerInterval) {
+      clearInterval(state.stepTimerInterval);
+      state.stepTimerInterval = null;
     }
 
     stopInactivityMonitor();
 
     document.getElementById('stepTimer').classList.remove('draft', 'refine', 'panic');
 
-    // 等待归档完成再跳转，确保 sessionLog 写入是事务性的
-    await archiveStep(step, currentStepIdx, output, timeSpent);
+    // 等待归档完成再跳转，确保 state.sessionLog 写入是事务性的
+    await archiveStep(step, state.currentStepIdx, output, timeSpent);
     saveSnapshot();
 
-    if (currentStepIdx < steps.length - 1) {
-      goToStep(currentStepIdx + 1);
+    if (state.currentStepIdx < state.steps.length - 1) {
+      goToStep(state.currentStepIdx + 1);
     } else {
-      currentPhase = 'done';
+      state.currentPhase = 'done';
       sendToAI('所有步骤都完成了，请帮我拼装成型');
     }
   } finally {
-    isFinishing = false;
+    state.isFinishing = false;
   }
 }
 
@@ -253,13 +250,13 @@ async function archiveStep(step, index, output, timeSpent) {
   };
 
   // 改进循环可能重新完成同一步，更新而非重复追加
-  const existingIdx = sessionLog.findIndex(r => r.step_index === index);
+  const existingIdx = state.sessionLog.findIndex(r => r.step_index === index);
   if (existingIdx >= 0) {
     // 累计耗时
-    record.time_spent_seconds += sessionLog[existingIdx].time_spent_seconds;
-    sessionLog[existingIdx] = record;
+    record.time_spent_seconds += state.sessionLog[existingIdx].time_spent_seconds;
+    state.sessionLog[existingIdx] = record;
   } else {
-    sessionLog.push(record);
+    state.sessionLog.push(record);
   }
 }
 

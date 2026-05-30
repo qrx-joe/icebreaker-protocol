@@ -1,4 +1,4 @@
-import { contractBusy } from './state.js'
+import { state } from './state.js'
 import { sendToAI } from './api.js'
 
 // ==================== Contract ====================
@@ -25,7 +25,7 @@ export function clearContractLoading() {
 // Contract v2 copy override: keep the lock screen terse.
 export function applyContractCopy() {
   const msg = document.getElementById('contractAiMsg');
-  if (msg && !contractBusy) {
+  if (msg && !state.contractBusy) {
     msg.textContent = '[Protocol] 第一版只要求存在。';
   }
 
@@ -60,23 +60,23 @@ export function applyContractCopy() {
 }
 
 export function acceptContract() {
-  if (contractBusy) return;
-  contractBusy = true;
+  if (state.contractBusy) return;
+  state.contractBusy = true;
   setContractButtonsDisabled(true);
   showContractLoading();
   sendToAI('我同意契约，请帮我拆解任务')
     .catch(() => {})
-    .finally(() => { contractBusy = false; setContractButtonsDisabled(false); clearContractLoading(); });
+    .finally(() => { state.contractBusy = false; setContractButtonsDisabled(false); clearContractLoading(); });
 }
 
 export function questionContract() {
-  if (contractBusy) return;
-  contractBusy = true;
+  if (state.contractBusy) return;
+  state.contractBusy = true;
   setContractButtonsDisabled(true);
   showContractLoading();
   sendToAI('我怕做不好，不想做一份随便应付的东西')
     .catch(() => {})
-    .finally(() => { contractBusy = false; setContractButtonsDisabled(false); clearContractLoading(); });
+    .finally(() => { state.contractBusy = false; setContractButtonsDisabled(false); clearContractLoading(); });
 }
 
 // Legacy bridge
