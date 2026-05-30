@@ -165,6 +165,18 @@ Vercel 版本在 `demo/api/` 下提供同名轻量接口，优先保证 demo 可
 
 ---
 
+## 协议契约测试
+
+由于协议同时存在 Agent Skill（`SKILL.md`）、本地后端（`server.py`）、Vercel serverless（`demo/api/`）三种形态，必须有自动化机制保证三者对齐：
+
+```bash
+uv run python -m unittest discover tests -v
+```
+
+测试只覆盖可自动验证的硬规则（步骤数 3-6、每步时长 1-15 分钟、screen 路由、关键词触发），不依赖 LLM，5 秒内跑完。已知不一致项以 `expectedFailure` 暴露，持续提醒待修复。详见 `tests/README.md`。
+
+---
+
 ## 产出质量评价
 
 Web demo 的 Done 页面可以进入“评价产出”，从 5 个维度打分并下载 Markdown 报告。
