@@ -387,7 +387,7 @@ def try_ai_plan(task: str, attachments: list[Attachment] | None = None) -> list[
         match = re.search(r"\{.*\}", raw, flags=re.S)
         payload = json.loads(match.group(0) if match else raw)
         steps = [Step(**item) for item in payload.get("steps", [])]
-        return steps if 3 <= len(steps) <= 5 else None
+        return steps if 3 <= len(steps) <= 6 else None
     except Exception:
         return None
 
@@ -685,15 +685,126 @@ async def summarize(req: SummarizeRequest):
         return SummarizeResponse(summary=req.user_content.strip()[:20])
 
 
+REVIEW_DIMENSIONS = [
+    {"key": "completion", "name": "完成度", "desc": "是否交付了每一步要求的可见产出"},
+    {"key": "clarity", "name": "清晰度", "desc": "别人能否快速理解产出在说什么、要做什么"},
+    {"key": "usefulness", "name": "可用性", "desc": "当前版本是否已经能被继续使用、修改或展示"},
+    {"key": "audience_fit", "name": "受众匹配", "desc": "是否命中目标受众或使用场景"},
+    {"key": "next_action", "name": "下一步明确度", "desc": "是否清楚下一刀应该改哪里"},
+]
+
+REVIEW_PROMPT = """你是破冰协议的产出质量评审员。
+评价用户的产出，不评价用户。
+
+只返回 JSON，不要 Markdown，不要 JSON 以外的文字。
+JSON 中所有自然语言值必须用简体中文。
+
+固定维度：
+{dimensions}
+
+JSON 结构：
+{{
+  "verdict": "一句话结论",
+  "summary": "2-3 句话描述当前质量水平",
+  "strengths": ["最多 3 个值得保留的优点"],
+  "issues": ["最多 4 个产出的具体问题"],
+  "priority_fix": "40 字以内的一个可执行修改指令",
+  "dimensions": [
+    {{"key":"completion","score":1,"comment":"原因"}},
+    {{"key":"clarity","score":1,"comment":"原因"}},
+    {{"key":"usefulness","score":1,"comment":"原因"}},
+    {{"key":"audience_fit","score":1,"comment":"原因"}},
+    {{"key":"next_action","score":1,"comment":"原因"}}
+  ]
+}}
+
+规则：
+- 不要自我评价，只评价产出。
+- 严格且可执行。
+- 不要安慰或空洞赞美。
+- 每个问题必须指向产出本身。
+- priority_fix 必须是唯一的最佳下一步修改。
+
+待评价内容：
+{payload}"""
+
+
+class ReviewStep(BaseModel):
+    index: int
+    title: str
+    instruction: str = ""
+    expected_output: str = ""
+    user_output: str = ""
+
+
+class ReviewRequest(BaseModel):
+    task: str = ""
+    steps: list[ReviewStep] = Field(default_factory=list)
+    session_log: str | None = None
+    output_mode: str | None = None
+    protocol_strength: str | None = None
+
+
+def _fallback_review(payload: ReviewRequest) -> dict:
+    steps = payload.steps or []
+    filled = sum(1 for s in steps if len(normalize_text(s.user_output)) >= 5)
+    total_steps = max(len(steps), 1)
+    base = max(2, min(4, round((filled / total_steps) * 5)))
+    dimensions = [
+        {**dim, "score": base, "comment": "已有可见产出，但还需要更具体的验收标准和表达打磨。"
+         if filled == total_steps else "部分步骤缺少足够清晰的产出，先补齐空白再谈优化。"}
+        for dim in REVIEW_DIMENSIONS
+    ]
+    if filled < total_steps:
+        dimensions[0]["score"] = 2
+        dimensions[0]["comment"] = "部分步骤还缺少足够具体的产出。"
+    return {
+        "total": sum(d["score"] for d in dimensions),
+        "max": len(dimensions) * 5,
+        "verdict": "能继续打磨" if filled == total_steps else "需要补齐产出",
+        "summary": "AI评价暂时不可用，已根据完成步骤做本地兜底判断。",
+        "strengths": ["已经完成了破冰流程，至少留下了可修改的版本。"],
+        "issues": ["需要补充更明确的边界、验收标准和面向受众的表达。"],
+        "priority_fix": "先补齐最薄弱的一步：让它有一个别人能看懂的具体产出。",
+        "dimensions": dimensions,
+    }
+
+
+def _ai_review(payload: ReviewRequest) -> dict:
+    prompt = REVIEW_PROMPT.format(
+        dimensions=json.dumps(REVIEW_DIMENSIONS, ensure_ascii=False),
+        payload=json.dumps(payload.model_dump(), ensure_ascii=False)[:9000],
+    )
+    try:
+        response = client.chat.completions.create(
+            model=MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=1200,
+            temperature=0.2,
+        )
+        raw = (response.choices[0].message.content or "").strip()
+        match = re.search(r"\{.*\}", raw, flags=re.S)
+        return json.loads(match.group(0)) if match else {}
+    except Exception:
+        return {}
+
+
+@app.post("/api/review")
+async def review(req: ReviewRequest):
+    result = _ai_review(req) if client else {}
+    if not result:
+        result = _fallback_review(req)
+    if not client:
+        result["mode"] = "local"
+    return result
+
+
 demo_dir = Path(__file__).parent / "demo"
 
 
-@app.get("/")
-async def index():
-    return FileResponse(demo_dir / "index.html")
-
-
-app.mount("/static", StaticFiles(directory=demo_dir), name="static")
+# API 路由优先注册，静态文件挂载到根路径兜底
+# html=True 让 / 自动返回 index.html，同时 /src/main.js 等路径也能正常解析
+app.mount("/", StaticFiles(directory=demo_dir, html=True), name="static")
 
 
 def run_demo() -> None:

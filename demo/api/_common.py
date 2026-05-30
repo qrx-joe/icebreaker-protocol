@@ -4,6 +4,9 @@ import re
 import urllib.error
 import urllib.request
 
+from dotenv import load_dotenv
+
+load_dotenv()
 
 API_KEY = os.getenv("DEEPSEEK_API_KEY") or os.getenv("OPENAI_API_KEY") or ""
 BASE_URL = os.getenv(
@@ -147,7 +150,7 @@ def try_ai_plan(task, attachments=None, time_preference='standard', output_mode=
 }}
 
 规则：
-- 3 到 5 步。
+- 3 到 6 步。
 - {time_rules}。
 - {output_rules}。
 - 每步必须有可见产出。
