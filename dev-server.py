@@ -15,7 +15,7 @@ sys.path.insert(0, str(API_DIR))
 sys.path.insert(0, str(API_DIR.parent))
 
 # Pre-import to fail fast
-from _common import chat_response
+from _common import chat_response, try_ai_reply, assistant_reply
 
 class DevRouter(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):
@@ -57,6 +57,20 @@ class DevRouter(BaseHTTPRequestHandler):
         if route == '/api/chat':
             result = chat_response(payload)
             self._json_response(result)
+            return
+
+        if route == '/api/chat/stream':
+            reply = try_ai_reply(payload) or assistant_reply(payload) or '先写一个最小版本。'
+            body = (
+                f"data: {json.dumps({'text': reply}, ensure_ascii=False)}\n\n"
+                "data: [DONE]\n\n"
+            ).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/event-stream; charset=utf-8')
+            self.send_header('Cache-Control', 'no-cache, no-store')
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
             return
 
         if route == '/api/summarize':
