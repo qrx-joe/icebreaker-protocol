@@ -42,6 +42,9 @@ export const state = {
   improvementRound: 0,
   improvementTargetIdx: 0,
 
+  // 当前会话在 history 中的 id(结案时标记 archived 用)
+  currentHistoryId: '',
+
   // 语音识别
   recognition: null,
   isRecording: false,

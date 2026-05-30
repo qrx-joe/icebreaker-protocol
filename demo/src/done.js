@@ -6,6 +6,7 @@ import { showRoadmap } from './roadmap.js'
 import { goToStep } from './steps.js'
 import { stopInactivityMonitor } from './inactivity.js'
 import { showReview } from './review.js'
+import { renderBattleReport } from './ui.js'
 
 // ==================== Done ====================
 export function showDone() {
@@ -16,15 +17,21 @@ export function showDone() {
   // 渲染破冰战报
   document.querySelector('.done-title').textContent = '雏形已生成';
   document.getElementById('doneAiMsg').textContent =
-    `你完成了 ${state.sessionLog.length || state.steps.length || 0} 个可见块。现在先评价，或只改一处。`;
+    `你完成了 ${state.sessionLog.length || state.steps.length || 0} 个可见块。结案归档,或先评价,或只改一处。`;
   renderBattleReport();
 
-  // 保存到历史记录
+  // 改进按钮:第 3 轮起需要二次确认才能解锁
+  applyImprovementGuard();
+
+  // 保存到历史记录(默认 in_progress,结案时再翻新为 archived)
   const totalTime = state.sessionLog.reduce((s, r) => s + r.time_spent_seconds, 0);
+  const entryId = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
+  state.currentHistoryId = entryId;
   appendHistory({
-    id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2),
+    id: entryId,
     ts: Date.now(),
     task: state.currentTask,
+    status: 'in_progress',
     totalSteps: state.steps.length,
     completedSteps: state.sessionLog.length,
     totalTimeSeconds: totalTime,
@@ -36,6 +43,93 @@ export function showDone() {
 
   clearSnapshot();
   showPage('pageDone');
+}
+
+// ==================== 结案归档 ====================
+// 把当前任务标记为已发布,自动下载备份,然后回到 landing。
+// 一旦结案,这个任务在 history 里就是"完成"状态,想改进请发起新任务。
+export function archiveAndReset() {
+  const btn = document.getElementById('btnArchive');
+  if (!btn || btn.disabled) return;
+
+  // 第一次点击:进入二次确认态(防误操作)
+  if (btn.dataset.confirm !== 'yes') {
+    btn.dataset.confirm = 'yes';
+    btn.textContent = '确认结案?(再按一次)';
+    btn.classList.add('btn-warn');
+    // 5 秒内不确认就回到初始态
+    setTimeout(() => {
+      if (btn.dataset.confirm === 'yes') {
+        btn.dataset.confirm = '';
+        btn.textContent = '结案归档';
+        btn.classList.remove('btn-warn');
+      }
+    }, 5000);
+    return;
+  }
+
+  // 第二次点击:真的结案
+  markHistoryArchived(state.currentHistoryId);
+  downloadMarkdown();
+  resetAll();
+}
+
+// 把改进按钮在第 3 轮起置灰,显示提示
+function applyImprovementGuard() {
+  const btn = document.getElementById('btnImprove');
+  const hint = document.getElementById('doneImproveHint');
+  if (!btn || !hint) return;
+
+  if (state.improvementRound >= 3) {
+    btn.disabled = true;
+    btn.classList.add('btn-locked');
+    btn.textContent = '已达 3 轮(点击下方解锁)';
+    hint.innerHTML = `
+      <span class="hint-text">[Protocol]: 你已经改了 ${state.improvementRound} 轮。完美主义正在让你把"继续改"伪装成"在进步"。
+      建议现在结案——可以改的版本永远比理论上更好的版本更值钱。</span>
+      <button class="btn-unlock" id="btnUnlockImprove" type="button">我知道,我还是要再改一轮</button>
+    `;
+    hint.style.display = 'block';
+
+    // 解锁按钮的一次性绑定
+    document.getElementById('btnUnlockImprove')?.addEventListener('click', () => {
+      btn.disabled = false;
+      btn.classList.remove('btn-locked');
+      btn.textContent = '只改一处';
+      hint.style.display = 'none';
+    }, { once: true });
+  } else if (state.improvementRound >= 2) {
+    btn.disabled = false;
+    btn.classList.remove('btn-locked');
+    btn.textContent = '只改一处';
+    hint.innerHTML = `<span class="hint-text">[Protocol]: 这是第 ${state.improvementRound} 轮改进。再改一轮就触发结案保护。</span>`;
+    hint.style.display = 'block';
+  } else {
+    btn.disabled = false;
+    btn.classList.remove('btn-locked');
+    btn.textContent = '只改一处';
+    hint.style.display = 'none';
+    hint.textContent = '';
+  }
+}
+
+// 把 history 中指定 id 的条目标记为 archived
+function markHistoryArchived(id) {
+  if (!id) return;
+  try {
+    const KEY = 'ib_session_history';
+    const raw = localStorage.getItem(KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    const list = Array.isArray(data) ? data : (data.list || []);
+    const entry = list.find(h => h.id === id);
+    if (entry) {
+      entry.status = 'archived';
+      entry.archivedAt = Date.now();
+      entry.improvementRounds = state.improvementRound;
+      localStorage.setItem(KEY, JSON.stringify(Array.isArray(data) ? list : { ...data, list }));
+    }
+  } catch (e) { /* 静默失败 */ }
 }
 
 // ==================== 评价入口 ====================
@@ -217,6 +311,7 @@ export function resetAll() {
 
 // Legacy bridge
 window.showDone = showDone;
+window.archiveAndReset = archiveAndReset;
 window.goToReview = goToReview;
 window.startImprovement = startImprovement;
 window.showImprovementRoadmap = showImprovementRoadmap;

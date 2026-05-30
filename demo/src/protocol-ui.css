@@ -538,6 +538,62 @@ body::before {
   opacity: 0.78 !important;
 }
 
+/* ==================== 结案归档相关 ==================== */
+/* 按钮进入二次确认态 */
+.btn.btn-warn {
+  background: #d97706 !important;
+  border-color: #d97706 !important;
+  color: #fff !important;
+  animation: pulseWarn 1.5s ease-in-out infinite;
+}
+@keyframes pulseWarn {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.5); }
+  50%      { box-shadow: 0 0 0 8px rgba(217, 119, 6, 0); }
+}
+
+/* 改进按钮在第 3 轮被锁定 */
+.btn.btn-locked {
+  opacity: 0.45 !important;
+  cursor: not-allowed !important;
+}
+
+/* Done 页改进提示区(第 2/3 轮显示) */
+.done-improve-hint {
+  display: none;
+  margin: 1rem auto 0;
+  max-width: 36rem;
+  padding: 0.85rem 1.1rem;
+  border: 1px solid rgba(217, 119, 6, 0.4);
+  background: rgba(217, 119, 6, 0.08);
+  border-radius: 8px;
+  color: #fbbf24;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  text-align: left;
+}
+
+.done-improve-hint .hint-text {
+  display: block;
+  margin-bottom: 0.6rem;
+}
+
+.done-improve-hint .btn-unlock {
+  display: inline-block;
+  padding: 0.4rem 0.85rem;
+  background: transparent;
+  border: 1px solid rgba(251, 191, 36, 0.5);
+  border-radius: 6px;
+  color: #fbbf24;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.done-improve-hint .btn-unlock:hover {
+  background: rgba(251, 191, 36, 0.15);
+  border-color: #fbbf24;
+}
+
 @media (max-width: 720px) {
   .protocol-shell {
     left: 1rem;

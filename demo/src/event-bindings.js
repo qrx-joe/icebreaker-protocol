@@ -34,6 +34,7 @@ export function bindEvents() {
   document.querySelector('.step-footer-right .btn-primary')?.addEventListener('click', finishStep)
 
   // ==================== Done ====================
+  document.getElementById('btnArchive')?.addEventListener('click', archiveAndReset)
   document.getElementById('btnExportMain')?.addEventListener('click', goToReview)
   document.getElementById('btnImprove')?.addEventListener('click', startImprovement)
   const doneExportBtns = document.querySelectorAll('.done-export .btn-export')
