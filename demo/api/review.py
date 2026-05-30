@@ -1,10 +1,13 @@
 import json
+import os
 import sys
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parent))
 from _common import call_ai, json_response, normalize_text, parse_json_object, read_json
+
+API_KEY = os.getenv("DEEPSEEK_API_KEY") or os.getenv("OPENAI_API_KEY") or ""
 
 
 DIMENSIONS = [
@@ -89,7 +92,12 @@ Content to review:
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
         payload = read_json(self)
-        json_response(self, ai_review(payload))
+        result = ai_review(payload)
+        if not result and not API_KEY:
+            result = fallback_review(payload)
+        if not API_KEY:
+            result["mode"] = "local"
+        json_response(self, result)
 
     def do_OPTIONS(self):
         json_response(self, {})

@@ -609,12 +609,17 @@ def chat_response(payload):
     phase = normalize_text(payload.get("phase"))
 
     if is_done_request(message):
-        return done_response(payload)
-    if phase == "step" or is_stuck(message):
-        return step_help_response(payload)
-    if phase == "contract" and is_agreement(message):
-        return roadmap_response(payload)
-    return contract_response(payload)
+        result = done_response(payload)
+    elif phase == "step" or is_stuck(message):
+        result = step_help_response(payload)
+    elif phase == "contract" and is_agreement(message):
+        result = roadmap_response(payload)
+    else:
+        result = contract_response(payload)
+
+    if not API_KEY:
+        result["mode"] = "local"
+    return result
 
 
 def summarize_text(text):

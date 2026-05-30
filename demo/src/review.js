@@ -1,6 +1,7 @@
 // ==================== AI Output Review ====================
 import { state } from './state.js'
 import { showPage } from './ui.js'
+import { showToast } from './notify.js'
 
 const LS_KEY_REVIEW = 'ib_review_history'
 
@@ -215,6 +216,9 @@ export async function showReview() {
 
   try {
     const data = await requestAIReview()
+    if (data.mode === 'local') {
+      showToast('当前为本地演示模式：未配置 AI API Key，评价由预设规则生成。', 'warn', 6000)
+    }
     state.latestReview = normalizeReview(data)
   } catch (e) {
     state.latestReview = fallbackReview()
