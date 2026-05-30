@@ -11,8 +11,7 @@
   width: min(720px, calc(100vw - 3.4rem)) !important;
   min-height: auto !important;
   height: auto !important;
-  margin-top: clamp(5.4rem, 9vh, 7rem) !important;
-  margin-bottom: 4rem !important;
+  margin: clamp(5.4rem, 9vh, 7rem) auto 4rem !important;
   padding: 0 2rem 2.4rem !important;
   border: 0 !important;
   background: transparent !important;
@@ -42,6 +41,7 @@
   color: #888;
   line-height: 1.7;
   max-width: 400px;
+  margin: 0 auto;
 }
 
 /* 评价表单 */
