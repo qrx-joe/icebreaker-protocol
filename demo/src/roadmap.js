@@ -1,4 +1,4 @@
-import { currentPhase, currentTask, steps, saveSnapshot } from './state.js'
+import { state, saveSnapshot } from './state.js'
 import { showPage } from './ui.js'
 import { escapeHtml } from './utils.js'
 import { goToStep } from './steps.js'
@@ -6,7 +6,7 @@ import { goToStep } from './steps.js'
 // ==================== Roadmap ====================
 // Roadmap v2: override the legacy renderer with a next-step-first layout.
 export function showRoadmap(taskName, stepList, highlightIdx) {
-  currentPhase = 'roadmap';
+  state.currentPhase = 'roadmap';
   const activeIdx = Number.isInteger(highlightIdx) ? highlightIdx : 0;
   const activeStep = stepList[activeIdx] || stepList[0] || {};
   const activeMinutes = activeStep.minutes || 15;

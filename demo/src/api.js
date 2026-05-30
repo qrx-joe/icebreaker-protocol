@@ -1,7 +1,4 @@
-import {
-  chatHistory, currentTask, currentPhase, steps, stepOutputs, currentStepIdx,
-  timePreference, outputMode, protocolStrength, isChatting, saveSnapshot
-} from './state.js'
+import { state, saveSnapshot } from './state.js'
 import { showPage } from './ui.js'
 import { startStepTimer } from './timer.js'
 import { goToStep } from './steps.js'
@@ -20,32 +17,32 @@ export function normalizeStep(raw) {
 
 export function showInlineMessage(reply) {
   if (!reply) return;
-  if (currentPhase === 'contract') {
+  if (state.currentPhase === 'contract') {
     document.getElementById('contractAiMsg').textContent = reply;
-  } else if (currentPhase === 'roadmap') {
+  } else if (state.currentPhase === 'roadmap') {
     document.getElementById('roadmapAiMsg').textContent = reply;
-  } else if (currentPhase === 'done') {
+  } else if (state.currentPhase === 'done') {
     document.getElementById('doneAiMsg').textContent = reply;
-  } else if (currentPhase === 'step') {
+  } else if (state.currentPhase === 'step') {
     document.getElementById('stepWarning').textContent = reply;
   }
 }
 
 export function applyAIResponse(data) {
   const reply = data.reply || '';
-  if (data.task) currentTask = data.task;
-  if (Array.isArray(data.steps) && data.steps.length) {
-    const incomingSteps = data.steps.map(normalizeStep);
-    if (data.screen === 'roadmap' || steps.length === 0) {
-      steps = incomingSteps;
-      stepOutputs = new Array(steps.length).fill('');
+  if (data.task) state.currentTask = data.task;
+  if (Array.isArray(data.state.steps) && data.state.steps.length) {
+    const incomingSteps = data.state.steps.map(normalizeStep);
+    if (data.screen === 'roadmap' || state.steps.length === 0) {
+      state.steps = incomingSteps;
+      state.stepOutputs = new Array(state.steps.length).fill('');
     } else {
-      steps = incomingSteps;
+      state.steps = incomingSteps;
     }
   }
 
   if (data.screen === 'contract') {
-    currentPhase = 'contract';
+    state.currentPhase = 'contract';
     document.getElementById('contractAiMsg').textContent = '[Protocol] 先锁定约束，然后开始第 1 步。';
     showPage('pageContract');
     saveSnapshot();
@@ -53,22 +50,22 @@ export function applyAIResponse(data) {
   }
 
   if (data.screen === 'roadmap') {
-    currentPhase = 'roadmap';
+    state.currentPhase = 'roadmap';
     document.getElementById('roadmapAiMsg').textContent = reply;
-    showRoadmap(currentTask, steps);
+    showRoadmap(state.currentTask, state.steps);
     saveSnapshot();
     return;
   }
 
   if (data.screen === 'step') {
-    currentPhase = 'step';
+    state.currentPhase = 'step';
     const idx = Math.max(0, Number(data.current_step || 0));
     goToStep(idx);
     return;
   }
 
   if (data.screen === 'thinking_budget') {
-    currentPhase = 'step';
+    state.currentPhase = 'step';
     document.getElementById('stepWarning').textContent = reply;
     if (data.thinking_budget_seconds) {
       startStepTimer(data.thinking_budget_seconds);
@@ -78,7 +75,7 @@ export function applyAIResponse(data) {
   }
 
   if (data.screen === 'done') {
-    currentPhase = 'done';
+    state.currentPhase = 'done';
     document.getElementById('doneAiMsg').textContent = reply;
     showDone();
     return;
@@ -89,9 +86,9 @@ export function applyAIResponse(data) {
 }
 
 export async function sendToAI(message) {
-  chatHistory.push({ role: 'user', content: message });
+  state.chatHistory.push({ role: 'user', content: message });
 
-  isChatting = true;
+  state.isChatting = true;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 30000); // 30s 超时
 
@@ -101,16 +98,16 @@ export async function sendToAI(message) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         message: message,
-        history: chatHistory.slice(0, -1),
-        phase: currentPhase,
-        task: currentTask,
-        steps,
-        current_step: currentStepIdx,
-        outputs: stepOutputs,
+        history: state.chatHistory.slice(0, -1),
+        phase: state.currentPhase,
+        task: state.currentTask,
+        steps: state.steps,
+        current_step: state.currentStepIdx,
+        outputs: state.stepOutputs,
         attachments: apiAttachments(),
-        time_preference: timePreference,
-        output_mode: outputMode,
-        protocol_strength: protocolStrength
+        time_preference: state.timePreference,
+        output_mode: state.outputMode,
+        protocol_strength: state.protocolStrength
       }),
       signal: controller.signal
     });
@@ -118,12 +115,12 @@ export async function sendToAI(message) {
     if (!response.ok) throw new Error('请求失败');
     const data = await response.json();
 
-    chatHistory.push({ role: 'assistant', content: data.reply || '' });
+    state.chatHistory.push({ role: 'assistant', content: data.reply || '' });
     saveSnapshot();
     applyAIResponse(data);
 
   } catch (err) {
-    chatHistory.pop();
+    state.chatHistory.pop();
     saveSnapshot();
     if (err.name === 'AbortError') {
       showToast('请求超时，请检查网络后重试。', 'error', 5000);
@@ -132,7 +129,7 @@ export async function sendToAI(message) {
     }
   } finally {
     clearTimeout(timer);
-    isChatting = false;
+    state.isChatting = false;
   }
 }
 

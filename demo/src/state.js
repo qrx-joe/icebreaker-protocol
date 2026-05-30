@@ -1,63 +1,65 @@
 // ==================== 全局状态 ====================
-export let chatHistory = [];
-export let currentTask = '';
-export let currentPhase = 'landing';
-export let isChatting = false;
+export const state = {
+  chatHistory: [],
+  currentTask: '',
+  currentPhase: 'landing',
+  isChatting: false,
 
-// 步骤数据
-export let steps = [];          // [{title, instruction, output, minutes}]
-export let stepOutputs = [];    // 每步的用户产出
-export let currentStepIdx = 0;
-export let stepTimerInterval = null;
-export let stepTimeRemaining = 0;
-export let stepTotalSeconds = 0;
-export let stepTimerPhase = 'draft';
-export let stepStartTime = 0;
+  // 步骤数据
+  steps: [],          // [{title, instruction, output, minutes}]
+  stepOutputs: [],    // 每步的用户产出
+  currentStepIdx: 0,
+  stepTimerInterval: null,
+  stepTimeRemaining: 0,
+  stepTotalSeconds: 0,
+  stepTimerPhase: 'draft',
+  stepStartTime: 0,
 
-// 帮助面板
-export let helpHistory = [];
+  // 帮助面板
+  helpHistory: [],
 
-// 时间偏好：compact=紧凑, standard=标准, loose=宽松
-export let timePreference = 'standard';
+  // 时间偏好：compact=紧凑, standard=标准, loose=宽松
+  timePreference: 'standard',
 
-// 产出模式：draft=草稿, deliverable=可交付, portfolio=作品集
-export let outputMode = 'deliverable';
+  // 产出模式：draft=草稿, deliverable=可交付, portfolio=作品集
+  outputMode: 'deliverable',
 
-// 协议强度：gentle=温和, standard=标准, strict=严厉
-export let protocolStrength = 'standard';
+  // 协议强度：gentle=温和, standard=标准, strict=严厉
+  protocolStrength: 'standard',
 
-// 会话附件：文本类附件会被读取并带入 AI 上下文。
-export let attachments = [];
+  // 会话附件：文本类附件会被读取并带入 AI 上下文。
+  attachments: [],
 
-// 破冰日志
-export let sessionLog = [];
+  // 破冰日志
+  sessionLog: [],
 
-// 无活动监控（方案 C）
-export let inactivityTimer = null;
-export let inactivityTriggered = false; // 每步只触发一次
-export let isFinishing = false; // finishStep 防重入锁
+  // 无活动监控（方案 C）
+  inactivityTimer: null,
+  inactivityTriggered: false, // 每步只触发一次
+  isFinishing: false, // finishStep 防重入锁
 
-// 改进循环
-export let improvementRound = 0;
-export let improvementTargetIdx = 0;
+  // 改进循环
+  improvementRound: 0,
+  improvementTargetIdx: 0,
 
-// 语音识别
-export let recognition = null;
-export let isRecording = false;
-export let voiceTranscript = '';
+  // 语音识别
+  recognition: null,
+  isRecording: false,
+  voiceTranscript: '',
 
-// 首页语音输入
-export let landingRecognition = null;
-export let isLandingRecording = false;
-export let landingVoiceTranscript = '';
+  // 首页语音输入
+  landingRecognition: null,
+  isLandingRecording: false,
+  landingVoiceTranscript: '',
 
-// 主工作区语音输入
-export let mainRecognition = null;
-export let isMainRecording = false;
-export let mainVoiceTranscript = '';
+  // 主工作区语音输入
+  mainRecognition: null,
+  isMainRecording: false,
+  mainVoiceTranscript: '',
 
-// 合约页面独立的加载锁
-export let contractBusy = false;
+  // 合约页面独立的加载锁
+  contractBusy: false,
+};
 
 // ==================== localStorage 持久化 ====================
 const LS_KEY_SNAPSHOT = 'ib_session_snapshot';
@@ -78,9 +80,9 @@ export function saveSettings() {
   try {
     localStorage.setItem(LS_KEY_SETTINGS, JSON.stringify({
       v: DATA_VERSION.settings,
-      timePreference,
-      outputMode,
-      protocolStrength
+      timePreference: state.timePreference,
+      outputMode: state.outputMode,
+      protocolStrength: state.protocolStrength
     }));
   } catch (e) { /* 静默失败 */ }
 }
@@ -119,26 +121,26 @@ export function loadSettings() {
 }
 
 export function saveSnapshot() {
-  if (currentPhase === 'landing' || currentPhase === 'done') {
+  if (state.currentPhase === 'landing' || state.currentPhase === 'done') {
     localStorage.removeItem(LS_KEY_SNAPSHOT);
     return;
   }
   const snapshot = {
     v: DATA_VERSION.snapshot,
     ts: Date.now(),
-    chatHistory,
-    currentTask,
-    currentPhase,
-    steps,
-    stepOutputs,
-    currentStepIdx,
-    helpHistory,
-    attachments: attachments.map(a => ({ name: a.name, size: a.size, type: a.type, data: a.data })),
-    sessionLog,
-    improvementRound,
-    timePreference,
-    outputMode,
-    protocolStrength,
+    chatHistory: state.chatHistory,
+    currentTask: state.currentTask,
+    currentPhase: state.currentPhase,
+    steps: state.steps,
+    stepOutputs: state.stepOutputs,
+    currentStepIdx: state.currentStepIdx,
+    helpHistory: state.helpHistory,
+    attachments: state.attachments.map(a => ({ name: a.name, size: a.size, type: a.type, data: a.data })),
+    sessionLog: state.sessionLog,
+    improvementRound: state.improvementRound,
+    timePreference: state.timePreference,
+    outputMode: state.outputMode,
+    protocolStrength: state.protocolStrength,
     stepTextareaValue: document.getElementById('stepTextarea')?.value || ''
   };
   try {
@@ -218,49 +220,8 @@ export function clearHistoryData() {
   localStorage.removeItem(LS_KEY_HISTORY);
 }
 
-// Setter functions for module-bound variables (avoid illegal reassignment in Rollup)
-export function setIsChatting(value) {
-  isChatting = value;
-}
-
-export function clearHelpHistory() {
-  helpHistory.length = 0;
-}
-
 // Legacy bridge: expose to window for HTML inline onclick and inter-module compatibility
-window.chatHistory = chatHistory;
-window.currentTask = currentTask;
-window.currentPhase = currentPhase;
-window.isChatting = isChatting;
-window.steps = steps;
-window.stepOutputs = stepOutputs;
-window.currentStepIdx = currentStepIdx;
-window.stepTimerInterval = stepTimerInterval;
-window.stepTimeRemaining = stepTimeRemaining;
-window.stepTotalSeconds = stepTotalSeconds;
-window.stepTimerPhase = stepTimerPhase;
-window.stepStartTime = stepStartTime;
-window.helpHistory = helpHistory;
-window.timePreference = timePreference;
-window.outputMode = outputMode;
-window.protocolStrength = protocolStrength;
-window.attachments = attachments;
-window.sessionLog = sessionLog;
-window.inactivityTimer = inactivityTimer;
-window.inactivityTriggered = inactivityTriggered;
-window.isFinishing = isFinishing;
-window.improvementRound = improvementRound;
-window.improvementTargetIdx = improvementTargetIdx;
-window.recognition = recognition;
-window.isRecording = isRecording;
-window.voiceTranscript = voiceTranscript;
-window.landingRecognition = landingRecognition;
-window.isLandingRecording = isLandingRecording;
-window.landingVoiceTranscript = landingVoiceTranscript;
-window.mainRecognition = mainRecognition;
-window.isMainRecording = isMainRecording;
-window.mainVoiceTranscript = mainVoiceTranscript;
-window.contractBusy = contractBusy;
+window.state = state;
 window.saveSettings = saveSettings;
 window.loadSettings = loadSettings;
 window.saveSnapshot = saveSnapshot;

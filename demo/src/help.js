@@ -1,7 +1,4 @@
-import {
-  currentTask, steps, currentStepIdx, stepOutputs, helpHistory, isChatting, saveSnapshot,
-  setIsChatting, clearHelpHistory
-} from './state.js'
+import { state, saveSnapshot } from './state.js'
 import { attachmentContextText, apiAttachments } from './attachments.js'
 
 // ==================== Help Side Drawer ====================
@@ -33,14 +30,14 @@ export function appendBubble(container, role, text, showApply) {
 // 构建全局上下文摘要
 function buildContextSummary() {
   const parts = [];
-  parts.push(`用户的任务：${currentTask || '未确定'}`);
+  parts.push(`用户的任务：${state.currentTask || '未确定'}`);
 
   // 已完成步骤的产出
   const completedOutputs = [];
-  for (let i = 0; i < currentStepIdx; i++) {
-    const out = (stepOutputs[i] || '').trim();
+  for (let i = 0; i < state.currentStepIdx; i++) {
+    const out = (state.stepOutputs[i] || '').trim();
     if (out) {
-      completedOutputs.push(`步骤${i + 1}「${steps[i]?.title || ''}」的产出：${out}`);
+      completedOutputs.push(`步骤${i + 1}「${state.steps[i]?.title || ''}」的产出：${out}`);
     }
   }
   if (completedOutputs.length) {
@@ -48,9 +45,9 @@ function buildContextSummary() {
   }
 
   // 当前步骤
-  const step = steps[currentStepIdx];
+  const step = state.steps[state.currentStepIdx];
   if (step) {
-    parts.push(`当前正在执行步骤 ${currentStepIdx + 1}/${steps.length}：${step.title}`);
+    parts.push(`当前正在执行步骤 ${state.currentStepIdx + 1}/${state.steps.length}：${step.title}`);
     parts.push(`步骤说明：${step.instruction}`);
     parts.push(`要求产出：${step.output}`);
     // 当前已写内容
@@ -73,7 +70,7 @@ export function renderPromptChips() {
   const container = document.getElementById('promptChips');
   container.replaceChildren();
 
-  const step = steps[currentStepIdx];
+  const step = state.steps[state.currentStepIdx];
   if (!step) return;
 
   // 通用 chips
@@ -107,7 +104,7 @@ export function renderPromptChips() {
 
   // 始终可用的 chips
   chips.push('给我一个具体示例');
-  if (currentStepIdx > 0) {
+  if (state.currentStepIdx > 0) {
     chips.push('结合我上一步的产出，给点建议');
   }
 
@@ -118,7 +115,7 @@ export function renderPromptChips() {
     chip.textContent = text;
     chip.onclick = (e) => {
       e.stopPropagation();
-      if (isChatting) return;
+      if (state.isChatting) return;
       document.getElementById('helpInput').value = text;
       sendHelp();
     };
@@ -133,7 +130,7 @@ export function applyToEditor(text) {
   // 如果编辑器已有内容，追加换行；否则直接替换
   const existing = ta.value.trim();
   ta.value = existing ? existing + '\n\n' + text : text;
-  stepOutputs[currentStepIdx] = ta.value;
+  state.stepOutputs[state.currentStepIdx] = ta.value;
   ta.dispatchEvent(new Event('input', { bubbles: true }));
   ta.dispatchEvent(new Event('change', { bubbles: true }));
   if (typeof updateStepSubmitState === 'function') updateStepSubmitState();
@@ -150,27 +147,27 @@ export function applyToEditor(text) {
 export function openHelp() {
   const drawer = document.getElementById('helpDrawer');
   drawer.classList.add('active');
-  clearHelpHistory();
+  state.helpHistory.length = 0;
   const container = document.getElementById('helpMessages');
   container.replaceChildren();
 
   // 构建主动式欢迎语
-  const step = steps[currentStepIdx];
+  const step = state.steps[state.currentStepIdx];
   let greeting;
 
   if (step) {
     // 收集已有上下文
     const prevOutputs = [];
-    for (let i = 0; i < currentStepIdx; i++) {
-      const out = (stepOutputs[i] || '').trim();
-      if (out) prevOutputs.push(`步骤${i + 1}「${steps[i]?.title}」：${out}`);
+    for (let i = 0; i < state.currentStepIdx; i++) {
+      const out = (state.stepOutputs[i] || '').trim();
+      if (out) prevOutputs.push(`步骤${i + 1}「${state.steps[i]?.title}」：${out}`);
     }
 
     const currentText = (document.getElementById('stepTextarea')?.value || '').trim();
 
     if (prevOutputs.length > 0) {
       // 有历史上下文 → 主动提议
-      greeting = `你正在做「${currentTask}」的第 ${currentStepIdx + 1} 步：${step.title}。\n\n`;
+      greeting = `你正在做「${state.currentTask}」的第 ${state.currentStepIdx + 1} 步：${step.title}。\n\n`;
       greeting += `你前面已经完成了 ${prevOutputs.length} 步：\n`;
       prevOutputs.forEach(p => { greeting += `  · ${p}\n`; });
       greeting += `\n`;
@@ -232,7 +229,7 @@ export function updateRunBtn() {
 export async function sendHelp() {
   const input = document.getElementById('helpInput');
   const message = input.value.trim();
-  if (!message || isChatting) return;
+  if (!message || state.isChatting) return;
   input.value = '';
   updateRunBtn();
 
@@ -241,7 +238,7 @@ export async function sendHelp() {
 
   const container = document.getElementById('helpMessages');
   appendBubble(container, 'user', message, false);
-  helpHistory.push({ role: 'user', content: message });
+  state.helpHistory.push({ role: 'user', content: message });
 
   // 创建 AI 气泡，先显示加载态
   const wrapper = document.createElement('div');
@@ -254,7 +251,7 @@ export async function sendHelp() {
   container.appendChild(wrapper);
   container.scrollTop = container.scrollHeight;
 
-  setIsChatting(true);
+  state.isChatting = true;
   try {
     const contextSummary = buildContextSummary();
     const contextualMessage = `[系统上下文]\n${contextSummary}\n\n[用户问题]\n${message}`;
@@ -264,12 +261,12 @@ export async function sendHelp() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         message: contextualMessage,
-        history: helpHistory.slice(0, -1),
+        history: state.helpHistory.slice(0, -1),
         phase: 'step',
-        task: currentTask,
-        steps,
-        current_step: currentStepIdx,
-        outputs: stepOutputs,
+        task: state.currentTask,
+        steps: state.steps,
+        current_step: state.currentStepIdx,
+        outputs: state.stepOutputs,
         attachments: apiAttachments()
       })
     });
@@ -326,14 +323,14 @@ export async function sendHelp() {
       actions.appendChild(btn);
       wrapper.appendChild(actions);
 
-      helpHistory.push({ role: 'assistant', content: fullText });
+      state.helpHistory.push({ role: 'assistant', content: fullText });
       saveSnapshot();
     }
   } catch (err) {
     bubble.style.cssText = '';
     bubble.textContent = '出错了，请重试。';
   } finally {
-    setIsChatting(false);
+    state.isChatting = false;
     input.focus();
   }
 }

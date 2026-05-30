@@ -1,4 +1,4 @@
-import { sessionLog } from './state.js'
+import { state } from './state.js'
 import { formatDuration, escapeHtml } from './utils.js'
 import { applyContractCopy } from './contract.js'
 
@@ -50,17 +50,17 @@ export function updateLandingCountV2() {
 // ==================== 破冰战报 ====================
 export function renderBattleReport() {
   const container = document.getElementById('doneSummary');
-  if (!sessionLog.length) {
+  if (!state.sessionLog.length) {
     container.textContent = '';
     return;
   }
 
-  const totalTime = sessionLog.reduce((sum, record) => sum + record.time_spent_seconds, 0);
+  const totalTime = state.sessionLog.reduce((sum, record) => sum + record.time_spent_seconds, 0);
   const totalText = formatDuration(totalTime);
 
   let html = '<div class="battle-report">';
   html += '<div class="report-header">━━━━ 破冰日志 ━━━━</div>';
-  sessionLog.forEach((record) => {
+  state.sessionLog.forEach((record) => {
     const timeText = formatDuration(record.time_spent_seconds);
     html += '<div class="report-step">';
     html += '<span class="report-check">✓</span> ';
@@ -70,7 +70,7 @@ export function renderBattleReport() {
     html += `<div class="report-summary">${escapeHtml(record.summary)}</div>`;
   });
   html += '<div class="report-divider"></div>';
-  html += `<div class="report-total">总耗时：${totalText} | 产出：${sessionLog.length}项</div>`;
+  html += `<div class="report-total">总耗时：${totalText} | 产出：${state.sessionLog.length}项</div>`;
   html += '</div>';
 
   container.innerHTML = html;

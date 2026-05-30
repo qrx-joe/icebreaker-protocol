@@ -1,5 +1,5 @@
 // ==================== 产出质量评价 ====================
-import { currentTask, sessionLog, steps, stepOutputs } from './state.js'
+import { state } from './state.js'
 import { showPage } from './ui.js'
 
 const REVIEW_DIMENSIONS = [
@@ -241,7 +241,7 @@ function submitReview() {
   const verdict = calculateVerdict(total)
 
   const reviewData = {
-    task: currentTask || '未命名任务',
+    task: state.currentTask || '未命名任务',
     ts: Date.now(),
     total,
     max: 25,
@@ -250,9 +250,9 @@ function submitReview() {
     comments,
     overall,
     sessionInfo: {
-      stepCount: steps.length,
-      completedSteps: sessionLog.length,
-      totalTimeSeconds: sessionLog.reduce((s, r) => s + r.time_spent_seconds, 0),
+      stepCount: state.steps.length,
+      completedSteps: state.sessionLog.length,
+      totalTimeSeconds: state.sessionLog.reduce((s, r) => s + r.time_spent_seconds, 0),
     },
   }
 

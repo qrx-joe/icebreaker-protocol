@@ -1,5 +1,4 @@
-import { timePreference, outputMode, protocolStrength, saveSettings, saveSnapshot } from './state.js'
-
+import { state, saveSettings, saveSnapshot } from './state.js'
 // ==================== 设置面板 ====================
 export function openSettingsPanel() {
   updateProtocolStrengthUI();
@@ -9,7 +8,7 @@ export function openSettingsPanel() {
 }
 
 export function setTimePreference(value) {
-  timePreference = value;
+  state.timePreference = value;
   updateTimePreferenceUI();
   saveSettings();
   saveSnapshot();
@@ -23,12 +22,12 @@ export function updateTimePreferenceUI() {
       compact: '紧凑',
       standard: '标准',
       loose: '宽松'
-    }[timePreference]);
+    }[state.timePreference]);
   });
 }
 
 export function setOutputMode(value) {
-  outputMode = value;
+  state.outputMode = value;
   updateOutputModeUI();
   saveSettings();
   saveSnapshot();
@@ -42,12 +41,12 @@ export function updateOutputModeUI() {
       draft: '草稿',
       deliverable: '可交付',
       portfolio: '作品集'
-    }[outputMode]);
+    }[state.outputMode]);
   });
 }
 
 export function setProtocolStrength(value) {
-  protocolStrength = value;
+  state.protocolStrength = value;
   updateProtocolStrengthUI();
   saveSettings();
   saveSnapshot();
@@ -61,7 +60,7 @@ export function updateProtocolStrengthUI() {
       gentle: '温和',
       standard: '标准',
       strict: '严厉'
-    }[protocolStrength]);
+    }[state.protocolStrength]);
   });
 }
 

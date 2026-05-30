@@ -1,4 +1,4 @@
-import { currentPhase, contractBusy } from './state.js'
+import { state } from './state.js'
 import { showPage } from './ui.js'
 import { showContractLoading, setContractButtonsDisabled, clearContractLoading } from './contract.js'
 import { sendToAI } from './api.js'
@@ -13,15 +13,15 @@ export function startProtocol() {
     return;
   }
   input.value = '';
-  currentPhase = 'contract';
+  state.currentPhase = 'contract';
   showPage('pageContract');
   // 立即显示加载状态，不用等 sendToAI
-  contractBusy = true;
+  state.contractBusy = true;
   showContractLoading();
   setContractButtonsDisabled(true);
   sendToAI(message)
     .catch(() => {})
-    .finally(() => { contractBusy = false; setContractButtonsDisabled(false); clearContractLoading(); });
+    .finally(() => { state.contractBusy = false; setContractButtonsDisabled(false); clearContractLoading(); });
 }
 
 // Legacy bridge
