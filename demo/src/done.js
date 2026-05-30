@@ -16,12 +16,13 @@ export function showDone() {
   document.getElementById('stepProgressFill').style.width = '100%';
 
   // 渲染破冰战报
-  document.querySelector('.done-title').textContent = '雏形已生�?;
+  document.querySelector('.done-title').textContent = '雏形已生成';
   document.getElementById('doneAiMsg').textContent =
     `你完成了 ${sessionLog.length || steps.length || 0} 个可见块。现在先导出，或只改一处。`;
   renderBattleReport();
 
-  // 保存到历史记�?  const totalTime = sessionLog.reduce((s, r) => s + r.time_spent_seconds, 0);
+  // 保存到历史记录
+  const totalTime = sessionLog.reduce((s, r) => s + r.time_spent_seconds, 0);
   appendHistory({
     id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2),
     ts: Date.now(),
@@ -44,11 +45,12 @@ export async function startImprovement() {
   improvementRound++;
   const btn = document.getElementById('btnImprove');
   btn.disabled = true;
-  btn.textContent = '分析�?..';
+  btn.textContent = '分析中...';
 
-  // 构建所有步骤产出摘�?  const outputsSummary = steps.map((s, i) => {
-    const output = stepOutputs[i] || '(无产�?';
-    return `步骤${i + 1}�?{s.title}�? ${output}`;
+  // 构建所有步骤产出摘要
+  const outputsSummary = steps.map((s, i) => {
+    const output = stepOutputs[i] || '(无产出)';
+    return `步骤${i + 1}「${s.title}」: ${output}`;
   }).join('\n');
 
   try {
@@ -72,7 +74,7 @@ export async function startImprovement() {
 
     // 尝试解析 JSON
     let targetIdx = 0;
-    let instruction = '完善这一部分的内�?;
+    let instruction = '完善这一部分的内容';
     try {
       const match = reply.match(/\{.*\}/s);
       if (match) {
@@ -85,29 +87,30 @@ export async function startImprovement() {
     improvementTargetIdx = targetIdx;
     showImprovementRoadmap(targetIdx, instruction);
   } catch (err) {
-    document.getElementById('doneAiMsg').textContent = '分析失败，请重试�?;
+    document.getElementById('doneAiMsg').textContent = '分析失败，请重试。';
     btn.disabled = false;
-    btn.textContent = '只改一�?;
+    btn.textContent = '只改一处';
     improvementRound--;
   }
 }
 
 export function showImprovementRoadmap(targetIdx, instruction) {
   // 设置标题
-  document.getElementById('roadmapTitle').textContent = `�?${improvementRound} 轮改进`;
+  document.getElementById('roadmapTitle').textContent = `第 ${improvementRound} 轮改进`;
 
-  // 清空常规 AI 消息，显示改进指�?  document.getElementById('roadmapAiMsg').textContent = '';
+  // 清空常规 AI 消息，显示改进指令
+  document.getElementById('roadmapAiMsg').textContent = '';
   document.getElementById('roadmapImproveMsg').textContent =
-    `[Protocol]: 下一步改�?�?${instruction}`;
+    `[Protocol]: 下一步改进 → ${instruction}`;
 
   // 轮次警告
   const warningEl = document.getElementById('roadmapRoundWarning');
   if (improvementRound >= 4) {
     warningEl.className = 'roadmap-round-warning danger';
-    warningEl.textContent = `[Protocol 警告]: 你已经进行了 ${improvementRound} 轮改进。继续修改的边际收益趋近于零。发布一�?80 分的产出，比打磨一个永远发不出去的 100 分更有价值。`;
+    warningEl.textContent = `[Protocol 警告]: 你已经进行了 ${improvementRound} 轮改进。继续修改的边际收益趋近于零。发布一个 80 分的产出，比打磨一个永远发不出去的 100 分更有价值。`;
   } else if (improvementRound >= 3) {
     warningEl.className = 'roadmap-round-warning';
-    warningEl.textContent = `[Protocol]: 这是�?${improvementRound} 轮改进。协议建议你完成这一轮后发布或提交。你的完美主义正在这里等着你——先把它发出去。`;
+    warningEl.textContent = `[Protocol]: 这是第 ${improvementRound} 轮改进。协议建议你完成这一轮后发布或提交。你的完美主义正在这里等着你——先把它发出去。`;
   } else {
     warningEl.textContent = '';
   }
@@ -119,13 +122,15 @@ export function showImprovementRoadmap(targetIdx, instruction) {
   document.getElementById('roadmapActions').style.display = 'none';
   document.getElementById('roadmapImproveActions').style.display = 'flex';
 
-  // 恢复按钮状�?  const btn = document.getElementById('btnImprove');
+  // 恢复按钮状态
+  const btn = document.getElementById('btnImprove');
   btn.disabled = false;
-  btn.textContent = '只改一�?;
+  btn.textContent = '只改一处';
 }
 
 export function confirmImprovement() {
-  // 恢复 Roadmap 为常规模�?  resetRoadmapMode();
+  // 恢复 Roadmap 为常规模式
+  resetRoadmapMode();
   goToStep(improvementTargetIdx);
 }
 
@@ -136,7 +141,7 @@ export function skipImprovement() {
 }
 
 export function resetRoadmapMode() {
-  document.getElementById('roadmapTitle').textContent = '拆解路线�?;
+  document.getElementById('roadmapTitle').textContent = '拆解路线图';
   document.getElementById('roadmapImproveMsg').textContent = '';
   document.getElementById('roadmapRoundWarning').textContent = '';
   document.getElementById('roadmapActions').style.display = 'flex';
@@ -158,7 +163,7 @@ export function copyMarkdown() {
   const md = buildMarkdown();
   navigator.clipboard.writeText(md).then(() => {
     const btn = document.querySelector('.done-export .btn-export:first-child');
-    btn.textContent = '已复�?;
+    btn.textContent = '已复制';
     btn.classList.add('copied');
     setTimeout(() => {
       btn.textContent = '复制 Markdown';
@@ -197,10 +202,21 @@ export function resetAll() {
 
   document.getElementById('landingInput').value = '';
   document.getElementById('landingInput').style.borderColor = 'rgba(56,189,248,0.25)';
-  document.getElementById('landingInput').setAttribute('placeholder', '比如：我想写一篇博客但不知道怎么开�?..');
+  document.getElementById('landingInput').setAttribute('placeholder', '比如：我想写一篇博客但不知道怎么开头...');
 
   showPage('pageLanding');
   applyLandingCopy();
   setTimeout(() => document.getElementById('landingInput').focus(), 300);
 }
 
+// Legacy bridge
+window.showDone = showDone;
+window.startImprovement = startImprovement;
+window.showImprovementRoadmap = showImprovementRoadmap;
+window.confirmImprovement = confirmImprovement;
+window.skipImprovement = skipImprovement;
+window.resetRoadmapMode = resetRoadmapMode;
+window.buildMarkdown = buildMarkdown;
+window.copyMarkdown = copyMarkdown;
+window.downloadMarkdown = downloadMarkdown;
+window.resetAll = resetAll;

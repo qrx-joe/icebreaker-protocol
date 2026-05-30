@@ -40,8 +40,8 @@ export function updateOutputModeUI() {
   seg.querySelectorAll('button').forEach((btn) => {
     btn.classList.toggle('active', btn.textContent === {
       draft: '草稿',
-      deliverable: '可交�?,
-      portfolio: '作品�?
+      deliverable: '可交付',
+      portfolio: '作品集'
     }[outputMode]);
   });
 }
@@ -69,3 +69,12 @@ export function closeProtocolPanel(id) {
   document.getElementById(id).classList.remove('active');
 }
 
+// Legacy bridge
+window.openSettingsPanel = openSettingsPanel;
+window.setTimePreference = setTimePreference;
+window.updateTimePreferenceUI = updateTimePreferenceUI;
+window.setOutputMode = setOutputMode;
+window.updateOutputModeUI = updateOutputModeUI;
+window.setProtocolStrength = setProtocolStrength;
+window.updateProtocolStrengthUI = updateProtocolStrengthUI;
+window.closeProtocolPanel = closeProtocolPanel;

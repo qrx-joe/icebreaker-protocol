@@ -30,7 +30,8 @@ export function initSpeechRecognition() {
       }
     }
     if (final) voiceTranscript += final;
-    // 实时更新输入框预�?    const input = document.getElementById('helpInput');
+    // 实时更新输入框预览
+    const input = document.getElementById('helpInput');
     const display = voiceTranscript + interim;
     input.value = display;
     updateRunBtn();
@@ -39,7 +40,7 @@ export function initSpeechRecognition() {
   rec.onerror = (event) => {
     console.warn('Speech error:', event.error);
     if (event.error === 'not-allowed') {
-      showVoiceHint('麦克风权限被拒绝。请在浏览器设置中允许�?);
+      showVoiceHint('麦克风权限被拒绝。请在浏览器设置中允许。');
     }
     stopRecording();
   };
@@ -65,7 +66,7 @@ export function toggleVoice() {
 export function startRecording() {
   if (!recognition) recognition = initSpeechRecognition();
   if (!recognition) {
-    showVoiceHint('当前浏览器不支持语音输入，请使用 Chrome �?Edge�?);
+    showVoiceHint('当前浏览器不支持语音输入，请使用 Chrome 或 Edge。');
     return;
   }
 
@@ -78,10 +79,10 @@ export function startRecording() {
 
   btn.classList.add('recording');
   row.classList.add('voice-active');
-  input.placeholder = '正在聆听...说出来，不要想�?;
+  input.placeholder = '正在聆听...说出来，不要想。';
   input.value = '';
 
-  showVoiceHint('🎙�?意识流捕捉中。说出来，不管多乱，[Protocol] 帮你提纯�?);
+  showVoiceHint('🎙️ 意识流捕捉中。说出来，不管多乱，[Protocol] 帮你提纯。');
 
   try {
     recognition.start();
@@ -116,7 +117,7 @@ export function stopRecording() {
   updateRunBtn();
 
   // 显示提纯提示
-  showVoiceHint('转录完成。点�?RUN 执行，或编辑后发送�?);
+  showVoiceHint('转录完成。点击 RUN 执行，或编辑后发送。');
 }
 
 export function showVoiceHint(text) {
@@ -144,7 +145,7 @@ export function startLandingRecording() {
   if (!landingRecognition) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      showToast('当前浏览器不支持语音输入，请使用 Chrome �?Edge�?, 'warning', 5000);
+      showToast('当前浏览器不支持语音输入，请使用 Chrome 或 Edge。', 'warning', 5000);
       return;
     }
     landingRecognition = new SpeechRecognition();
@@ -170,7 +171,7 @@ export function startLandingRecording() {
 
     landingRecognition.onerror = (event) => {
       if (event.error === 'not-allowed') {
-        showToast('麦克风权限被拒绝。请在浏览器设置中允许�?, 'warning', 5000);
+        showToast('麦克风权限被拒绝。请在浏览器设置中允许。', 'warning', 5000);
       }
       stopLandingRecording();
     };
@@ -189,7 +190,7 @@ export function startLandingRecording() {
   const input = document.getElementById('landingInput');
   btn.classList.add('recording');
   btn.textContent = '🔴';
-  input.placeholder = '正在聆听...说出来，不要想�?;
+  input.placeholder = '正在聆听...说出来，不要想。';
   input.value = '';
 
   try { landingRecognition.start(); } catch (e) { stopLandingRecording(); }
@@ -201,8 +202,8 @@ export function stopLandingRecording() {
   const btn = document.getElementById('landingMic');
   const input = document.getElementById('landingInput');
   btn.classList.remove('recording');
-  btn.textContent = '🎙�?;
-  input.placeholder = '比如：我想写一篇博客但不知道怎么开�?..';
+  btn.textContent = '🎙️';
+  input.placeholder = '比如：我想写一篇博客但不知道怎么开头...';
 
   if (landingRecognition) {
     try { landingRecognition.stop(); } catch (e) {}
@@ -222,7 +223,7 @@ export function startMainRecording() {
   if (!mainRecognition) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      document.getElementById('stepWarning').textContent = '当前浏览器不支持语音输入，请使用 Chrome �?Edge�?;
+      document.getElementById('stepWarning').textContent = '当前浏览器不支持语音输入，请使用 Chrome 或 Edge。';
       return;
     }
     mainRecognition = new SpeechRecognition();
@@ -243,14 +244,15 @@ export function startMainRecording() {
       }
       if (final) mainVoiceTranscript += final;
       const ta = document.getElementById('stepTextarea');
-      // 追加到已有内容后�?      const existing = stepOutputs[currentStepIdx] || '';
+      // 追加到已有内容后面
+      const existing = stepOutputs[currentStepIdx] || '';
       const separator = existing && mainVoiceTranscript ? '\n' : '';
       ta.value = existing + separator + mainVoiceTranscript + interim;
     };
 
     mainRecognition.onerror = (event) => {
       if (event.error === 'not-allowed') {
-        document.getElementById('stepWarning').textContent = '麦克风权限被拒绝。请在浏览器设置中允许�?;
+        document.getElementById('stepWarning').textContent = '麦克风权限被拒绝。请在浏览器设置中允许。';
       }
       stopMainRecording();
     };
@@ -274,12 +276,12 @@ export function startMainRecording() {
 
   const btn = document.getElementById('pillMic');
   btn.classList.add('recording');
-  btn.textContent = '🔴 录音�?..';
-  ta.placeholder = '正在聆听...说出来，不要想�?;
+  btn.textContent = '🔴 录音中...';
+  ta.placeholder = '正在聆听...说出来，不要想。';
 
   const warning = document.getElementById('stepWarning');
   warning.style.color = '#ef4444';
-  warning.textContent = '[Protocol]: 说出来。不管多乱，先吐出来�?;
+  warning.textContent = '[Protocol]: 说出来。不管多乱，先吐出来。';
 
   try { mainRecognition.start(); } catch (e) { stopMainRecording(); }
 }
@@ -289,19 +291,33 @@ export function stopMainRecording() {
 
   const btn = document.getElementById('pillMic');
   btn.classList.remove('recording');
-  btn.textContent = '🎙�?语音';
+  btn.textContent = '🎙️ 语音';
 
   const ta = document.getElementById('stepTextarea');
-  ta.placeholder = '在这里写下你的产�?..';
+  ta.placeholder = '在这里写下你的产出...';
 
   if (mainRecognition) {
     try { mainRecognition.stop(); } catch (e) {}
   }
 
-  // 保存最终内�?  stepOutputs[currentStepIdx] = ta.value;
+  // 保存最终内容
+  stepOutputs[currentStepIdx] = ta.value;
 
   const warning = document.getElementById('stepWarning');
   warning.style.color = '#4ade80';
-  warning.textContent = '[Protocol]: 语音捕捉完成。你可以继续编辑，或直接提交�?;
+  warning.textContent = '[Protocol]: 语音捕捉完成。你可以继续编辑，或直接提交。';
 }
 
+// Legacy bridge
+window.initSpeechRecognition = initSpeechRecognition;
+window.toggleVoice = toggleVoice;
+window.startRecording = startRecording;
+window.stopRecording = stopRecording;
+window.showVoiceHint = showVoiceHint;
+window.clearVoiceHint = clearVoiceHint;
+window.toggleLandingVoice = toggleLandingVoice;
+window.startLandingRecording = startLandingRecording;
+window.stopLandingRecording = stopLandingRecording;
+window.toggleMainVoice = toggleMainVoice;
+window.startMainRecording = startMainRecording;
+window.stopMainRecording = stopMainRecording;

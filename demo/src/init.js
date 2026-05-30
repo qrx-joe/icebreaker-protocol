@@ -12,7 +12,7 @@ import { goToStep } from './steps.js'
 import { showRoadmap } from './roadmap.js'
 import { showPage } from './ui.js'
 
-// ==================== 初始�?====================
+// ==================== 初始化 ====================
 function restoreFromSnapshot(s) {
   chatHistory = s.chatHistory || [];
   currentTask = s.currentTask || '';
@@ -40,7 +40,7 @@ function restoreFromSnapshot(s) {
   } else if (currentPhase === 'done') {
     // 恢复 done 页面时不重复保存历史
     document.getElementById('stepProgressFill').style.width = '100%';
-    document.querySelector('.done-title').textContent = '雏形已生�?;
+    document.querySelector('.done-title').textContent = '雏形已生成';
     if (!document.getElementById('doneAiMsg').textContent) {
       document.getElementById('doneAiMsg').textContent =
         `你完成了 ${sessionLog.length || steps.length || 0} 个可见块。现在先导出，或只改一处。`;
@@ -70,7 +70,7 @@ export function initApp() {
     if (snap && snap.currentPhase !== 'landing' && snap.currentPhase !== 'done') {
       const resume = await showModal({
         title: '恢复进度',
-        body: `检测到未完成的协议�?{snap.currentTask || '未命名任�?}」（步骤 ${snap.currentStepIdx + 1} / ${snap.steps.length}）。\n\n是否恢复上次进度？`,
+        body: `检测到未完成的协议「${snap.currentTask || '未命名任务'}」（步骤 ${snap.currentStepIdx + 1} / ${snap.steps.length}）。\n\n是否恢复上次进度？`,
         confirmText: '恢复',
         cancelText: '放弃'
       });
@@ -93,3 +93,5 @@ export function initApp() {
   });
 }
 
+// Legacy bridge
+window.initApp = initApp;

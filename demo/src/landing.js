@@ -15,7 +15,7 @@ export function startProtocol() {
   input.value = '';
   currentPhase = 'contract';
   showPage('pageContract');
-  // 立即显示加载状态，不用�?sendToAI
+  // 立即显示加载状态，不用等 sendToAI
   contractBusy = true;
   showContractLoading();
   setContractButtonsDisabled(true);
@@ -24,3 +24,5 @@ export function startProtocol() {
     .finally(() => { contractBusy = false; setContractButtonsDisabled(false); clearContractLoading(); });
 }
 
+// Legacy bridge
+window.startProtocol = startProtocol;

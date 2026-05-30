@@ -55,7 +55,7 @@ export function renderAttachments() {
     chip.className = 'attachment-chip';
     chip.title = item.text ? `${item.name}\n${item.text.slice(0, 500)}` : `${item.name}\n${item.error || '未解析内容，仅记录文件名'}`;
     const label = document.createElement('span');
-    label.textContent = `📎 ${item.name} · ${item.text ? '已解�? : '未解�?} · ${formatAttachmentSize(item.size)}`;
+    label.textContent = `📎 ${item.name} · ${item.text ? '已解析' : '未解析'} · ${formatAttachmentSize(item.size)}`;
     const remove = document.createElement('button');
     remove.className = 'attachment-remove';
     remove.type = 'button';
@@ -73,7 +73,7 @@ export function renderAttachments() {
 export function attachmentContextText() {
   if (!attachments.length) return '';
   return attachments.map((item, index) => {
-    const text = item.text ? `\n${item.text.slice(0, 1500)}` : '\n（未解析正文，仅可参考文件名�?;
+    const text = item.text ? `\n${item.text.slice(0, 1500)}` : '\n（未解析正文，仅可参考文件名）';
     return `附件 ${index + 1}: ${item.name} (${item.type || 'unknown'}, ${formatAttachmentSize(item.size)})${text}`;
   }).join('\n\n');
 }
@@ -92,7 +92,7 @@ export async function handleAttachmentUpload(fileList) {
   const warning = document.getElementById('stepWarning');
   if (warning && files.length) {
     warning.style.color = '#38bdf8';
-    warning.textContent = `[Protocol]: 正在解析 ${files.length} 个附�?..`;
+    warning.textContent = `[Protocol]: 正在解析 ${files.length} 个附件...`;
   }
 
   for (const file of files) {
@@ -138,7 +138,17 @@ export async function handleAttachmentUpload(fileList) {
   if (warning && files.length) {
     warning.style.color = '#38bdf8';
     const parsedCount = attachments.filter(item => item.text).length;
-    warning.textContent = `[Protocol]: 已挂�?${files.length} 个附件，${parsedCount} 个可进入 AI 上下文。`;
+    warning.textContent = `[Protocol]: 已挂载 ${files.length} 个附件，${parsedCount} 个可进入 AI 上下文。`;
   }
 }
 
+// Legacy bridge
+window.isReadableAttachment = isReadableAttachment;
+window.isBackendParsableAttachment = isBackendParsableAttachment;
+window.fileToBase64 = fileToBase64;
+window.parseAttachmentOnServer = parseAttachmentOnServer;
+window.formatAttachmentSize = formatAttachmentSize;
+window.renderAttachments = renderAttachments;
+window.attachmentContextText = attachmentContextText;
+window.apiAttachments = apiAttachments;
+window.handleAttachmentUpload = handleAttachmentUpload;

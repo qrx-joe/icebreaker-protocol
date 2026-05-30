@@ -13,13 +13,13 @@ export function appendBubble(container, role, text, showApply) {
   div.textContent = text;
   wrapper.appendChild(div);
 
-  // 一键采纳按钮（�?AI 回复且有实质内容时显示）
+  // 一键采纳按钮（仅 AI 回复且有实质内容时显示）
   if (showApply && role === 'assistant' && text.length > 15) {
     const actions = document.createElement('div');
     actions.className = 'bubble-actions';
     const btn = document.createElement('button');
     btn.className = 'btn-apply';
-    btn.textContent = '采纳到左�?;
+    btn.textContent = '采纳到左侧';
     btn.onclick = () => applyToEditor(text);
     actions.appendChild(btn);
     wrapper.appendChild(actions);
@@ -29,16 +29,17 @@ export function appendBubble(container, role, text, showApply) {
   return div;
 }
 
-// 构建全局上下文摘�?function buildContextSummary() {
+// 构建全局上下文摘要
+function buildContextSummary() {
   const parts = [];
-  parts.push(`用户的任务：${currentTask || '未确�?}`);
+  parts.push(`用户的任务：${currentTask || '未确定'}`);
 
   // 已完成步骤的产出
   const completedOutputs = [];
   for (let i = 0; i < currentStepIdx; i++) {
     const out = (stepOutputs[i] || '').trim();
     if (out) {
-      completedOutputs.push(`步骤${i + 1}�?{steps[i]?.title || ''}」的产出�?{out}`);
+      completedOutputs.push(`步骤${i + 1}「${steps[i]?.title || ''}」的产出：${out}`);
     }
   }
   if (completedOutputs.length) {
@@ -48,9 +49,9 @@ export function appendBubble(container, role, text, showApply) {
   // 当前步骤
   const step = steps[currentStepIdx];
   if (step) {
-    parts.push(`当前正在执行步骤 ${currentStepIdx + 1}/${steps.length}�?{step.title}`);
-    parts.push(`步骤说明�?{step.instruction}`);
-    parts.push(`要求产出�?{step.output}`);
+    parts.push(`当前正在执行步骤 ${currentStepIdx + 1}/${steps.length}：${step.title}`);
+    parts.push(`步骤说明：${step.instruction}`);
+    parts.push(`要求产出：${step.output}`);
     // 当前已写内容
     const currentText = (document.getElementById('stepTextarea')?.value || '').trim();
     if (currentText) {
@@ -77,36 +78,36 @@ export function renderPromptChips() {
   // 通用 chips
   const chips = [];
 
-  // 基于当前步骤的智�?chips
+  // 基于当前步骤的智能 chips
   const title = step.title || '';
   const instruction = step.instruction || '';
 
-  // 从步骤说明中提取关键词生�?chips
+  // 从步骤说明中提取关键词生成 chips
   if (instruction.includes('标题') || title.includes('标题')) {
-    chips.push('帮我�?3 个包含数字的标题');
-    chips.push('针对年轻人，语气夸张一�?);
+    chips.push('帮我想 3 个包含数字的标题');
+    chips.push('针对年轻人，语气夸张一点');
   }
   if (instruction.includes('观点') || title.includes('观点')) {
-    chips.push('帮我提炼一个有争议的观�?);
+    chips.push('帮我提炼一个有争议的观点');
     chips.push('用一句话概括核心主张');
   }
   if (instruction.includes('消息') || title.includes('消息') || title.includes('联系')) {
     chips.push('帮我写一条不尴尬的开场白');
-    chips.push('语气自然一点，不要太正�?);
+    chips.push('语气自然一点，不要太正式');
   }
-  if (instruction.includes('简�?) || title.includes('简�?) || title.includes('岗位')) {
-    chips.push('帮我把经历改�?STAR 格式');
+  if (instruction.includes('简历') || title.includes('简历') || title.includes('岗位')) {
+    chips.push('帮我把经历改成 STAR 格式');
     chips.push('突出技术关键词');
   }
   if (instruction.includes('代码') || title.includes('demo') || title.includes('骨架')) {
     chips.push('给我一个最简代码模板');
-    chips.push('�?Python 实现');
+    chips.push('用 Python 实现');
   }
 
-  // 始终可用�?chips
-  chips.push('给我一个具体示�?);
+  // 始终可用的 chips
+  chips.push('给我一个具体示例');
   if (currentStepIdx > 0) {
-    chips.push('结合我上一步的产出，给点建�?);
+    chips.push('结合我上一步的产出，给点建议');
   }
 
   // 渲染
@@ -124,10 +125,12 @@ export function renderPromptChips() {
   });
 }
 
-// 一键采纳到左侧编辑�?export function applyToEditor(text) {
+// 一键采纳到左侧编辑器
+export function applyToEditor(text) {
   const ta = document.getElementById('stepTextarea');
   if (!ta) return;
-  // 如果编辑器已有内容，追加换行；否则直接替�?  const existing = ta.value.trim();
+  // 如果编辑器已有内容，追加换行；否则直接替换
+  const existing = ta.value.trim();
   ta.value = existing ? existing + '\n\n' + text : text;
   stepOutputs[currentStepIdx] = ta.value;
   ta.dispatchEvent(new Event('input', { bubbles: true }));
@@ -155,27 +158,29 @@ export function openHelp() {
   let greeting;
 
   if (step) {
-    // 收集已有上下�?    const prevOutputs = [];
+    // 收集已有上下文
+    const prevOutputs = [];
     for (let i = 0; i < currentStepIdx; i++) {
       const out = (stepOutputs[i] || '').trim();
-      if (out) prevOutputs.push(`步骤${i + 1}�?{steps[i]?.title}」：${out}`);
+      if (out) prevOutputs.push(`步骤${i + 1}「${steps[i]?.title}」：${out}`);
     }
 
     const currentText = (document.getElementById('stepTextarea')?.value || '').trim();
 
     if (prevOutputs.length > 0) {
-      // 有历史上下文 �?主动提议
-      greeting = `你正在做�?{currentTask}」的�?${currentStepIdx + 1} 步：${step.title}。\n\n`;
+      // 有历史上下文 → 主动提议
+      greeting = `你正在做「${currentTask}」的第 ${currentStepIdx + 1} 步：${step.title}。\n\n`;
       greeting += `你前面已经完成了 ${prevOutputs.length} 步：\n`;
       prevOutputs.forEach(p => { greeting += `  · ${p}\n`; });
       greeting += `\n`;
       if (currentText) {
-        greeting += `你当前已经写了：�?{currentText.slice(0, 80)}${currentText.length > 80 ? '...' : ''}」\n\n`;
+        greeting += `你当前已经写了：「${currentText.slice(0, 80)}${currentText.length > 80 ? '...' : ''}」\n\n`;
       }
       greeting += `需要我基于这些内容帮你推进吗？比如直接帮你起草、优化、或者给你几个方向参考。`;
     } else {
-      // 第一步，无历�?      greeting = `你正在做�?1 步：${step.title}。\n\n`;
-      greeting += `要求产出�?{step.output}\n\n`;
+      // 第一步，无历史
+      greeting = `你正在做第 1 步：${step.title}。\n\n`;
+      greeting += `要求产出：${step.output}\n\n`;
       if (currentText) {
         greeting += `你已经写了一些内容，需要我帮你继续完善吗？`;
       } else {
@@ -183,7 +188,7 @@ export function openHelp() {
       }
     }
   } else {
-    greeting = '有什么我能帮你的�?;
+    greeting = '有什么我能帮你的？';
   }
 
   appendBubble(container, 'assistant', greeting, false);
@@ -237,11 +242,12 @@ export async function sendHelp() {
   appendBubble(container, 'user', message, false);
   helpHistory.push({ role: 'user', content: message });
 
-  // 创建 AI 气泡，先显示加载�?  const wrapper = document.createElement('div');
+  // 创建 AI 气泡，先显示加载态
+  const wrapper = document.createElement('div');
   wrapper.style.cssText = 'display:flex;flex-direction:column;';
   const bubble = document.createElement('div');
   bubble.className = 'bubble assistant';
-  bubble.textContent = '正在思�?..';
+  bubble.textContent = '正在思考...';
   bubble.style.cssText = 'opacity:0.5; animation:pulse 1.5s ease-in-out infinite;';
   wrapper.appendChild(bubble);
   container.appendChild(wrapper);
@@ -281,7 +287,8 @@ export async function sendHelp() {
 
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split('\n');
-      buffer = lines.pop(); // 保留未完成的�?
+      buffer = lines.pop(); // 保留未完成的行
+
       for (const line of lines) {
         if (!line.startsWith('data: ')) continue;
         const payload = line.slice(6);
@@ -308,11 +315,12 @@ export async function sendHelp() {
     }
 
     if (fullText) {
-      // 添加「采纳到左侧」按�?      const actions = document.createElement('div');
+      // 添加「采纳到左侧」按钮
+      const actions = document.createElement('div');
       actions.className = 'bubble-actions';
       const btn = document.createElement('button');
       btn.className = 'btn-apply';
-      btn.textContent = '采纳到左�?;
+      btn.textContent = '采纳到左侧';
       btn.onclick = () => applyToEditor(fullText);
       actions.appendChild(btn);
       wrapper.appendChild(actions);
@@ -322,10 +330,18 @@ export async function sendHelp() {
     }
   } catch (err) {
     bubble.style.cssText = '';
-    bubble.textContent = '出错了，请重试�?;
+    bubble.textContent = '出错了，请重试。';
   } finally {
     isChatting = false;
     input.focus();
   }
 }
 
+// Legacy bridge
+window.appendBubble = appendBubble;
+window.renderPromptChips = renderPromptChips;
+window.applyToEditor = applyToEditor;
+window.openHelp = openHelp;
+window.closeHelp = closeHelp;
+window.updateRunBtn = updateRunBtn;
+window.sendHelp = sendHelp;

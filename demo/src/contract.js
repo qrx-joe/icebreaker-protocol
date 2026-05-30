@@ -13,7 +13,7 @@ export function setContractButtonsDisabled(disabled) {
 
 export function showContractLoading() {
   const el = document.getElementById('contractAiMsg');
-  el.textContent = '正在思�?..';
+  el.textContent = '正在思考...';
   el.style.opacity = '0.6';
 }
 
@@ -26,7 +26,7 @@ export function clearContractLoading() {
 export function applyContractCopy() {
   const msg = document.getElementById('contractAiMsg');
   if (msg && !contractBusy) {
-    msg.textContent = '[Protocol] 第一版只要求存在�?;
+    msg.textContent = '[Protocol] 第一版只要求存在。';
   }
 
   const title = document.querySelector('.contract-box h3');
@@ -37,7 +37,7 @@ export function applyContractCopy() {
     list.replaceChildren();
     [
       '只做可修改的雏形',
-      '每一步必须留下可见产�?,
+      '每一步必须留下可见产出',
       '单步限时，不无限准备',
       '不满意也提交',
     ].forEach(text => {
@@ -48,12 +48,12 @@ export function applyContractCopy() {
 
     const forbidden = document.createElement('li');
     forbidden.className = 'c-forbidden';
-    forbidden.textContent = '禁止：空白提�?;
+    forbidden.textContent = '禁止：空白提交';
     list.appendChild(forbidden);
   }
 
   const primary = document.querySelector('.contract-actions .btn-primary');
-  if (primary) primary.textContent = '启动�?1 �?;
+  if (primary) primary.textContent = '启动第 1 步';
 
   const secondary = document.querySelector('.contract-actions .btn-secondary');
   if (secondary) secondary.textContent = '说出阻力';
@@ -64,7 +64,7 @@ export function acceptContract() {
   contractBusy = true;
   setContractButtonsDisabled(true);
   showContractLoading();
-  sendToAI('我同意契约，请帮我拆解任�?)
+  sendToAI('我同意契约，请帮我拆解任务')
     .catch(() => {})
     .finally(() => { contractBusy = false; setContractButtonsDisabled(false); clearContractLoading(); });
 }
@@ -79,3 +79,10 @@ export function questionContract() {
     .finally(() => { contractBusy = false; setContractButtonsDisabled(false); clearContractLoading(); });
 }
 
+// Legacy bridge
+window.setContractButtonsDisabled = setContractButtonsDisabled;
+window.showContractLoading = showContractLoading;
+window.clearContractLoading = clearContractLoading;
+window.applyContractCopy = applyContractCopy;
+window.acceptContract = acceptContract;
+window.questionContract = questionContract;

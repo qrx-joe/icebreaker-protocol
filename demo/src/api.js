@@ -11,9 +11,9 @@ import { showToast } from './notify.js'
 // ==================== AI 对话核心 ====================
 export function normalizeStep(raw) {
   return {
-    title: raw.title || '未命名步�?,
+    title: raw.title || '未命名步骤',
     instruction: raw.instruction || raw.text || '',
-    output: raw.output || '一个可见产�?,
+    output: raw.output || '一个可见产出',
     minutes: Number(raw.minutes || raw.time || 15)
   };
 }
@@ -46,7 +46,7 @@ export function applyAIResponse(data) {
 
   if (data.screen === 'contract') {
     currentPhase = 'contract';
-    document.getElementById('contractAiMsg').textContent = '[Protocol] 先锁定约束，然后开始第 1 步�?;
+    document.getElementById('contractAiMsg').textContent = '[Protocol] 先锁定约束，然后开始第 1 步。';
     showPage('pageContract');
     saveSnapshot();
     return;
@@ -126,7 +126,7 @@ export async function sendToAI(message) {
     chatHistory.pop();
     saveSnapshot();
     if (err.name === 'AbortError') {
-      showToast('请求超时，请检查网络后重试�?, 'error', 5000);
+      showToast('请求超时，请检查网络后重试。', 'error', 5000);
     } else {
       showToast('出错了：' + err.message, 'error', 5000);
     }
@@ -136,3 +136,8 @@ export async function sendToAI(message) {
   }
 }
 
+// Legacy bridge
+window.normalizeStep = normalizeStep;
+window.showInlineMessage = showInlineMessage;
+window.applyAIResponse = applyAIResponse;
+window.sendToAI = sendToAI;
