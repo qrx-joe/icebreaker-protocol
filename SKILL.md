@@ -1,6 +1,6 @@
 ---
 name: icebreaker-protocol
-version: 2.1.0
+version: 2.2.0-dev
 license: MIT
 description: |
   完美主义者的任务引导协议。不只是帮你开始，而是带你做出雏形，并通过 AI 驱动的改进循环帮你迭代。
@@ -17,7 +17,7 @@ description: |
   本协议不提供安慰和鸡汤，只提供具体的、可执行的下一步操作。
 compatibility: |
   无外部依赖。纯对话交互即可工作。
-  可选：Python 3.6+ 运行 scripts/timer.py 倒计时脚本。
+  可选：Python 3.11+ 运行本地 demo、scripts/timer.py 倒计时脚本和 scripts/review.py 产出质量评价器。
 ---
 
 # 破冰协议（Icebreaker Protocol）
@@ -265,7 +265,7 @@ python scripts/timer.py 30s    # 30 秒（快速决策场景）
 | 依赖 | 类型 | 是否必需 | 成本 |
 |-----|------|---------|------|
 | 无 | - | - | 0 |
-| Python 3.6+（可选） | 运行时 | 否，仅 `scripts/timer.py` 需要 | 免费 |
+| Python 3.11+（可选） | 运行时 | 否，仅本地 demo、`scripts/timer.py` 和 `scripts/review.py` 需要 | 免费 |
 | winsound（可选） | 标准库 | 否，Windows 倒计时音效 | 免费 |
 
 ---

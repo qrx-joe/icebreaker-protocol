@@ -1,42 +1,202 @@
-
 # 破冰协议（Icebreaker Protocol）
 
-## 商业用途说明
+> 面向完美主义者的 AI 任务启动协议：把“想太多但动不了”的状态，拆成可执行步骤，并逼近一个可以修改的雏形。
 
-破冰协议不是又一个时间管理工具。市面上教你"如何规划""如何坚持"的工具已经够多了，但完美主义者不缺规划——他们缺的是**从"想"到"做"的那一瞬间的操作指令**。
+破冰协议不是时间管理工具，也不是待办清单。它针对的是另一类更隐蔽的卡点：你知道事情重要，也并不是不想做，但因为太在乎结果，反而迟迟不敢开始。
 
-我作为目标用户：一个脑子里永远在推演、但身体卡在起跑线上的人。传统工具对我无效，因为它们的假设是"你不想做"，而真相是"你太在乎，所以不敢做"。
+项目当前包含三部分：
 
-破冰协议通过四个核心机制解决这个问题：**启动契约**（明确目标是做出一个可以改的雏形）、**任务拆解**（把大任务拆成3-6个可执行的块，每块有明确产出）、**逐步执行**（AI一步步带你做出完整初稿）、**改进循环**（AI 决定改什么，用户只管确认，避免决策瘫痪延续到迭代阶段）。它不改变人的质量标准，只降低启动门槛并引导你把事情做出雏形。
+- 一套可作为 Agent Skill 使用的协议指令（`SKILL.md`）
+- 一个 FastAPI 本地演示后端（`server.py`）
+- 一个 Vite 前端 demo，包含任务拆解、计时、附件、语音、改进循环和产出评价（`demo/`）
 
-目标用户：完美主义者、高敏感人群、知识工作者中的"高思考低行动"群体。这不是小众——全球数亿人每天在"准备阶段"无限循环。破冰协议不改造性格，只帮高思考人群，把无限内耗换成最小行动。
+---
 
-## 同类产品对比
+## 核心机制
 
-### 传统效率工具
+1. **启动契约**：把目标从“做完美”压缩为“做出可以改的雏形”。
+2. **任务拆解**：将任务拆成 3-6 个可见产出块，每步有明确交付物。
+3. **限时执行**：每步默认 1-15 分钟，计时器分为乱写期、修整期和紧急状态。
+4. **上下文协助**：`[Protocol]` 侧边抽屉读取当前任务、步骤、历史产出和附件上下文，直接给可用内容。
+5. **改进循环**：完成后只改一处，由 AI 指定最值得改的步骤，避免用户继续陷入选择瘫痪。
+6. **产出评价**：从功能完整性、产出质量、可展示性、文档、受众匹配度 5 个维度生成质量报告。
 
-| 产品 | 核心假设 | 破冰协议的不同 |
-|-----|---------|-------------|
-| Todoist / TickTick | 你知道要做什么，只是需要管理 | 破冰协议解决的是"不知道第一步是什么" |
-| 番茄工作法 | 你能开始，只是需要专注 | 破冰协议解决的是"开不了头" |
-| GTD | 任务太多导致焦虑 | GTD 本身就是一个"准备"动作，完美主义者会在整理阶段无限循环 |
-| Forest / 专注森林 | 你需要外部约束 | 不解决"怕做不好所以不动"的根本心理障碍 |
+---
 
-### GitHub 同类项目（AI + 反拖延）
+## 技术栈
 
-| 项目 | Stars | 做了什么 | 破冰协议的不同 |
-|-----|-------|---------|-------------|
-| [claude-adhd-skills](https://github.com/ravila4/claude-adhd-skills) | 56 | Claude Code 技能集，帮助 ADHD 用户保持组织性（日志、提醒、时间感知） | 侧重**维持**工作状态；破冰协议解决**启动**问题 |
-| [phived](https://github.com/LukeberryPi/phived) | 200 | 反拖延待办列表，限制同时只显示 5 个任务 | 通过**约束**减少选择瘫痪；破冰协议通过**拆解**降低启动门槛 |
-| [ZenitApp](https://github.com/SejDevStuff/ZenitApp) | 2 | Mac 反拖延工具，检测分心并强制拉回 | 监控+**惩罚**系统；破冰协议是**引导**系统，不惩罚 |
-| [MyndMap](https://github.com/JJMugenyi/myndmap) | 46 | ADHD 生产力平台，任务管理+AI推荐 | **重型**全方位方案；破冰协议是**轻量**单用途工具 |
-| [ChurnFlow MCP](https://github.com/jgsteeler/churnflow-mcp) | 7 | ADHD 友好的 GTD 系统，零摩擦捕获想法 | 解决**捕获和处理**；破冰协议解决**执行的第一秒** |
-| [Thawly.ai](https://github.com/ruanyf/weekly/issues/9864) | - | AI Task Initiation Engine，认知心理学研究者开发。Action Mode（微行动+2分钟计时）+ Coach Mode（引导提问）+ Continuous Execution（全程陪伴）+ Blind-Box（随机选任务） | 解决**动起来**；破冰协议解决**动起来+有产出+不怕改**。Thawly 是拐杖，破冰是契约 |
-| [Dawdle AI](https://news.ucsb.edu/2025/022229/two-minute-fix-procrastination) | - | UCSB 研究项目，已上架 App Store。子任务生成 + 奖励配对，2分钟反思降低情绪阻力 | 学术验证"任务拆分+即时奖励"比单纯拆分更有效；破冰协议的**三阶段计时器**已有类似设计，可借鉴"奖励配对" |
-| [nova-motivation](https://github.com/NOVA-Openclaw/nova-motivation) | - | 主动任务管理和自主工作启动 for AI agents | 技术方向启发：AI agent 能否不仅引导人，还能**替人启动**某些数字任务？ |
+| 层级 | 技术 | 版本 / 说明 |
+|---|---|---|
+| Python | Python | 3.11（见 `.python-version`） |
+| Python 包管理 | uv | 项目内 `.venv`，禁止直接使用 `pip` |
+| 后端 | FastAPI | `>=0.110.0` |
+| 后端服务 | Uvicorn | `>=0.29.0` |
+| LLM SDK | OpenAI Python SDK | `>=1.12.0`，兼容 DeepSeek/OpenAI 风格接口 |
+| 文档解析 | pypdf / python-docx / openpyxl / python-pptx | 支持 PDF、DOCX、XLSX、PPTX 附件解析 |
+| 前端 | Vite | `^6.0.0`（lock 中为 6.4.2） |
+| PWA | vite-plugin-pwa | `^1.3.0` |
+| Markdown | marked | `^15.0.0`（lock 中为 15.0.12） |
+| XSS 防护 | DOMPurify | `^3.2.0`（lock 中为 3.4.5） |
 
-### 定位空白
+---
 
-在所有搜索到的工具中，**没有专门解决"完美主义导致的任务启动瘫痪"的产品**。竞品要么是约束系统（限制你的选择），要么是维持系统（帮你保持专注），要么是管理系统（帮你组织任务）。破冰协议是唯一一个只解决"从想切换到做"的那一瞬间的工具。
+## 快速开始
 
-破冰协议不管理任务、不切割时间、不提供激励。它只做一件事：**把启动成本降到零**。
+### 1. 准备 Python 环境
+
+```bash
+uv venv --python 3.11
+uv sync
+```
+
+Windows 激活虚拟环境：
+
+```powershell
+.venv\Scripts\activate
+```
+
+### 2. 配置可选的 AI 接口
+
+没有 API Key 时，后端会使用内置规则引擎，demo 仍可跑通。
+
+```bash
+DEEPSEEK_API_KEY=sk-xxx
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+DEEPSEEK_MODEL=deepseek-chat
+```
+
+也可以复制 `.env.example` 为 `.env` 后填写。
+
+### 3. 启动本地演示
+
+```bash
+uv run icebreaker-demo
+```
+
+打开：
+
+```text
+http://localhost:8000
+```
+
+### 4. 前端开发模式
+
+```bash
+cd demo
+npm install
+npm run dev
+```
+
+构建：
+
+```bash
+cd demo
+npm run build
+```
+
+---
+
+## 功能状态
+
+| 功能 | 状态 | 说明 |
+|---|---|---|
+| Agent Skill 协议 | 已实现 | `SKILL.md` 可作为独立对话协议使用 |
+| AI 任务拆解 | 已实现 | API 可用时由模型拆解；不可用时走规则引擎 |
+| 任务路线图 | 已实现 | 3-6 步可见产出，支持当前步骤高亮 |
+| 三阶段倒计时 | 已实现 | 乱写期 / 修整期 / 紧急状态 |
+| 侧边抽屉帮助 | 已实现 | `[Protocol]` 读取任务、步骤、历史产出和附件 |
+| 停滞自动介入 | 已实现 | 单步停留过久时主动打开帮助面板 |
+| 语音输入 | 已实现基础版 | 基于 Web Speech API，支持首页、步骤区和帮助抽屉 |
+| 附件解析 | 已实现 | PDF、DOCX、XLSX、PPTX 可解析为上下文 |
+| 摘要归档 | 已实现 | `/api/summarize` 将每步产出压缩为战报摘要 |
+| 改进循环 | 已实现 | Done 页进入 Roadmap，高亮一处改进目标 |
+| 产出质量评价 | 已实现 | Web 表单 + CLI 脚本，生成 Markdown 报告 |
+| PWA | 已实现 | Vite PWA 插件、manifest、图标 |
+| Vercel serverless demo | 已配置 | `demo/api/` 提供轻量 API fallback |
+
+---
+
+## 项目结构
+
+```text
+.
+├── SKILL.md                         # 破冰协议 Agent Skill
+├── server.py                        # FastAPI 本地演示后端
+├── main.py                          # icebreaker-demo 入口
+├── scripts/
+│   ├── timer.py                     # 倒计时脚本
+│   ├── review.py                    # CLI 产出质量评价器
+│   └── migrate_state.py             # 本地状态迁移辅助脚本
+├── demo/
+│   ├── index.html                   # Vite 前端入口
+│   ├── src/                         # 前端模块
+│   ├── api/                         # Vercel serverless API
+│   ├── public/                      # manifest / icon
+│   └── vite.config.js
+├── Docs/
+│   ├── product-design-decisions.md  # 产品设计决策和状态
+│   ├── strategic-positioning.md     # 战略定位与竞品分析
+│   └── competition-review.md        # 比赛提交前审视报告
+├── references/
+│   └── scenarios-and-examples.md    # 场景与拆解示例
+├── reviews/                         # 质量评价报告输出目录
+├── CHANGELOG.md
+└── 商业价值说明书.md
+```
+
+---
+
+## API 概览
+
+本地 FastAPI 后端提供：
+
+| 接口 | 用途 |
+|---|---|
+| `POST /api/chat` | 主对话入口：契约、拆解、步骤帮助、完成状态 |
+| `POST /api/chat/stream` | SSE 流式输出 `[Protocol]` 回复 |
+| `POST /api/attachments/parse` | 解析 PDF / DOCX / XLSX / PPTX 附件 |
+| `POST /api/summarize` | 将单步原始产出压缩成战报摘要 |
+| `GET /` | 返回 demo 首页 |
+
+Vercel 版本在 `demo/api/` 下提供同名轻量接口，优先保证 demo 可运行。
+
+---
+
+## 产出质量评价
+
+Web demo 的 Done 页面可以进入“评价产出”，从 5 个维度打分并下载 Markdown 报告。
+
+也可以使用 CLI：
+
+```bash
+uv run python scripts/review.py "我的任务名"
+```
+
+报告会写入 `reviews/`，历史记录写入 `reviews/history.json`。
+
+---
+
+## 设计原则
+
+- 不安慰，不鸡汤，只给下一步操作。
+- 每一步必须有可见产出，禁止“想一想”这种空操作。
+- 复杂任务增加步骤数量，不增加单步时长。
+- 改进时每轮只改一处，防止“优化”变成新的拖延。
+- 协议不是降低标准，而是先制造一个可以被标准加工的对象。
+
+---
+
+## 相关文档
+
+- [产品设计决策](Docs/product-design-decisions.md)
+- [战略定位与竞品分析](Docs/strategic-positioning.md)
+- [比赛提交前问题审视报告](Docs/competition-review.md)
+- [商业价值说明书](商业价值说明书.md)
+- [录屏脚本](录屏脚本.md)
+- [更新日志](CHANGELOG.md)
+
+---
+
+## 许可证
+
+MIT
