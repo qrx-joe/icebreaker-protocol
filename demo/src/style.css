@@ -448,9 +448,10 @@
   /* ==================== Contract ==================== */
   #pageContract {
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     padding: 2rem;
     text-align: center;
+    overflow-y: auto;
   }
   .contract-box {
     background: rgba(56,189,248,0.04);
@@ -522,8 +523,9 @@
   /* ==================== Roadmap ==================== */
   #pageRoadmap {
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     padding: 2rem;
+    overflow-y: auto;
   }
   .roadmap-card {
     background: rgba(99,102,241,0.04);
