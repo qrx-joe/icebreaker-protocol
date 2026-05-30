@@ -66,3 +66,18 @@ logs/
 *.tmp
 *.bak
 *.cache
+
+# Chrome / browser generated files
+.chrome*/
+.chrome-*/
+
+# Runtime / test data
+reviews/
+demo/.chrome-cdp-test/
+
+# One-off migration scripts
+scripts/migrate_state.py
+scripts/migrate_state_v2.py
+
+# Tools (keep if needed, ignore by default)
+ppt-master-tool/
