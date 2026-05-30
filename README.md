@@ -133,15 +133,18 @@ npm run build
 │   ├── api/                         # Vercel serverless API
 │   ├── public/                      # manifest / icon
 │   └── vite.config.js
-├── Docs/
+├── docs/                            # 项目文档
 │   ├── product-design-decisions.md  # 产品设计决策和状态
 │   ├── strategic-positioning.md     # 战略定位与竞品分析
-│   └── competition-review.md        # 比赛提交前审视报告
+│   ├── competition-review.md        # 比赛提交前审视报告
+│   ├── CHANGELOG.md                 # 更新日志
+│   ├── 商业价值说明书.md            # 商业化与定位说明
+│   └── 录屏脚本.md                  # 效果演示视频脚本
 ├── references/
 │   └── scenarios-and-examples.md    # 场景与拆解示例
-├── reviews/                         # 质量评价报告输出目录
-├── CHANGELOG.md
-└── 商业价值说明书.md
+├── materials/                       # 路演 PPT、海报、历史归档(非代码资产)
+├── reviews/                         # 质量评价报告输出目录(本地，不纳入 git)
+└── tests/                           # 协议契约测试
 ```
 
 ---
@@ -188,12 +191,12 @@ uv run python scripts/review.py "我的任务名"
 
 ## 相关文档
 
-- [产品设计决策](Docs/product-design-decisions.md)
-- [战略定位与竞品分析](Docs/strategic-positioning.md)
-- [比赛提交前问题审视报告](Docs/competition-review.md)
-- [商业价值说明书](商业价值说明书.md)
-- [录屏脚本](录屏脚本.md)
-- [更新日志](CHANGELOG.md)
+- [产品设计决策](docs/product-design-decisions.md)
+- [战略定位与竞品分析](docs/strategic-positioning.md)
+- [比赛提交前问题审视报告](docs/competition-review.md)
+- [商业价值说明书](docs/商业价值说明书.md)
+- [录屏脚本](docs/录屏脚本.md)
+- [更新日志](docs/CHANGELOG.md)
 
 ---
 
