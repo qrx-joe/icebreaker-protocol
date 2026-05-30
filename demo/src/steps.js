@@ -5,6 +5,7 @@ import { startStepTimer } from './timer.js'
 import { startInactivityMonitor, stopInactivityMonitor } from './inactivity.js'
 import { renderAttachments, apiAttachments } from './attachments.js'
 import { sendToAI } from './api.js'
+import { resetHelpForCurrentStep } from './help.js'
 
 // ==================== Step ====================
 export function buildStepPlaceholder(step) {
@@ -96,8 +97,8 @@ export function goToStep(idx) {
   renderAttachments();
 
   const warning = document.getElementById('stepWarning');
-  warning.style.color = '#4ade80';
-  warning.textContent = '[Protocol]: 碎纸机模式启动。这些内容不会被评判，只管填满。';
+  warning.style.color = '#38bdf8';
+  warning.textContent = '[Protocol]: 草稿期 · 这些内容不会被评判，只管填满。';
 
   // 碎纸机模式：乱写期视觉提示
   const stepPage = document.getElementById('pageStep');
@@ -108,9 +109,9 @@ export function goToStep(idx) {
   if (!shredderBadge) {
     shredderBadge = document.createElement('span');
     shredderBadge.className = 'shredder-badge';
-    shredderBadge.textContent = '🗑️ 碎纸机';
-    const titleDisplay = document.querySelector('.step-title-display');
-    if (titleDisplay) titleDisplay.parentNode.appendChild(shredderBadge);
+    shredderBadge.textContent = '草稿期';
+    const headerRight = document.querySelector('.step-header-right');
+    if (headerRight) headerRight.insertBefore(shredderBadge, headerRight.firstChild);
   } else {
     shredderBadge.style.display = 'inline-flex';
   }
@@ -125,6 +126,11 @@ export function goToStep(idx) {
   });
 
   showPage('pageStep');
+  if (document.getElementById('helpDrawer')?.classList.contains('active')) {
+    resetHelpForCurrentStep();
+  } else {
+    state.helpHistory.length = 0;
+  }
   startStepTimer((step.minutes || 15) * 60);
   startInactivityMonitor();
   setTimeout(() => ta.focus(), 300);

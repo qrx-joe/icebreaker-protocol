@@ -382,35 +382,37 @@
     gap: 0.6rem;
   }
 
-  /* ==================== 碎纸机模式（乱写期） ==================== */
+  /* ==================== 草稿期视觉（碎纸机模式） ==================== */
   .shredder-mode .step-workspace textarea {
-    background: rgba(10,12,20,0.95);
-    border-color: rgba(74,222,128,0.15);
+    background: rgba(10,14,24,0.95);
+    border-color: rgba(56,189,248,0.18);
     background-image:
-      radial-gradient(circle at 20% 50%, rgba(74,222,128,0.03) 0%, transparent 50%),
-      radial-gradient(circle at 80% 50%, rgba(74,222,128,0.02) 0%, transparent 50%);
+      radial-gradient(circle at 20% 50%, rgba(56,189,248,0.04) 0%, transparent 50%),
+      radial-gradient(circle at 80% 50%, rgba(99,102,241,0.03) 0%, transparent 50%);
   }
   .shredder-mode .step-workspace textarea:focus {
-    border-color: rgba(74,222,128,0.4);
-    box-shadow: 0 0 30px rgba(74,222,128,0.08);
+    border-color: rgba(56,189,248,0.5);
+    box-shadow: 0 0 28px rgba(56,189,248,0.1);
   }
   .shredder-mode .step-instruction {
-    border-color: rgba(74,222,128,0.2);
-    background: rgba(74,222,128,0.04);
+    border-color: rgba(56,189,248,0.18);
+    background: rgba(56,189,248,0.04);
   }
   .shredder-badge {
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.2rem 0.6rem;
-    background: rgba(74,222,128,0.1);
-    border: 1px solid rgba(74,222,128,0.25);
-    border-radius: 6px;
-    font-size: 0.72rem;
-    color: #4ade80;
-    font-weight: 600;
-    margin-left: 0.6rem;
-    letter-spacing: 0.03em;
+    gap: 0.4rem;
+    padding: 0.35rem 0.85rem;
+    background: linear-gradient(135deg, rgba(56,189,248,0.12), rgba(99,102,241,0.1));
+    border: 1px solid rgba(56,189,248,0.3);
+    border-radius: 20px;
+    font-size: 0.82rem;
+    color: #38bdf8;
+    font-weight: 700;
+    margin-right: 0.8rem;
+    letter-spacing: 0.04em;
+    box-shadow: 0 2px 8px rgba(56,189,248,0.08);
+    animation: fadeIn 0.3s ease;
   }
 
   /* ==================== 按钮 ==================== */
@@ -1585,6 +1587,11 @@
 .api-loading-overlay.active {
   opacity: 1;
   pointer-events: auto;
+}
+
+body:has(#pageLanding.active) .api-loading-overlay {
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 .api-loading-spinner {
   display: flex;

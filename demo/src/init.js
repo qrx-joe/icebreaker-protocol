@@ -6,6 +6,7 @@ import { showModal } from './notify.js'
 import { goToStep } from './steps.js'
 import { showRoadmap } from './roadmap.js'
 import { showPage } from './ui.js'
+import { clearApiLoading } from './api-client.js'
 
 // ==================== 初始化 ====================
 function restoreFromSnapshot(s) {
@@ -47,6 +48,7 @@ function restoreFromSnapshot(s) {
 
 export function initApp() {
   window.addEventListener('DOMContentLoaded', async () => {
+    clearApiLoading();
     ensureLandingConsoleV2();
     applyLandingCopy();
     updateLandingCountV2();

@@ -144,53 +144,55 @@ export function applyToEditor(text) {
   }, 1200);
 }
 
+function buildStepGreeting() {
+  const step = state.steps[state.currentStepIdx];
+  if (!step) return '有什么我能帮你的？';
+
+  const prevOutputs = [];
+  for (let i = 0; i < state.currentStepIdx; i++) {
+    const out = (state.stepOutputs[i] || '').trim();
+    if (out) prevOutputs.push(`步骤 ${i + 1}「${state.steps[i]?.title || ''}」：${out}`);
+  }
+
+  const currentText = (document.getElementById('stepTextarea')?.value || '').trim();
+
+  if (prevOutputs.length > 0) {
+    let greeting = `你正在做「${state.currentTask}」的第 ${state.currentStepIdx + 1} 步：${step.title}。\n\n`;
+    greeting += `前面已经完成 ${prevOutputs.length} 步：\n`;
+    prevOutputs.forEach(p => { greeting += `  - ${p}\n`; });
+    greeting += '\n';
+    if (currentText) {
+      greeting += `你当前已经写了：「${currentText.slice(0, 80)}${currentText.length > 80 ? '...' : ''}」\n\n`;
+    }
+    greeting += '需要我基于这些内容帮你推进吗？比如直接起草、优化，或者给你几个方向参考。';
+    return greeting;
+  }
+
+  let greeting = `你正在做第 1 步：${step.title}。\n\n`;
+  greeting += `要求产出：${step.output}\n\n`;
+  greeting += currentText
+    ? '你已经写了一些内容，需要我帮你继续完善吗？'
+    : '还没开始写？我可以先帮你起个头，或者给你一个具体示例参考。';
+  return greeting;
+}
+
+export function resetHelpForCurrentStep() {
+  state.helpHistory.length = 0;
+  const container = document.getElementById('helpMessages');
+  if (!container) return;
+  container.replaceChildren();
+  appendBubble(container, 'assistant', buildStepGreeting(), false);
+  renderPromptChips();
+
+  const input = document.getElementById('helpInput');
+  if (input) input.value = '';
+  updateRunBtn();
+}
+
 export function openHelp() {
   const drawer = document.getElementById('helpDrawer');
   drawer.classList.add('active');
-  state.helpHistory.length = 0;
-  const container = document.getElementById('helpMessages');
-  container.replaceChildren();
-
-  // 构建主动式欢迎语
-  const step = state.steps[state.currentStepIdx];
-  let greeting;
-
-  if (step) {
-    // 收集已有上下文
-    const prevOutputs = [];
-    for (let i = 0; i < state.currentStepIdx; i++) {
-      const out = (state.stepOutputs[i] || '').trim();
-      if (out) prevOutputs.push(`步骤${i + 1}「${state.steps[i]?.title}」：${out}`);
-    }
-
-    const currentText = (document.getElementById('stepTextarea')?.value || '').trim();
-
-    if (prevOutputs.length > 0) {
-      // 有历史上下文 → 主动提议
-      greeting = `你正在做「${state.currentTask}」的第 ${state.currentStepIdx + 1} 步：${step.title}。\n\n`;
-      greeting += `你前面已经完成了 ${prevOutputs.length} 步：\n`;
-      prevOutputs.forEach(p => { greeting += `  · ${p}\n`; });
-      greeting += `\n`;
-      if (currentText) {
-        greeting += `你当前已经写了：「${currentText.slice(0, 80)}${currentText.length > 80 ? '...' : ''}」\n\n`;
-      }
-      greeting += `需要我基于这些内容帮你推进吗？比如直接帮你起草、优化、或者给你几个方向参考。`;
-    } else {
-      // 第一步，无历史
-      greeting = `你正在做第 1 步：${step.title}。\n\n`;
-      greeting += `要求产出：${step.output}\n\n`;
-      if (currentText) {
-        greeting += `你已经写了一些内容，需要我帮你继续完善吗？`;
-      } else {
-        greeting += `还没开始写？我可以先帮你起个头，或者给你一个具体示例参考。`;
-      }
-    }
-  } else {
-    greeting = '有什么我能帮你的？';
-  }
-
-  appendBubble(container, 'assistant', greeting, false);
-  renderPromptChips();
+  resetHelpForCurrentStep();
   setTimeout(() => {
     document.getElementById('helpInput').focus();
     updateRunBtn();
@@ -339,6 +341,7 @@ export async function sendHelp() {
 window.appendBubble = appendBubble;
 window.renderPromptChips = renderPromptChips;
 window.applyToEditor = applyToEditor;
+window.resetHelpForCurrentStep = resetHelpForCurrentStep;
 window.openHelp = openHelp;
 window.closeHelp = closeHelp;
 window.updateRunBtn = updateRunBtn;

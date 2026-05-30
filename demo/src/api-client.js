@@ -24,7 +24,7 @@ function showLoading() {
   el.classList.add('active')
 }
 
-function hideLoading() {
+export function clearApiLoading() {
   const el = document.getElementById('api-loading-overlay')
   if (el) el.classList.remove('active')
 }
@@ -104,7 +104,11 @@ export function setupApiWrapper() {
       }
       throw err
     } finally {
-      hideLoading()
+      clearApiLoading()
     }
   }
+
+  window.addEventListener('pageshow', clearApiLoading)
 }
+
+window.clearApiLoading = clearApiLoading

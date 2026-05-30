@@ -56,8 +56,8 @@ export function showPhaseMessage(phase) {
   const secs = remaining % 60;
 
   if (phase === 'draft') {
-    el.style.color = '#4ade80';
-    el.textContent = '[Protocol]: 碎纸机模式。这些内容不会被评判，写完即焚——不对，写完归档。';
+    el.style.color = '#38bdf8';
+    el.textContent = '[Protocol]: 草稿期 · 这些内容不会被评判，写完归档。';
     document.getElementById('pageStep')?.classList.add('shredder-mode');
     const badge = document.querySelector('.shredder-badge');
     if (badge) badge.style.display = 'inline-flex';

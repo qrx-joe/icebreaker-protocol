@@ -1,9 +1,11 @@
 import { state } from './state.js'
 import { formatDuration, escapeHtml } from './utils.js'
 import { applyContractCopy } from './contract.js'
+import { clearApiLoading } from './api-client.js'
 
 // ==================== 页面导航 ====================
 export function showPage(id) {
+  clearApiLoading();
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   if (id === 'pageContract') applyContractCopy();
