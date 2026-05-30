@@ -21,8 +21,10 @@ import './done.js'
 import './review.js'
 import './settings.js'
 import './history.js'
-import './init.js'
-import './event-bindings.js'
+import { initApp } from './init.js'
+import { bindEvents } from './event-bindings.js'
 
 window.DOMPurify = DOMPurify
 setupApiWrapper()
+initApp()
+window.addEventListener('DOMContentLoaded', bindEvents)

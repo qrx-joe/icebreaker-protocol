@@ -4,6 +4,8 @@ import { startStepTimer } from './timer.js'
 import { goToStep } from './steps.js'
 import { apiAttachments } from './attachments.js'
 import { showToast } from './notify.js'
+import { showRoadmap } from './roadmap.js'
+import { showDone } from './done.js'
 
 // ==================== AI 对话核心 ====================
 export function normalizeStep(raw) {
@@ -31,8 +33,8 @@ export function showInlineMessage(reply) {
 export function applyAIResponse(data) {
   const reply = data.reply || '';
   if (data.task) state.currentTask = data.task;
-  if (Array.isArray(data.state.steps) && data.state.steps.length) {
-    const incomingSteps = data.state.steps.map(normalizeStep);
+  if (Array.isArray(data.steps) && data.steps.length) {
+    const incomingSteps = data.steps.map(normalizeStep);
     if (data.screen === 'roadmap' || state.steps.length === 0) {
       state.steps = incomingSteps;
       state.stepOutputs = new Array(state.steps.length).fill('');

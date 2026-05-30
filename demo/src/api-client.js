@@ -4,6 +4,10 @@ const MAX_RETRIES = 3
 const RETRY_DELAY_MS = 1000
 const REQUEST_TIMEOUT_MS = 15000
 
+// Capture original fetch BEFORE setupApiWrapper() mutates window.fetch.
+// fetchWithTimeout MUST use the real fetch, not the wrapped one, to avoid infinite recursion.
+const _originalFetch = window.fetch
+
 function showLoading() {
   let el = document.getElementById('api-loading-overlay')
   if (!el) {
@@ -30,7 +34,7 @@ async function fetchWithTimeout(url, options, timeoutMs) {
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
 
   try {
-    const response = await fetch(url, {
+    const response = await _originalFetch(url, {
       ...options,
       signal: controller.signal,
     })

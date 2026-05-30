@@ -9,19 +9,19 @@ import { showPage } from './ui.js'
 
 // ==================== 初始化 ====================
 function restoreFromSnapshot(s) {
-  state.chatHistory = s.state.chatHistory || [];
-  state.currentTask = s.state.currentTask || '';
-  state.currentPhase = s.state.currentPhase || 'step';
-  state.steps = s.state.steps || [];
-  state.stepOutputs = s.state.stepOutputs || [];
-  state.currentStepIdx = s.state.currentStepIdx || 0;
-  state.helpHistory = s.state.helpHistory || [];
-  state.attachments = (s.state.attachments || []).map(a => ({ name: a.name, size: a.size, type: a.type, data: a.data }));
-  state.sessionLog = s.state.sessionLog || [];
-  state.improvementRound = s.state.improvementRound || 0;
-  state.timePreference = s.state.timePreference || 'standard';
-  state.outputMode = s.state.outputMode || 'deliverable';
-  state.protocolStrength = s.state.protocolStrength || 'standard';
+  state.chatHistory = s.chatHistory || [];
+  state.currentTask = s.currentTask || '';
+  state.currentPhase = s.currentPhase || 'step';
+  state.steps = s.steps || [];
+  state.stepOutputs = s.stepOutputs || [];
+  state.currentStepIdx = s.currentStepIdx || 0;
+  state.helpHistory = s.helpHistory || [];
+  state.attachments = (s.attachments || []).map(a => ({ name: a.name, size: a.size, type: a.type, data: a.data }));
+  state.sessionLog = s.sessionLog || [];
+  state.improvementRound = s.improvementRound || 0;
+  state.timePreference = s.timePreference || 'standard';
+  state.outputMode = s.outputMode || 'deliverable';
+  state.protocolStrength = s.protocolStrength || 'standard';
   renderAttachments();
   updateTimePreferenceUI();
 
@@ -55,17 +55,17 @@ export function initApp() {
     // 加载全局设置偏好
     const settings = loadSettings();
     if (settings) {
-      state.timePreference = settings.state.timePreference;
-      state.outputMode = settings.state.outputMode;
-      state.protocolStrength = settings.state.protocolStrength;
+      state.timePreference = settings.timePreference;
+      state.outputMode = settings.outputMode;
+      state.protocolStrength = settings.protocolStrength;
     }
 
     // 检查是否有未完成的会话快照
     const snap = loadSnapshot();
-    if (snap && snap.state.currentPhase !== 'landing' && snap.state.currentPhase !== 'done') {
+    if (snap && snap.currentPhase !== 'landing' && snap.currentPhase !== 'done') {
       const resume = await showModal({
         title: '恢复进度',
-        body: `检测到未完成的协议「${snap.state.currentTask || '未命名任务'}」（步骤 ${snap.state.currentStepIdx + 1} / ${snap.state.steps.length}）。\n\n是否恢复上次进度？`,
+        body: `检测到未完成的协议「${snap.currentTask || '未命名任务'}」（步骤 ${snap.currentStepIdx + 1} / ${(snap.steps || []).length}）。\n\n是否恢复上次进度？`,
         confirmText: '恢复',
         cancelText: '放弃'
       });
