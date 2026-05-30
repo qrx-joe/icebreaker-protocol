@@ -33,7 +33,7 @@ export function showInlineMessage(reply) {
 export function applyAIResponse(data) {
   const reply = data.reply || '';
   if (data.mode === 'local') {
-    showToast('当前为本地演示模式：未配置 AI API Key，回复由预设模板生成。', 'warn', 6000);
+    showToast('当前为本地演示模式：未配置 AI API Key，回复由预设模板生成。', 'warning', 6000);
   }
   if (data.task) state.currentTask = data.task;
   if (Array.isArray(data.steps) && data.steps.length) {

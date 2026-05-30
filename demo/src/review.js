@@ -217,7 +217,7 @@ export async function showReview() {
   try {
     const data = await requestAIReview()
     if (data.mode === 'local') {
-      showToast('当前为本地演示模式：未配置 AI API Key，评价由预设规则生成。', 'warn', 6000)
+      showToast('当前为本地演示模式：未配置 AI API Key，评价由预设规则生成。', 'warning', 6000)
     }
     state.latestReview = normalizeReview(data)
   } catch (e) {
