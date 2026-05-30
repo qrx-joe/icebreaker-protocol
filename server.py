@@ -23,11 +23,12 @@ from pathlib import Path
 from typing import Literal
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from openai import OpenAI
 from pydantic import BaseModel, Field
+from starlette.middleware.base import BaseHTTPMiddleware
 
 load_dotenv()
 
@@ -465,7 +466,21 @@ def build_done(req: ChatRequest) -> ChatResponse:
     return ChatResponse(reply=reply, screen="done", task=req.task, steps=req.steps, current_step=len(req.steps))
 
 
+class NoCacheHtmlMiddleware(BaseHTTPMiddleware):
+    """对 HTML 响应添加禁用缓存头，防止 index.html 被浏览器/Service Worker 缓存。"""
+
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        content_type = response.headers.get("content-type", "")
+        if "text/html" in content_type:
+            response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, private"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
+        return response
+
+
 app = FastAPI(title="破冰协议 API", default_response_class=UTF8JSONResponse)
+app.add_middleware(NoCacheHtmlMiddleware)
 
 
 @app.post("/api/chat", response_model=ChatResponse)
