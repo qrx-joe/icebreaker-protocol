@@ -14,6 +14,20 @@ API_DIR = REPO_ROOT / 'demo' / 'api'
 sys.path.insert(0, str(API_DIR))
 sys.path.insert(0, str(API_DIR.parent))
 
+# Load .env file into os.environ before importing _common
+_env_file = REPO_ROOT / '.env'
+if _env_file.exists():
+    with _env_file.open('r', encoding='utf-8') as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith('#') or '=' not in line:
+                continue
+            key, _, value = line.partition('=')
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+            if key and key not in os.environ:
+                os.environ[key] = value
+
 # Pre-import to fail fast
 from _common import chat_response, try_ai_reply, assistant_reply
 
