@@ -1239,6 +1239,7 @@
   #pageContract {
     justify-content: flex-start;
     padding-top: clamp(3rem, 9vh, 5.5rem);
+    overflow-y: auto;
   }
   .contract-ai-msg {
     max-width: 680px;
@@ -1309,6 +1310,7 @@
   #pageRoadmap {
     justify-content: flex-start;
     padding-top: clamp(4rem, 9vh, 6rem);
+    overflow-y: auto;
   }
   .roadmap-ai-msg {
     max-width: 680px;
