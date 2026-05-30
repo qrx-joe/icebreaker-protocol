@@ -802,16 +802,12 @@ async def review(req: ReviewRequest):
 demo_dir = Path(__file__).parent / "demo"
 
 
-# 前端由 Vite dev server (port 3000) 提供服务，FastAPI 只负责 API
-# Vite 通过 proxy 将 /api 请求转发到本服务
-# 生产环境使用 demo/dist/ 的预构建文件
+# 优先使用预构建的 dist/ 目录（Vite 生产构建产物）
+# 若不存在则回退到 demo/ 源码目录（Vite dev server 场景）
 dist_dir = demo_dir / "dist"
 if dist_dir.is_dir():
-    @app.get("/")
-    async def index():
-        return FileResponse(dist_dir / "index.html")
-
-    app.mount("/assets", StaticFiles(directory=dist_dir / "assets"), name="assets")
+    # API 路由已在此前注册，挂载到根路径兜底静态文件和 SPA fallback
+    app.mount("/", StaticFiles(directory=dist_dir, html=True), name="static")
 
 
 def run_demo() -> None:
