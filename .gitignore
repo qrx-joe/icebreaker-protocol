@@ -82,3 +82,6 @@ scripts/migrate_state_v2.py
 # Tools (keep if needed, ignore by default)
 ppt-master-tool/
 materials/tools/
+
+# Project archives (bloated, don't commit)
+*.zip
