@@ -44,52 +44,62 @@
 
 ## 快速开始
 
-### 1. 准备环境
+### 方式一：生产模式（推荐新手）
+
+前端已预构建，只需启动后端：
 
 ```bash
+# 1. 准备环境
 uv venv --python 3.11
 uv sync
+
+# 2. 配置 AI（可选，不配也全程可用）
+cp .env.example .env
+
+# 3. 启动（前端 + API 统一端口）
+uv run icebreaker-demo
 ```
 
-Windows 激活虚拟环境：
+打开 http://localhost:8000 — 前端和 API 都在这个端口。
 
-```powershell
-.venv\Scripts\activate
+### 方式二：开发模式（前端开发用）
+
+前后端分别启动，前端带热更新：
+
+```bash
+# 终端 1：启动后端
+uv run icebreaker-demo
+# → http://localhost:8000 (API)
+
+# 终端 2：启动前端开发服务器
+cd demo
+npm install
+npm run dev
+# → http://localhost:3000 (前端，自动代理 API 到 8000)
 ```
 
-### 2. 配置 AI 接口（可选）
+| 端口 | 服务 | 说明 |
+|------|------|------|
+| 8000 | FastAPI 后端 | 提供 `/api/*` 接口和生产模式前端 |
+| 3000 | Vite 开发服务器 | 前端热更新，API 请求代理到 8000 |
 
-没有 API Key 时，后端使用内置规则引擎，demo 全程可跑通。
+### 环境变量配置
+
+在项目根目录创建 `.env` 文件：
 
 ```bash
 cp .env.example .env
 # 编辑 .env 填入 Key
 ```
 
-`.env` 模板：
+| 变量 | 默认值 | 说明 |
+|------|--------|------|
+| `DEEPSEEK_API_KEY` | (空) | DeepSeek API Key。不配置时使用规则引擎 fallback |
+| `DEEPSEEK_BASE_URL` | `https://api.deepseek.com` | API 基础地址，可改为 OpenAI 兼容端点 |
+| `DEEPSEEK_MODEL` | `deepseek-chat` | 模型名称 |
 
-```bash
-DEEPSEEK_API_KEY=sk-xxx
-DEEPSEEK_BASE_URL=https://api.deepseek.com
-DEEPSEEK_MODEL=deepseek-chat
-```
-
-### 3. 启动
-
-```bash
-uv run icebreaker-demo
-```
-
-打开 http://localhost:8000
-
-### 4. 前端开发模式
-
-```bash
-cd demo
-npm install
-npm run dev     # http://localhost:3000，自动代理 API 到 8000
-npm run build   # 生产构建
-```
+没有 API Key 时，demo 全程可用——任务拆解和评价都走本地规则引擎。
+可在设置面板（协议设置 → AI 接口）查看当前 Key 连通状态。
 
 ---
 
@@ -166,7 +176,9 @@ npm run build   # 生产构建
 | `/api/chat` | POST | 主对话入口：契约、拆解、步骤帮助、完成状态 |
 | `/api/chat/stream` | POST | SSE 流式输出 `[Protocol]` 回复 |
 | `/api/attachments/parse` | POST | 解析 PDF / DOCX / XLSX / PPTX 附件 |
+| `/api/review` | POST | AI 产出质量评价（5 维度，含 fallback） |
 | `/api/summarize` | POST | 将单步产出压缩成破冰战报摘要 |
+| `/api/key-status` | GET | 检查 AI API Key 配置状态和连通性 |
 
 本地 FastAPI 和 Vercel Serverless 提供同名接口，后者为轻量 fallback。
 

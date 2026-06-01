@@ -4,6 +4,7 @@ export function openSettingsPanel() {
   updateProtocolStrengthUI();
   updateTimePreferenceUI();
   updateOutputModeUI();
+  updateApiKeyStatus();
   document.getElementById('settingsPanel').classList.add('active');
 }
 
@@ -66,6 +67,28 @@ export function updateProtocolStrengthUI() {
 
 export function closeProtocolPanel(id) {
   document.getElementById(id).classList.remove('active');
+}
+
+export async function updateApiKeyStatus() {
+  const el = document.getElementById('apiKeyStatus')
+  if (!el) return
+  try {
+    const res = await fetch('/api/key-status')
+    const data = await res.json()
+    if (data.configured && data.valid) {
+      el.textContent = 'AI 接口已连接 ✓'
+      el.className = 'api-key-status success'
+    } else if (data.configured) {
+      el.textContent = 'API Key 已配置但无效，请检查 .env'
+      el.className = 'api-key-status error'
+    } else {
+      el.textContent = '未配置 API Key（可在 .env 中设置 DEEPSEEK_API_KEY）'
+      el.className = 'api-key-status warning'
+    }
+  } catch (e) {
+    el.textContent = '无法检查 AI 接口状态'
+    el.className = 'api-key-status error'
+  }
 }
 
 // Legacy bridge

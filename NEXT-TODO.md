@@ -1,43 +1,30 @@
 # 破冰协议 · Next To-Do
 
-> 当前版本: v2.0.0 | 最后更新: 2026-05-31
+> 当前版本: v2.0.0 | 最后更新: 2026-06-01
 
-> ⚠️ **执行顺序提醒**：第 9 节「AI 评价规范」和第 10 节「评价页 UI 升级」依赖第 0 节先解决——
-> AI 评价当前根本没成功跑过，规范和样式都需要真实评价数据才能验证。
-> 先修 #0 让真 AI 评价能返回 → 再按 #9 固化规范 → 最后做 #10 视觉升级。
+> ✅ #0~#4 已全部修复。下一步按 #9 → #10 → #11 推进。
 
 ---
 
 ## 🔴 高优先级（阻塞/影响核心体验）
 
-### 0. AI 评价始终显示"暂不可用"
-**状态**: 后端路由已实现，但前端仍显示 fallback 文案
-**根因分析**:
-- `_ai_review()` 调用 `client.chat.completions.create()` 时可能抛出异常（API Key 无效、网络超时、模型返回格式错误）
-- 异常后落入 `_fallback_review()`，返回 `"mode": "local"` 和 `"summary": "AI评价暂时不可用..."`
-- 前端 `review.js:219` 检测到 `data.mode === 'local'` 时弹出 toast，但未明确告知用户是 API Key 问题还是网络问题
-
-**待排查**:
-- [ ] 确认 `.env` 中的 `DEEPSEEK_API_KEY` 是否有效（curl 直接测试 API）
-- [ ] 确认 `_ai_review()` 异常时是否吞掉了有用的错误信息（当前 `except Exception: return {}`）
-- [ ] 前端未区分"API Key 缺失"和"API 调用失败"，用户无法自助排查
-
-**修复方案**:
-- [ ] `_ai_review()` 异常时返回具体错误类型（`api_key_missing` / `timeout` / `invalid_response`）
-- [ ] 前端根据错误类型显示不同的引导文案（如"请检查 .env 中的 API Key"）
-- [ ] 在设置面板中增加 API Key 配置入口和连通性测试按钮
+### 0. AI 评价始终显示"暂不可用" ✅ 已修复
+**状态**: ✅ 已修复（2026-06-01）
+**修复内容**:
+- [x] `_ai_review()` 异常时返回具体错误类型（`api_key_missing` / `api_key_invalid` / `timeout` / `connection_error` / `invalid_response`）+ 日志输出
+- [x] `/api/review` 路由重构：成功时 `mode="ai"`，失败时统一 fallback + `mode="local"` + `error` 类型
+- [x] 前端 `review.js` 根据 `data.error` 显示不同的引导文案（6 种错误类型对应 6 条提示）
+- [x] 新增 `/api/key-status` GET 端点，返回 AI Key 配置状态和连通性
+- [x] 设置面板新增"AI 接口"section，显示 Key 状态（已连接 / Key 无效 / 未配置）
+- [x] AI 成功时补全可能缺失的字段（total/max/verdict 等），钳制分数到 1-5
 
 ---
 
-### 1. 前端样式渲染稳定性
-**状态**: 部分场景下仍无法渲染（白底无样式）
-**根因**: 
-- Vite 构建的 `dist/` 目录被 FastAPI 静态文件服务挂载后，浏览器仍可能加载缓存的旧版本
-- PWA Service Worker 缓存策略导致旧版本 `index.html`（引用 `/src/main.js`）被优先返回
-
-**解决方案**:
-- [ ] 在 `vite.config.js` 中配置 `workbox` 的 `skipWaiting` 和 `clientsClaim`，确保新版本立即生效
-- [ ] 为 `index.html` 添加缓存控制头 `Cache-Control: no-cache, no-store, must-revalidate`
+### 1. 前端样式渲染稳定性 ✅ 已修复
+**状态**: ✅ 已修复（2026-06-01）
+**修复内容**:
+- [x] `NoCacheHtmlMiddleware` 扩展为 `NoCacheMiddleware`：HTML 禁用缓存；CSS/JS 设置 `max-age=300, must-revalidate`
+- [x] `skipWaiting` + `clientsClaim` + `cleanupOutdatedCaches` 已在 vite.config.js 中配置（无需修改）
 - [ ] 或在 FastAPI 中为 `index.html` 单独设置无缓存响应头（而非通过 `StaticFiles`）
 - [ ] 考虑在 `index.html` 中添加版本戳查询参数（如 `?v=2.0.0`）强制刷新
 
@@ -45,38 +32,33 @@
 
 ---
 
-### 2. `demo/uv.lock` 是否应加入 `.gitignore`
-**状态**: 已提交到仓库
-**问题**: `uv.lock` 是 uv 包管理器的锁定文件，通常用于 Python 依赖锁定。但 `demo/` 目录是前端项目（npm/vite），此文件可能是误生成。
-
-**行动**:
-- [ ] 确认 `demo/uv.lock` 的来源和必要性
-- [ ] 如不需要，从仓库移除并加入 `.gitignore`
+### 2. `demo/uv.lock` 是否应加入 `.gitignore` ✅ 已修复
+**状态**: ✅ 已修复（2026-06-01）
+**修复内容**:
+- [x] `git rm demo/uv.lock`
+- [x] `.gitignore` 新增 `demo/uv.lock`
 
 ---
 
 ## 🟡 中优先级（功能完善）
 
-### 3. 统一开发/生产启动方式文档
-**状态**: README 未更新本次改动
-**问题**: 当前项目支持两种启动方式，但文档未明确说明：
-- **开发模式**: `cd demo && npm run dev`（Vite port 3000）+ `uv run python main.py`（FastAPI port 8000）
-- **生产模式**: `cd demo && npm run build` + `uv run python main.py`（FastAPI 直接服务 dist/）
-
-**行动**:
-- [ ] 更新 README.md，添加清晰的「快速启动」章节
-- [ ] 说明两种模式的适用场景和端口映射
-- [ ] 添加环境变量配置说明（`.env` 文件）
+### 3. 统一开发/生产启动方式文档 ✅ 已修复
+**状态**: ✅ 已修复（2026-06-01）
+**修复内容**:
+- [x] README"快速开始"重写为"方式一：生产模式"和"方式二：开发模式"
+- [x] 增加端口映射表（8000/3000）
+- [x] 增加环境变量配置说明表（3 个变量 + 默认值 + 说明）
+- [x] API 概览补充 `/api/review` 和 `/api/key-status`
 
 ---
 
-### 4. `/api/review` 端点缺少响应模型
-**状态**: 已实现但无 Pydantic 模型验证
-**问题**: `server.py` 中的 `review` 端点返回 `dict`，FastAPI 无法生成正确的 OpenAPI 文档
-
-**行动**:
-- [ ] 为 `ReviewResponse` 创建 Pydantic 模型（含 `dimensions` 列表）
-- [ ] 统一 `normalizeReview` 逻辑（前端 `review.js` 与后端 `_fallback_review` 的评分算法应保持一致）
+### 4. `/api/review` 端点缺少响应模型 ✅ 已修复
+**状态**: ✅ 已修复（2026-06-01）
+**修复内容**:
+- [x] 新增 `ReviewDimension` + `ReviewResponse` Pydantic 模型
+- [x] `/api/review` 路由增加 `response_model=ReviewResponse`
+- [x] AI 返回分数钳制 `max(1, min(5, int(score)))`，与前端 `normalizeReview` 一致
+- [x] AI 返回字段补全（total/max/verdict 等），防止 Pydantic 验证失败
 
 ---
 
@@ -237,7 +219,7 @@
 
 ---
 
-## 📋 已完成的改动（本次会话）
+## 📋 已完成的改动
 
 | 改动 | 文件 | 说明 |
 |---|---|---|
@@ -245,13 +227,20 @@
 | ✅ 修复 `.env` 加载 | `demo/api/_common.py` | Vercel serverless 函数也能读取环境变量 |
 | ✅ 修复静态文件挂载 | `server.py` | `dist/` 完整挂载到 `/`，支持 SPA fallback |
 | ✅ 构建生产版本 | `demo/dist/` | `npm run build` 生成 |
+| ✅ #0 AI评价错误类型 | `server.py` + `review.js` | 6种错误类型 + 前端差异化引导 |
+| ✅ #0 `/api/key-status` | `server.py` | Key 配置状态检查端点 |
+| ✅ #0 设置面板 AI 接口 | `settings.js` + `index.html` + `style.css` | Key 连通状态显示 |
+| ✅ #1 CSS缓存中间件 | `server.py` | `NoCacheMiddleware` 扩展至 CSS/JS |
+| ✅ #2 demo/uv.lock 清理 | `.gitignore` | 移除并加入忽略 |
+| ✅ #3 README 文档 | `README.md` | 双模式启动 + 端口表 + 环境变量表 |
+| ✅ #4 Pydantic 响应模型 | `server.py` | `ReviewResponse` + 分数钳制 + 字段补全 |
 
 ---
 
 ## 🚀 推荐下一步行动
 
-1. **立即处理**: 解决 #0 AI 评价不可用（不修这一项，#9/#10/#11 都是空中楼阁）
-2. **本周内**: 修复 #1 前端样式缓存 + 更新 #3 README 启动文档
-3. **下个迭代**: 按 #9 固化评价规范（先做 9.1 权重锚点和 9.2 Pydantic 契约，其他逐步推）
+1. ~~**立即处理**: 解决 #0 AI 评价不可用~~ ✅ 已完成
+2. ~~**本周内**: 修复 #1 前端样式缓存 + 更新 #3 README 启动文档~~ ✅ 已完成
+3. **下个迭代**: 按 #9 固化评价规范（先做 9.1 权重锚点和 9.2 Prompt 契约，其他逐步推）
 4. **再下一轮**: 按 #10 升级评价页 UI（先做 10.1 信息层级，10.3 动效最后做）
 5. **方法论迭代**: 按 #11 逐场景引入方法论（先做 11.1 Timeboxing + 11.5 架构，再推其他场景）

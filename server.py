@@ -466,21 +466,25 @@ def build_done(req: ChatRequest) -> ChatResponse:
     return ChatResponse(reply=reply, screen="done", task=req.task, steps=req.steps, current_step=len(req.steps))
 
 
-class NoCacheHtmlMiddleware(BaseHTTPMiddleware):
-    """对 HTML 响应添加禁用缓存头，防止 index.html 被浏览器/Service Worker 缓存。"""
+class NoCacheMiddleware(BaseHTTPMiddleware):
+    """HTML/SW 禁用缓存；CSS/JS 短缓存 + must-revalidate。"""
 
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
-        content_type = response.headers.get("content-type", "")
-        if "text/html" in content_type:
+        ct = response.headers.get("content-type", "")
+        path = request.url.path
+        # HTML + Service Worker 文件必须永不缓存
+        if "text/html" in ct or path.endswith("/sw.js") or path.endswith("/registerSW.js"):
             response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, private"
             response.headers["Pragma"] = "no-cache"
             response.headers["Expires"] = "0"
+        elif "javascript" in ct or "css" in ct:
+            response.headers["Cache-Control"] = "max-age=300, must-revalidate"
         return response
 
 
 app = FastAPI(title="破冰协议 API", default_response_class=UTF8JSONResponse)
-app.add_middleware(NoCacheHtmlMiddleware)
+app.add_middleware(NoCacheMiddleware)
 
 
 @app.post("/api/chat", response_model=ChatResponse)
@@ -760,6 +764,27 @@ class ReviewRequest(BaseModel):
     protocol_strength: str | None = None
 
 
+class ReviewDimension(BaseModel):
+    key: str
+    name: str = ""
+    desc: str = ""
+    score: int = Field(ge=1, le=5)
+    comment: str = ""
+
+
+class ReviewResponse(BaseModel):
+    total: int = Field(ge=0)
+    max: int = Field(default=25)
+    verdict: str = ""
+    summary: str = ""
+    strengths: list[str] = Field(default_factory=list)
+    issues: list[str] = Field(default_factory=list)
+    priority_fix: str = ""
+    dimensions: list[ReviewDimension] = Field(default_factory=list)
+    mode: str = "ai"
+    error: str | None = None
+
+
 def _fallback_review(payload: ReviewRequest) -> dict:
     steps = payload.steps or []
     filled = sum(1 for s in steps if len(normalize_text(s.user_output)) >= 5)
@@ -786,6 +811,9 @@ def _fallback_review(payload: ReviewRequest) -> dict:
 
 
 def _ai_review(payload: ReviewRequest) -> dict:
+    if client is None:
+        return {"error": "api_key_missing"}
+
     prompt = REVIEW_PROMPT.format(
         dimensions=json.dumps(REVIEW_DIMENSIONS, ensure_ascii=False),
         payload=json.dumps(payload.model_dump(), ensure_ascii=False)[:9000],
@@ -796,22 +824,71 @@ def _ai_review(payload: ReviewRequest) -> dict:
             messages=[{"role": "user", "content": prompt}],
             max_tokens=1200,
             temperature=0.2,
+            timeout=30.0,
         )
         raw = (response.choices[0].message.content or "").strip()
         match = re.search(r"\{.*\}", raw, flags=re.S)
-        return json.loads(match.group(0)) if match else {}
-    except Exception:
-        return {}
+        if not match:
+            return {"error": "invalid_response", "detail": "AI 返回内容无法解析为 JSON"}
+        return json.loads(match.group(0))
+    except Exception as exc:
+        import logging
+        logging.getLogger("icebreaker").warning("AI review failed: %s", exc)
+        error_type = "invalid_response"
+        msg = str(exc).lower()
+        name = type(exc).__name__.lower()
+        if "timeout" in name or "timeout" in msg:
+            error_type = "timeout"
+        elif "auth" in name or "401" in msg or "403" in msg:
+            error_type = "api_key_invalid"
+        elif "connect" in name or "connect" in msg:
+            error_type = "connection_error"
+        return {"error": error_type, "detail": str(exc)[:200]}
 
 
-@app.post("/api/review")
+@app.post("/api/review", response_model=ReviewResponse)
 async def review(req: ReviewRequest):
-    result = _ai_review(req) if client else {}
-    if not result:
-        result = _fallback_review(req)
+    result = _ai_review(req)
+
+    if result and "error" not in result:
+        # 钳制 AI 返回的分数到 1-5 范围
+        for dim in result.get("dimensions", []):
+            if "score" in dim:
+                dim["score"] = max(1, min(5, int(dim["score"])))
+        # 补全 AI 可能省略的字段
+        dims = result.get("dimensions", [])
+        result.setdefault("total", sum(d.get("score", 0) for d in dims))
+        result.setdefault("max", len(dims) * 5 if dims else 25)
+        result.setdefault("verdict", "")
+        result.setdefault("summary", "")
+        result.setdefault("strengths", [])
+        result.setdefault("issues", [])
+        result.setdefault("priority_fix", "")
+        result.setdefault("mode", "ai")
+        return result
+
+    error_type = result.get("error", "unknown") if result else "unknown"
+    fallback = _fallback_review(req)
+    fallback["mode"] = "local"
+    fallback["error"] = error_type
+    return fallback
+
+
+@app.get("/api/key-status")
+async def key_status():
+    """检查 AI API Key 配置状态和连通性。"""
     if not client:
-        result["mode"] = "local"
-    return result
+        return {"configured": False}
+    try:
+        client.chat.completions.create(
+            model=MODEL,
+            messages=[{"role": "user", "content": "hi"}],
+            max_tokens=5,
+            timeout=10.0,
+        )
+        return {"configured": True, "valid": True}
+    except Exception:
+        return {"configured": True, "valid": False}
 
 
 demo_dir = Path(__file__).parent / "demo"

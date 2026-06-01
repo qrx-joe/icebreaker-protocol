@@ -1869,3 +1869,15 @@ body:has(#pageLanding.active) .protocol-actions button {
     flex: 0 0 auto;
   }
 }
+
+/* ===== API Key Status ===== */
+.api-key-status {
+  margin-top: 0.4rem;
+  font-size: 0.85rem;
+  padding: 0.5rem 0.8rem;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.03);
+}
+.api-key-status.success { color: #34d399; }
+.api-key-status.error { color: #f87171; }
+.api-key-status.warning { color: #fbbf24; }

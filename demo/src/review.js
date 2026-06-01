@@ -216,8 +216,16 @@ export async function showReview() {
 
   try {
     const data = await requestAIReview()
-    if (data.mode === 'local') {
-      showToast('当前为本地演示模式：未配置 AI API Key，评价由预设规则生成。', 'warning', 6000)
+    if (data.mode === 'local' || data.error) {
+      const msgs = {
+        api_key_missing: '未配置 AI API Key。请在 .env 中设置 DEEPSEEK_API_KEY。',
+        api_key_invalid: 'AI API Key 无效或已过期，请检查 .env 中的 DEEPSEEK_API_KEY。',
+        timeout: 'AI 评价请求超时，请检查网络后重试。',
+        connection_error: '无法连接 AI 服务，请检查网络或 API 地址。',
+        invalid_response: 'AI 返回格式异常，已使用本地评价。',
+        unknown: 'AI 评价不可用，已使用本地规则评价。',
+      }
+      showToast(msgs[data.error] || msgs.unknown, 'warning', 8000)
     }
     state.latestReview = normalizeReview(data)
   } catch (e) {

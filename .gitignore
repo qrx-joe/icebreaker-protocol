@@ -85,3 +85,6 @@ materials/tools/
 
 # Project archives (bloated, don't commit)
 *.zip
+
+# Demo lock file (frontend project, not Python)
+demo/uv.lock
