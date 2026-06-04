@@ -2,21 +2,27 @@
 
 > 当前版本: v2.0.0 | 最后更新: 2026-06-01
 
-> ✅ #0~#4 已全部修复。下一步按 #9 → #10 → #11 推进。
+> ⚠️ #0 AI 评价仍有问题（后端正常，前端浏览器缓存未解决），#1~#4 已修复。
 
 ---
 
 ## 🔴 高优先级（阻塞/影响核心体验）
 
-### 0. AI 评价始终显示"暂不可用" ✅ 已修复
-**状态**: ✅ 已修复（2026-06-01）
-**修复内容**:
-- [x] `_ai_review()` 异常时返回具体错误类型（`api_key_missing` / `api_key_invalid` / `timeout` / `connection_error` / `invalid_response`）+ 日志输出
-- [x] `/api/review` 路由重构：成功时 `mode="ai"`，失败时统一 fallback + `mode="local"` + `error` 类型
-- [x] 前端 `review.js` 根据 `data.error` 显示不同的引导文案（6 种错误类型对应 6 条提示）
-- [x] 新增 `/api/key-status` GET 端点，返回 AI Key 配置状态和连通性
-- [x] 设置面板新增"AI 接口"section，显示 Key 状态（已连接 / Key 无效 / 未配置）
-- [x] AI 成功时补全可能缺失的字段（total/max/verdict 等），钳制分数到 1-5
+### 0. AI 评价始终显示"暂不可用" ❌ 仍有问题
+**状态**: ❌ 仍未解决（2026-06-01）
+**已知线索**:
+- [x] 后端 API 测试正常：`curl /api/review` 返回 `mode="ai"`，AI 评价数据完整
+- [x] `/api/key-status` 返回 `{"configured":true,"valid":true}`
+- [x] 服务器日志显示浏览器请求的是旧版 CSS (`index-WbouPhS_.css`)——证明浏览器还在用旧 SW
+- [x] `main.js` 增加了 `purgeStaleSW` 自动清理逻辑（检测旧缓存 → 清理 → 注销 SW → 刷新）
+- [ ] **但用户浏览器端仍然显示 fallback 文案"AI评价暂时不可用"**
+
+**待排查**:
+- [ ] `purgeStaleSW` 是否在用户浏览器中实际执行？（旧 SW 可能阻止了新 JS 加载）
+- [ ] 用户是否在用开发模式（`npm run dev` port 3000）而非生产模式（`uv run icebreaker-demo` port 8000）？
+- [ ] 开发模式下 Vite 不服务 dist/，而是直接服务 src/——`purgeStaleSW` 在 src 中但旧 SW 可能缓存了旧页面
+- [ ] 是否需要手动让用户执行：DevTools → Application → Service Workers → Unregister → 刷新？
+- [ ] 或者更彻底：DevTools → Application → Clear Storage → Clear site data？
 
 ---
 
@@ -239,7 +245,7 @@
 
 ## 🚀 推荐下一步行动
 
-1. ~~**立即处理**: 解决 #0 AI 评价不可用~~ ✅ 已完成
+1. **立即处理**: 解决 #0 AI 评价前端缓存问题（后端已正常，浏览器端仍显示 fallback）
 2. ~~**本周内**: 修复 #1 前端样式缓存 + 更新 #3 README 启动文档~~ ✅ 已完成
 3. **下个迭代**: 按 #9 固化评价规范（先做 9.1 权重锚点和 9.2 Prompt 契约，其他逐步推）
 4. **再下一轮**: 按 #10 升级评价页 UI（先做 10.1 信息层级，10.3 动效最后做）
