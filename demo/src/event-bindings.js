@@ -67,6 +67,7 @@ export function bindEvents() {
     const output = btn.dataset.output
     if (output) btn.addEventListener('click', () => window.setOutputMode(output))
   })
+  document.getElementById('btnResetLocalCache')?.addEventListener('click', window.resetLocalCache)
 
   // ==================== History ====================
   document.querySelector('#historyPanel .btn-export')?.addEventListener('click', window.clearHistory)

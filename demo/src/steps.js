@@ -161,7 +161,7 @@ async function fetchProactiveSuggestion(idx) {
       body: JSON.stringify({
         message: `基于用户前序产出，为当前步骤给出一句具体的开场建议（不超过30字）。不要复读步骤说明。\n\n前序产出：\n${context}\n\n当前步骤：${step.title}\n要求产出：${step.output}`,
         phase: 'step',
-        task: currentTask,
+        task: state.currentTask,
         steps: state.steps,
         current_step: idx,
         outputs: state.stepOutputs,

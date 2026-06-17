@@ -57,6 +57,8 @@ function normalizeReview(data) {
     issues: Array.isArray(data.issues) && data.issues.length ? data.issues.slice(0, 4) : fallback.issues,
     priority_fix: String(data.priority_fix || fallback.priority_fix).trim(),
     dimensions,
+    mode: data.mode === 'local' ? 'local' : 'ai',
+    error: data.error || null,
   }
 }
 
@@ -118,7 +120,15 @@ function renderLoading() {
 }
 
 function renderAIReview(review) {
+  const sourceLabel = review.mode === 'local' ? '本地规则评价' : 'AI 评价'
+  const sourceDesc = review.mode === 'local'
+    ? '本次结果由本地规则生成，只能粗略判断完成度。配置并连通 AI Key 后可获得更具体的产出分析。'
+    : '本次结果由 AI 根据完整任务、步骤要求和实际产出生成。'
   document.getElementById('reviewResult').innerHTML = `
+    <div class="ai-review-source ${review.mode === 'local' ? 'local' : 'ai'}">
+      <strong>${sourceLabel}</strong>
+      <span>${sourceDesc}</span>
+    </div>
     <div class="ai-review-summary">
       <div class="review-total-score">${review.total}<span class="review-total-max">/${review.max}</span></div>
       <div>
@@ -160,6 +170,7 @@ function buildMarkdownReport(review) {
   const lines = [
     `# AI 产出质量评价：${state.currentTask || '未命名任务'}`,
     '',
+    `- 评价来源：${review.mode === 'local' ? '本地规则评价' : 'AI 评价'}`,
     `- 总分：${review.total}/${review.max}`,
     `- 结论：${review.verdict}`,
     '',

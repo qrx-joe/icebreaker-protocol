@@ -1,4 +1,5 @@
 import { state, saveSettings, saveSnapshot } from './state.js'
+import { showModal, showToast } from './notify.js'
 // ==================== 设置面板 ====================
 export function openSettingsPanel() {
   updateProtocolStrengthUI();
@@ -91,6 +92,30 @@ export async function updateApiKeyStatus() {
   }
 }
 
+export async function resetLocalCache() {
+  const confirmed = await showModal({
+    title: '刷新本地缓存',
+    body: '这会清理浏览器里的旧 Service Worker 和缓存，然后重新加载页面。当前未结案的输入可能会丢失。',
+    confirmText: '清理并刷新',
+    cancelText: '取消',
+  })
+  if (!confirmed) return
+
+  try {
+    if ('caches' in window) {
+      const names = await caches.keys()
+      await Promise.all(names.map((name) => caches.delete(name)))
+    }
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations()
+      await Promise.all(registrations.map((registration) => registration.unregister()))
+    }
+    window.location.reload()
+  } catch (e) {
+    showToast('缓存清理失败，请手动刷新页面后重试。', 'error', 6000)
+  }
+}
+
 // Legacy bridge
 window.openSettingsPanel = openSettingsPanel;
 window.setTimePreference = setTimePreference;
@@ -100,3 +125,4 @@ window.updateOutputModeUI = updateOutputModeUI;
 window.setProtocolStrength = setProtocolStrength;
 window.updateProtocolStrengthUI = updateProtocolStrengthUI;
 window.closeProtocolPanel = closeProtocolPanel;
+window.resetLocalCache = resetLocalCache;

@@ -181,7 +181,7 @@ export async function startImprovement() {
       }
     } catch (e) { /* fallback */ }
 
-    improvementTargetIdx = targetIdx;
+    state.improvementTargetIdx = targetIdx;
     showImprovementRoadmap(targetIdx, instruction);
   } catch (err) {
     document.getElementById('doneAiMsg').textContent = '分析失败，请重试。';
@@ -228,7 +228,7 @@ export function showImprovementRoadmap(targetIdx, instruction) {
 export function confirmImprovement() {
   // 恢复 Roadmap 为常规模式
   resetRoadmapMode();
-  goToStep(improvementTargetIdx);
+  goToStep(state.improvementTargetIdx);
 }
 
 export function skipImprovement() {
