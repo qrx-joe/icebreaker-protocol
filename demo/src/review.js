@@ -33,6 +33,9 @@ function fallbackReview() {
     issues: ['需要补充更明确的边界、验收标准和面向受众的表达。'],
     priority_fix: '先补齐最薄弱的一步：让它有一个别人能看懂的具体产出。',
     dimensions,
+    mode: 'local',
+    error: 'client_fallback',
+    prompt_version: 'review_v1',
   }
 }
 
@@ -59,6 +62,7 @@ function normalizeReview(data) {
     dimensions,
     mode: data.mode === 'local' ? 'local' : 'ai',
     error: data.error || null,
+    prompt_version: String(data.prompt_version || fallback.prompt_version || 'review_v1').trim(),
   }
 }
 
@@ -171,6 +175,7 @@ function buildMarkdownReport(review) {
     `# AI 产出质量评价：${state.currentTask || '未命名任务'}`,
     '',
     `- 评价来源：${review.mode === 'local' ? '本地规则评价' : 'AI 评价'}`,
+    `- Prompt 版本：${review.prompt_version}`,
     `- 总分：${review.total}/${review.max}`,
     `- 结论：${review.verdict}`,
     '',

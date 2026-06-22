@@ -24,6 +24,8 @@ os.environ.pop("OPENAI_API_KEY", None)
 
 import server  # noqa: E402
 import _common as vercel  # noqa: E402  demo/api/_common.py
+import review_contract  # noqa: E402
+import review as vercel_review  # noqa: E402  demo/api/review.py
 
 
 # ───────────────────────── 测试用例:任务样本 ─────────────────────────
@@ -105,22 +107,12 @@ class StepDecompositionContract(unittest.TestCase):
                 steps = vercel.infer_steps(task, time_preference="compact")
                 self._check_steps(steps, f"vercel-compact::{task}")
 
-    def test_vercel_infer_steps_loose_mode_violates_upper_bound(self):
-        """已知偏差:loose 模式 max_min=20,会违反 SKILL.md 的 15 分钟上限。
-
-        这条测试用 expectedFailure 标记,持续提醒需要修复(对齐 SKILL.md)。
-        """
+    def test_vercel_infer_steps_loose_mode_still_in_range(self):
+        """loose 时间偏好下,minutes 仍应落在 SKILL.md 1-15 区间内。"""
         for task in TASK_SAMPLES:
-            steps = vercel.infer_steps(task, time_preference="loose")
-            for step in steps:
-                if step["minutes"] > self.MAX_MINUTES:
-                    return  # 至少有一步违反 → expectedFailure 视为成功
-        self.fail("loose 模式没有违反 15 分钟上限——可能已经修复,请去掉 expectedFailure 装饰器")
-
-    # 真正的 expectedFailure 等价物:把上面这条挂上装饰器
-    test_vercel_infer_steps_loose_mode_violates_upper_bound = unittest.expectedFailure(
-        test_vercel_infer_steps_loose_mode_violates_upper_bound
-    )
+            with self.subTest(task=task, mode="loose"):
+                steps = vercel.infer_steps(task, time_preference="loose")
+                self._check_steps(steps, f"vercel-loose::{task}")
 
 
 # ──────────────────────── C4-C7: API 路由契约 ────────────────────────
@@ -252,6 +244,53 @@ class CrossEndAlignment(unittest.TestCase):
                     s, v,
                     f"[{desc}] 跨端不一致:server={s} vs vercel={v}",
                 )
+
+
+# ──────────────────────── C9: Review 契约共享 ────────────────────────
+
+class ReviewContractAlignment(unittest.TestCase):
+    """产出评价的维度、fallback 与 prompt version 必须跨端一致。"""
+
+    PAYLOAD = {
+        "task": "测试任务",
+        "steps": [
+            {
+                "index": 0,
+                "title": "写一个初稿",
+                "instruction": "写下可见产出",
+                "expected_output": "初稿",
+                "user_output": "已经写出一个可见初稿",
+            }
+        ],
+    }
+
+    def test_server_and_vercel_fallback_share_contract(self):
+        req = server.ReviewRequest(**self.PAYLOAD)
+        server_result = review_contract.complete_review_response(
+            review_contract.fallback_review(req),
+            mode="local",
+            error="api_key_missing",
+        )
+        vercel_result = review_contract.complete_review_response(
+            review_contract.fallback_review(self.PAYLOAD),
+            mode="local",
+            error="api_key_missing",
+        )
+        self.assertEqual(
+            [item["key"] for item in server_result["dimensions"]],
+            [item["key"] for item in vercel_result["dimensions"]],
+        )
+        self.assertEqual(server_result["prompt_version"], vercel_result["prompt_version"])
+        self.assertEqual(server_result["prompt_version"], review_contract.REVIEW_PROMPT_VERSION)
+
+    def test_vercel_review_uses_shared_prompt_builder(self):
+        prompt = vercel_review.build_review_prompt(self.PAYLOAD)
+        self.assertEqual(
+            review_contract.fallback_review(self.PAYLOAD)["prompt_version"],
+            review_contract.REVIEW_PROMPT_VERSION,
+        )
+        self.assertIn("completion", prompt)
+        self.assertIn("测试任务", prompt)
 
 
 # ───────────────── 已知不一致:用 expectedFailure 暴露 ─────────────────

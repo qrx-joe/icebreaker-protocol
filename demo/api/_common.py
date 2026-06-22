@@ -125,7 +125,7 @@ def try_ai_plan(task, attachments=None, time_preference='standard', output_mode=
     # 根据时间偏好生成时间规则说明
     time_rules = {
         'compact': '每步 1 到 8 分钟，尽量控制在 3 分钟以内，节奏紧凑',
-        'loose': '每步 3 到 20 分钟，复杂步骤可以给更多时间，节奏宽松',
+        'loose': '每步 3 到 15 分钟，复杂任务通过增加步骤数量处理，节奏宽松',
     }.get(time_preference, '每步 1 到 15 分钟，根据难度合理分配')
 
     # 根据产出模式生成步骤规则说明
@@ -164,7 +164,7 @@ def try_ai_plan(task, attachments=None, time_preference='standard', output_mode=
     # 系数映射
     multiplier = {'compact': 0.6, 'loose': 1.5}.get(time_preference, 1.0)
     min_min = 1 if time_preference == 'compact' else 3
-    max_min = 8 if time_preference == 'compact' else (20 if time_preference == 'loose' else 15)
+    max_min = 8 if time_preference == 'compact' else 15
 
     # 产出模式影响步骤数
     step_limits = {
@@ -246,7 +246,7 @@ def infer_steps(task, time_preference='standard', output_mode='deliverable'):
 
     multiplier = {'compact': 0.6, 'loose': 1.5}.get(time_preference, 1.0)
     min_min = 1 if time_preference == 'compact' else 3
-    max_min = 8 if time_preference == 'compact' else (20 if time_preference == 'loose' else 15)
+    max_min = 8 if time_preference == 'compact' else 15
 
     def adjust(minutes):
         return max(min_min, min(int(round(minutes * multiplier)), max_min))

@@ -192,7 +192,7 @@ cp .env.example .env
 uv run python -m unittest discover tests -v
 ```
 
-覆盖 8 条硬规则（步骤数 3-6、单步时长 1-15 分钟、screen 路由、关键词触发），5 秒跑完。已知偏差以 `expectedFailure` 标记。详见 `tests/README.md`。
+覆盖步骤数 3-6、单步时长 1-15 分钟、screen 路由、关键词触发、评价契约共享等硬规则，数秒内跑完。已知偏差以 `expectedFailure` 标记。详见 `tests/README.md`。
 
 ---
 

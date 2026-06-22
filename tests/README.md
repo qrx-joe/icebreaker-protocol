@@ -26,8 +26,9 @@
 | C6 | done 信号返回 screen=done | server.py L479 | ✅ | ✅ | — |
 | C7 | thinking_delay 返回 thinking_budget_seconds=300 | server.py L444 | ✅ | — | — |
 | C8 | server.py 与 demo/api 对同一输入返回相同 screen | 跨端对齐 | — | — | — |
+| C9 | 评价 fallback 与 prompt version 共享契约 | `review_contract.py` | ✅ | ✅ | — |
 
-`thinking_budget_seconds=300` 字段 demo/api 没有等价实现,这本身就是一个**已知不对齐**——测试会标记为 `xfail`(预期失败,但不阻断 CI),持续提醒需要补齐。
+agreement / done 关键词仍有两条已知跨端漂移测试，以 `expectedFailure` 标记；一旦修复对齐，测试会提示 unexpected success。
 
 ## 运行
 

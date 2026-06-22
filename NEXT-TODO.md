@@ -1,6 +1,6 @@
 # 破冰协议 · Next To-Do
 
-> 当前版本: v2.0.0 | 最后更新: 2026-06-01
+> 当前版本: v2.3.0-dev | 最后更新: 2026-06-18
 
 > ⚠️ #0 AI 评价仍有问题（后端正常，前端浏览器缓存未解决），#1~#4 已修复。
 
@@ -32,7 +32,7 @@
 - [x] `NoCacheHtmlMiddleware` 扩展为 `NoCacheMiddleware`：HTML 禁用缓存；CSS/JS 设置 `max-age=300, must-revalidate`
 - [x] `skipWaiting` + `clientsClaim` + `cleanupOutdatedCaches` 已在 vite.config.js 中配置（无需修改）
 - [ ] 或在 FastAPI 中为 `index.html` 单独设置无缓存响应头（而非通过 `StaticFiles`）
-- [ ] 考虑在 `index.html` 中添加版本戳查询参数（如 `?v=2.0.0`）强制刷新
+- [ ] 考虑在 `index.html` 中添加版本戳查询参数（如 `?v=2.3.0-dev`）强制刷新
 
 **验证方式**: 关闭浏览器后重新打开，首次访问即显示深色主题样式
 

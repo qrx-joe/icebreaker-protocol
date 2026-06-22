@@ -2,6 +2,9 @@
 
 ## v2.3.0-dev (2026-05-31)
 
+- 统一版本号口径：Python 包版本更新为 `2.3.0.dev0`，文档展示版本统一为 `v2.3.0-dev`。
+- 抽出产出质量评价共享契约：`server.py` 与 `demo/api/review.py` 共用 `review_contract.py` 中的评价维度、prompt 版本、fallback 和响应补全逻辑。
+- 评价响应新增 `prompt_version` 字段，前端导出的 Markdown 报告可追踪评价契约版本。
 - 文档同步：SKILL.md 补充协议设置（时间偏好/产出模式/协议强度）、三阶段计时器、碎纸机模式、停滞自动介入、附件上下文、语音输入、产出质量评价、会话持久化等代码已实现但协议文档未记录的功能。
 - 修复步骤数约束：`server.py` AI 拆解验证从 3-5 步修正为 3-6 步，`demo/api/_common.py` prompt 同步修正，与 SKILL.md 对齐。
 - README 重写：补充精确技术栈版本号、技术亮点（强调 why 而非 what）、功能状态表、项目结构。

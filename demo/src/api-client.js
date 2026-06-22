@@ -13,6 +13,7 @@ function showLoading() {
   if (!el) {
     el = document.createElement('div')
     el.id = 'api-loading-overlay'
+    el.className = 'api-loading-overlay'
     el.innerHTML = `
       <div class="api-loading-spinner">
         <div class="spinner-ring"></div>

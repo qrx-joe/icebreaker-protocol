@@ -30,6 +30,13 @@ from openai import OpenAI
 from pydantic import BaseModel, Field
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from review_contract import (
+    REVIEW_PROMPT_VERSION,
+    build_review_prompt,
+    complete_review_response,
+    fallback_review,
+)
+
 load_dotenv()
 
 
@@ -704,50 +711,6 @@ async def summarize(req: SummarizeRequest):
         return SummarizeResponse(summary=req.user_content.strip()[:20])
 
 
-REVIEW_DIMENSIONS = [
-    {"key": "completion", "name": "完成度", "desc": "是否交付了每一步要求的可见产出"},
-    {"key": "clarity", "name": "清晰度", "desc": "别人能否快速理解产出在说什么、要做什么"},
-    {"key": "usefulness", "name": "可用性", "desc": "当前版本是否已经能被继续使用、修改或展示"},
-    {"key": "audience_fit", "name": "受众匹配", "desc": "是否命中目标受众或使用场景"},
-    {"key": "next_action", "name": "下一步明确度", "desc": "是否清楚下一刀应该改哪里"},
-]
-
-REVIEW_PROMPT = """你是破冰协议的产出质量评审员。
-评价用户的产出，不评价用户。
-
-只返回 JSON，不要 Markdown，不要 JSON 以外的文字。
-JSON 中所有自然语言值必须用简体中文。
-
-固定维度：
-{dimensions}
-
-JSON 结构：
-{{
-  "verdict": "一句话结论",
-  "summary": "2-3 句话描述当前质量水平",
-  "strengths": ["最多 3 个值得保留的优点"],
-  "issues": ["最多 4 个产出的具体问题"],
-  "priority_fix": "40 字以内的一个可执行修改指令",
-  "dimensions": [
-    {{"key":"completion","score":1,"comment":"原因"}},
-    {{"key":"clarity","score":1,"comment":"原因"}},
-    {{"key":"usefulness","score":1,"comment":"原因"}},
-    {{"key":"audience_fit","score":1,"comment":"原因"}},
-    {{"key":"next_action","score":1,"comment":"原因"}}
-  ]
-}}
-
-规则：
-- 不要自我评价，只评价产出。
-- 严格且可执行。
-- 不要安慰或空洞赞美。
-- 每个问题必须指向产出本身。
-- priority_fix 必须是唯一的最佳下一步修改。
-
-待评价内容：
-{payload}"""
-
-
 class ReviewStep(BaseModel):
     index: int
     title: str
@@ -783,41 +746,14 @@ class ReviewResponse(BaseModel):
     dimensions: list[ReviewDimension] = Field(default_factory=list)
     mode: str = "ai"
     error: str | None = None
-
-
-def _fallback_review(payload: ReviewRequest) -> dict:
-    steps = payload.steps or []
-    filled = sum(1 for s in steps if len(normalize_text(s.user_output)) >= 5)
-    total_steps = max(len(steps), 1)
-    base = max(2, min(4, round((filled / total_steps) * 5)))
-    dimensions = [
-        {**dim, "score": base, "comment": "已有可见产出，但还需要更具体的验收标准和表达打磨。"
-         if filled == total_steps else "部分步骤缺少足够清晰的产出，先补齐空白再谈优化。"}
-        for dim in REVIEW_DIMENSIONS
-    ]
-    if filled < total_steps:
-        dimensions[0]["score"] = 2
-        dimensions[0]["comment"] = "部分步骤还缺少足够具体的产出。"
-    return {
-        "total": sum(d["score"] for d in dimensions),
-        "max": len(dimensions) * 5,
-        "verdict": "能继续打磨" if filled == total_steps else "需要补齐产出",
-        "summary": "AI评价暂时不可用，已根据完成步骤做本地兜底判断。",
-        "strengths": ["已经完成了破冰流程，至少留下了可修改的版本。"],
-        "issues": ["需要补充更明确的边界、验收标准和面向受众的表达。"],
-        "priority_fix": "先补齐最薄弱的一步：让它有一个别人能看懂的具体产出。",
-        "dimensions": dimensions,
-    }
+    prompt_version: str = REVIEW_PROMPT_VERSION
 
 
 def _ai_review(payload: ReviewRequest) -> dict:
     if client is None:
         return {"error": "api_key_missing"}
 
-    prompt = REVIEW_PROMPT.format(
-        dimensions=json.dumps(REVIEW_DIMENSIONS, ensure_ascii=False),
-        payload=json.dumps(payload.model_dump(), ensure_ascii=False)[:9000],
-    )
+    prompt = build_review_prompt(payload)
     try:
         response = client.chat.completions.create(
             model=MODEL,
@@ -851,27 +787,10 @@ async def review(req: ReviewRequest):
     result = _ai_review(req)
 
     if result and "error" not in result:
-        # 钳制 AI 返回的分数到 1-5 范围
-        for dim in result.get("dimensions", []):
-            if "score" in dim:
-                dim["score"] = max(1, min(5, int(dim["score"])))
-        # 补全 AI 可能省略的字段
-        dims = result.get("dimensions", [])
-        result.setdefault("total", sum(d.get("score", 0) for d in dims))
-        result.setdefault("max", len(dims) * 5 if dims else 25)
-        result.setdefault("verdict", "")
-        result.setdefault("summary", "")
-        result.setdefault("strengths", [])
-        result.setdefault("issues", [])
-        result.setdefault("priority_fix", "")
-        result.setdefault("mode", "ai")
-        return result
+        return complete_review_response(result, mode="ai")
 
     error_type = result.get("error", "unknown") if result else "unknown"
-    fallback = _fallback_review(req)
-    fallback["mode"] = "local"
-    fallback["error"] = error_type
-    return fallback
+    return complete_review_response(fallback_review(req), mode="local", error=error_type)
 
 
 @app.get("/api/key-status")
